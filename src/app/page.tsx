@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../supabaseClient';
 import Image from 'next/image';
 
@@ -12,6 +13,7 @@ export default function Home() {
   const [isLogin, setIsLogin] = useState(true);
   const [message, setMessage] = useState('');
   const [darkMode, setDarkMode] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (darkMode) {
@@ -23,21 +25,44 @@ export default function Home() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setMessage(error.message);
     } else {
-      setMessage('Logged in successfully!');
+      const user = data.user;
+      if (user) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_host')
+          .eq('id', user.id)
+          .single();
+        if (profileError) {
+          setMessage('Error fetching user profile');
+        } else {
+          setMessage(`Logged in successfully! Hello, ${profile.is_host ? 'Skipper' : 'football fan'}`);
+          router.push('/dashboard');
+        }
+      }
     }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) {
       setMessage('Not signed up correctly');
     } else {
-      setMessage('Please check your email for a confirmation email.');
+      const user = data.user;
+      if (user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([{ id: user.id, is_host: false }]);
+        if (profileError) {
+          setMessage('Error setting user profile');
+        } else {
+          setMessage('Please check your email for a confirmation email.');
+        }
+      }
     }
   };
 
