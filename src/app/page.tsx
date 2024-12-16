@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../supabaseClient';
 import Image from 'next/image';
 
@@ -12,6 +13,7 @@ export default function Home() {
   const [isLogin, setIsLogin] = useState(true);
   const [message, setMessage] = useState('');
   const [darkMode, setDarkMode] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (darkMode) {
@@ -38,6 +40,7 @@ export default function Home() {
           setMessage('Error fetching user profile');
         } else {
           setMessage('Logged in successfully!');
+          router.push('/dashboard'); // Redirect to the dashboard page
         }
       }
     }
