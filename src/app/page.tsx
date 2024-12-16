@@ -39,8 +39,8 @@ export default function Home() {
         if (profileError) {
           setMessage('Error fetching user profile');
         } else {
-          setMessage(`Logged in successfully! Welcome, ${profile.username}`);
-          router.push('/dashboard'); // Redirect to the dashboard page
+          setMessage(`Logged in successfully! Hello, ${profile.is_host ? 'Skipper' : 'football fan'}`);
+          router.push('/dashboard');
         }
       }
     }
@@ -56,7 +56,7 @@ export default function Home() {
       if (user) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .insert([{ id: user.id, is_host: false }]); // Default is_host is false
+          .insert([{ id: user.id, is_host: false }]);
         if (profileError) {
           setMessage('Error setting user profile');
         } else {
