@@ -3,7 +3,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import { supabase } from '../../supabaseClient';
 import Image from 'next/image';
 
@@ -13,7 +12,6 @@ export default function Home() {
   const [isLogin, setIsLogin] = useState(true);
   const [message, setMessage] = useState('');
   const [darkMode, setDarkMode] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     if (darkMode) {
@@ -40,11 +38,6 @@ export default function Home() {
           setMessage('Error fetching user profile');
         } else {
           setMessage('Logged in successfully!');
-          if (profile.is_host) {
-            router.push('/dashboard/host');
-          } else {
-            router.push('/dashboard/player');
-          }
         }
       }
     }
@@ -60,7 +53,7 @@ export default function Home() {
       if (user) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .insert([{ id: user.id, is_host: false }]);
+          .insert([{ id: user.id, is_host: false }]); // Default is_host is false
         if (profileError) {
           setMessage('Error setting user profile');
         } else {
