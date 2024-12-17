@@ -2,26 +2,19 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../supabaseClient';
 import Image from 'next/image';
+import useDarkMode from '../hooks/useDarkMode';
 
 export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [message, setMessage] = useState('');
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useDarkMode();
   const router = useRouter();
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +32,7 @@ export default function Home() {
         if (profileError) {
           setMessage('Error fetching user profile');
         } else {
-          setMessage(`Logged in successfully! Hello, ${profile.is_host ? 'Skipper' : 'football fan'}`);
+          setMessage(`Logged in successfully! Hello, ${profile.is_host ? 'Skipper' : 'Football Fan'}`);
           router.push('/dashboard');
         }
       }

@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../supabaseClient';
 import Image from 'next/image';
+import useDarkMode from '../../hooks/useDarkMode';
 
 type UserProfile = {
   id: string;
@@ -15,15 +16,7 @@ type UserProfile = {
 export default function AdminPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [message, setMessage] = useState('');
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
+  const [darkMode, setDarkMode] = useDarkMode();
 
   useEffect(() => {
     const fetchUsers = async () => {
