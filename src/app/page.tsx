@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../supabaseClient';
-import DarkModeToggle from '../components/DarkModeToggle';
+import DarkModeToggle from '../components/darkModeToggle';
 
 export default function Home() {
   const [email, setEmail] = useState('');

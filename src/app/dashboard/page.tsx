@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../supabaseClient';
-import DarkModeToggle from '../../components/DarkModeToggle';
+import DarkModeToggle from '../../components/darkModeToggle';
 import LeagueTable from '../../components/LeagueTable';
 import Sidebar from '../../components/Sidebar';
 
