@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
 import DarkModeToggle from '../../components/DarkModeToggle';
-import LeagueTable from '../../components/leagueTable';
+import LeagueTable from '../../components/LeagueTable';
 import Sidebar from '../../components/Sidebar';
 
 type UserProfile = {
