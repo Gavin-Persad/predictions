@@ -54,7 +54,7 @@ export default function DashboardPage() {
           <DarkModeToggle />
         </div>
         <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl">
-          <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Current Season</h1>
+          <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Current Season 25/26</h1>
           {message && <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>}
           <LeagueTable />
         </div>
