@@ -30,8 +30,10 @@ export default function Home() {
         if (profileError) {
           setMessage('Error fetching user profile');
         } else {
-          setMessage(`Logged in successfully! Hello, ${profile.is_host ? 'Skipper' : 'Football Fan'}`);
-          router.push('/dashboard');
+          setMessage(`Logged in successfully! Hello, ${profile.is_host ? 'Skipper!!!' : 'Football Fan!!!'}`);
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 2500);
         }
       }
     }
