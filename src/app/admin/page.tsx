@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../supabaseClient';
-import Image from 'next/image';
+import DarkModeToggle from '../../components/darkModeToggle';
 import useDarkMode from '../../hooks/useDarkMode';
 
 type UserProfile = {
@@ -36,16 +36,7 @@ export default function AdminPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="absolute top-4 right-4">
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className="p-2 bg-gray-200 dark:bg-gray-800 rounded-full focus:outline-none"
-        >
-          {darkMode ? (
-            <Image src="/icons/darkMode/sun.png" alt="Light Mode" width={24} height={24} />
-          ) : (
-            <Image src="/icons/darkMode/moon.png" alt="Dark Mode" width={24} height={24} />
-          )}
-        </button>
+        <DarkModeToggle />
       </div>
       <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Admin Page</h1>

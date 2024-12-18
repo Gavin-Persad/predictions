@@ -5,8 +5,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
-import Image from 'next/image';
-import useDarkMode from '../../hooks/useDarkMode';
+import DarkModeToggle from '../../components/darkModeToggle';
+import LeagueTable from '../../components/leagueTable';
+import Link from 'next/link';
 
 type UserProfile = {
   id: string;
@@ -17,14 +18,13 @@ type UserProfile = {
 export default function DashboardPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [message, setMessage] = useState('');
-  const [darkMode, setDarkMode] = useDarkMode();
   const router = useRouter();
 
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
       if (error || !session) {
-        setMessage('Error fetching session');
+        setMessage('');
         return;
       }
 
@@ -58,7 +58,7 @@ export default function DashboardPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="absolute top-4 left-4">
-        {profile && (
+        {profile ? (
           <>
             <p className="text-lg text-gray-900 dark:text-gray-100">Hello, {profile.username}</p>
             <button
@@ -68,19 +68,14 @@ export default function DashboardPage() {
               Sign Out
             </button>
           </>
+        ) : (
+          <Link href="/" className="text-lg text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200">
+            Click here to log in
+          </Link>
         )}
       </div>
       <div className="absolute top-4 right-4">
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className="p-2 bg-gray-200 dark:bg-gray-800 rounded-full focus:outline-none"
-        >
-          {darkMode ? (
-            <Image src="/icons/darkMode/sun.png" alt="Light Mode" width={24} height={24} />
-          ) : (
-            <Image src="/icons/darkMode/moon.png" alt="Dark Mode" width={24} height={24} />
-          )}
-        </button>
+        <DarkModeToggle />
       </div>
       <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl">
         <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Dashboard</h1>
@@ -105,27 +100,7 @@ export default function DashboardPage() {
             </button>
           </div>
         )}
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white dark:bg-gray-800">
-            <thead>
-              <tr>
-                <th className="py-2 text-gray-700 dark:text-gray-300">Player</th>
-                <th className="py-2 text-gray-700 dark:text-gray-300">Club</th>
-                <th className="py-2 text-gray-700 dark:text-gray-300">Correct Scores</th>
-                <th className="py-2 text-gray-700 dark:text-gray-300">Points</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* Placeholder for league table data */}
-              <tr>
-                <td className="py-2 text-gray-900 dark:text-gray-100">-</td>
-                <td className="py-2 text-gray-900 dark:text-gray-100">-</td>
-                <td className="py-2 text-gray-900 dark:text-gray-100">-</td>
-                <td className="py-2 text-gray-900 dark:text-gray-100">-</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <LeagueTable />
       </div>
     </div>
   );

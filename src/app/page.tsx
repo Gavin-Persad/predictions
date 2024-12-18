@@ -6,14 +6,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../supabaseClient';
 import Image from 'next/image';
-import useDarkMode from '../hooks/useDarkMode';
+import DarkModeToggle from '../components/darkModeToggle';
 
 export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [message, setMessage] = useState('');
-  const [darkMode, setDarkMode] = useDarkMode();
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -62,16 +61,7 @@ export default function Home() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="absolute top-4 right-4">
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className="p-2 bg-gray-200 dark:bg-gray-800 rounded-full focus:outline-none"
-        >
-          {darkMode ? (
-            <Image src="/icons/darkMode/sun.png" alt="Light Mode" width={24} height={24} />
-          ) : (
-            <Image src="/icons/darkMode/moon.png" alt="Dark Mode" width={24} height={24} />
-          )}
-        </button>
+        <DarkModeToggle />
       </div>
       <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">{isLogin ? 'Login' : 'Sign Up'}</h1>
