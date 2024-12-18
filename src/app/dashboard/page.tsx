@@ -69,9 +69,11 @@ export default function DashboardPage() {
             </button>
           </>
         ) : (
-          <Link href="/" className="text-lg text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200">
-            Click here to log in
-          </Link>
+            <Link href="/">
+            <span className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 cursor-pointer">
+                Click here to log in
+            </span>
+            </Link>
         )}
       </div>
       <div className="absolute top-4 right-4">

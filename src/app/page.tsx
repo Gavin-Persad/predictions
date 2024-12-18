@@ -5,7 +5,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../supabaseClient';
-import Image from 'next/image';
 import DarkModeToggle from '../components/darkModeToggle';
 
 export default function Home() {
