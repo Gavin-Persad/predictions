@@ -115,4 +115,4 @@ export default function Sidebar({ username, isHost }: SidebarProps) {
       </div>
     </div>
   );
-}
+};
