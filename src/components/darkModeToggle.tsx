@@ -1,4 +1,4 @@
-// src/components/DarkModeToggle.tsx
+// src/components/darkModeToggle.tsx
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';

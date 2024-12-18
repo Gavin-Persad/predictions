@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../supabaseClient';
 import DarkModeToggle from '../../components/darkModeToggle';
-import LeagueTable from '../../components/LeagueTable';
+import LeagueTable from '../../components/leagueTable';
 import Sidebar from '../../components/Sidebar';
 
 type UserProfile = {
