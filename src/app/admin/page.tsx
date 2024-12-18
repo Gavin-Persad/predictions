@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../supabaseClient';
-import DarkModeToggle from '../../components/darkModeToggle';
+import DarkModeToggle from '../../components/DarkModeToggle';
 
 type UserProfile = {
   id: string;
