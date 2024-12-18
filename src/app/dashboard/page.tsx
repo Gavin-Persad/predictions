@@ -3,7 +3,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
 import DarkModeToggle from '../../components/DarkModeToggle';
 import LeagueTable from '../../components/LeagueTable';
@@ -18,7 +17,6 @@ type UserProfile = {
 export default function DashboardPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [message, setMessage] = useState('');
-  const router = useRouter();
 
   useEffect(() => {
     const fetchProfile = async () => {
