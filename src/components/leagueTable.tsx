@@ -1,4 +1,4 @@
-// src/components/LeagueTable.tsx
+// src/components/leagueTable.tsx
 
 export default function LeagueTable() {
     return (
