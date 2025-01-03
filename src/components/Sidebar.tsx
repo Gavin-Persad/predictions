@@ -87,7 +87,7 @@ export default function Sidebar({ username, isHost, loggedIn }: SidebarProps) {
               <>
                 <li className="mb-2">
                   <Link href="/dashboard">
-                    <span className="block px-4 py-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded cursor-pointer">Home</span>
+                    <span className="block px-4 py-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded cursor-pointer">Dashboard</span>
                   </Link>
                 </li>
                 <li className="mb-2">
