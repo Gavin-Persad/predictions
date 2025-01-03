@@ -1,8 +1,6 @@
-// src/app/page.tsx
-
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../supabaseClient';
 import DarkModeToggle from '../components/darkModeToggle';
@@ -14,6 +12,17 @@ export default function Home() {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const router = useRouter();
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (session) {
+        router.push('/dashboard');
+      }
+    };
+
+    checkUser();
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,4 +134,4 @@ export default function Home() {
       </div>
     </div>
   );
-};
+}

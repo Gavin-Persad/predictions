@@ -18,8 +18,8 @@ export default function CreateSeason() {
   const [name, setName] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [players, setPlayers] = useState<UserProfile[]>([]);
-  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
+  const [allPlayers, setAllPlayers] = useState<UserProfile[]>([]);
+  const [selectedPlayers, setSelectedPlayers] = useState<UserProfile[]>([]);
   const [message, setMessage] = useState('');
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const router = useRouter();
@@ -47,17 +47,27 @@ export default function CreateSeason() {
     const fetchPlayers = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, is_host');
+        .select('id, username');
       if (error) {
         setMessage('Error fetching players');
       } else {
-        setPlayers(data);
+        setAllPlayers(data);
       }
     };
 
     fetchProfile();
     fetchPlayers();
   }, []);
+
+  const handlePlayerClick = (player: UserProfile, isSelected: boolean) => {
+    if (isSelected) {
+      setSelectedPlayers(selectedPlayers.filter(p => p.id !== player.id));
+      setAllPlayers([...allPlayers, player]);
+    } else {
+      setAllPlayers(allPlayers.filter(p => p.id !== player.id));
+      setSelectedPlayers([...selectedPlayers, player]);
+    }
+  };
 
   const handleCreateSeason = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +89,7 @@ export default function CreateSeason() {
 
     const { error: playersError } = await supabase
       .from('season_players')
-      .insert(selectedPlayers.map(playerId => ({ season_id: season.id, player_id: playerId })));
+      .insert(selectedPlayers.map(player => ({ season_id: season.id, player_id: player.id })));
     if (playersError) {
       setMessage('Error adding players to season');
       return;
@@ -96,7 +106,7 @@ export default function CreateSeason() {
         <div className="absolute top-4 right-4">
           <DarkModeToggle />
         </div>
-        <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-md">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl">
           <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Create Season</h1>
           {message && <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>}
           <form onSubmit={handleCreateSeason} className="space-y-4">
@@ -130,19 +140,31 @@ export default function CreateSeason() {
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
-            <div>
-              <label htmlFor="players" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Select Players</label>
-              <select
-                id="players"
-                multiple
-                value={selectedPlayers}
-                onChange={(e) => setSelectedPlayers(Array.from(e.target.selectedOptions, option => option.value))}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-gray-100"
-              >
-                {players.map(player => (
-                  <option key={player.id} value={player.id}>{player.username}</option>
-                ))}
-              </select>
+            <div className="flex space-x-4">
+              <div className="w-1/2">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Not Taking Part</h3>
+                <ul className="mt-2 space-y-2">
+                  {allPlayers.map(player => (
+                    <li key={player.id} className="cursor-pointer" onClick={() => handlePlayerClick(player, false)}>
+                      <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600">
+                        {player.username}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="w-1/2">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Taking Part</h3>
+                <ul className="mt-2 space-y-2">
+                  {selectedPlayers.map(player => (
+                    <li key={player.id} className="cursor-pointer" onClick={() => handlePlayerClick(player, true)}>
+                      <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600">
+                        {player.username}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
             <button
               type="submit"
