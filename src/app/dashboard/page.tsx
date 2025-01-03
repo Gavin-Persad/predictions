@@ -1,5 +1,3 @@
-// src/app/dashboard/page.tsx
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -46,17 +44,17 @@ export default function DashboardPage() {
 
   return (
     <div className="flex">
-      {profile && <Sidebar username={profile.username} isHost={profile.is_host} />}
+      <Sidebar username={profile?.username} isHost={profile?.is_host} loggedIn={!!profile} />
       <div className="flex-grow flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
         <div className="absolute top-4 right-4">
           <DarkModeToggle />
         </div>
         <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl">
-          <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Current Season 25/26</h1>
+          <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Dashboard</h1>
           {message && <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>}
           <LeagueTable />
         </div>
       </div>
     </div>
   );
-};
+}

@@ -8,11 +8,12 @@ import Link from 'next/link';
 import { supabase } from '../../supabaseClient';
 
 type SidebarProps = {
-  username: string;
-  isHost: boolean;
+  username?: string;
+  isHost?: boolean;
+  loggedIn: boolean;
 };
 
-export default function Sidebar({ username, isHost }: SidebarProps) {
+export default function Sidebar({ username, isHost, loggedIn }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
@@ -48,11 +49,13 @@ export default function Sidebar({ username, isHost }: SidebarProps) {
           </svg>
         </button>
       </div>
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2">
-        <p className="text-lg text-gray-900 dark:text-gray-100">Welcome, {username}</p>
-      </div>
+      {loggedIn && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2">
+          <p className="text-lg text-gray-900 dark:text-gray-100">Welcome, {username}</p>
+        </div>
+      )}
       <div
-        className={`fixed top-0 left-0 h-full bg-gray-800 text-white transition-transform transform ${
+        className={`fixed top-0 left-0 h-full bg-gray-800 dark:bg-gray-700 text-white dark:text-gray-200 transition-transform transform ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } w-64 p-4`}
       >
@@ -60,7 +63,7 @@ export default function Sidebar({ username, isHost }: SidebarProps) {
           <h2 className="text-xl font-bold">Menu</h2>
           <button
             onClick={() => setIsOpen(false)}
-            className="p-2 bg-gray-800 text-white rounded-full focus:outline-none"
+            className="p-2 bg-gray-800 dark:bg-gray-700 text-white dark:text-gray-200 rounded-full focus:outline-none"
           >
             <svg
               className="w-6 h-6"
@@ -80,39 +83,54 @@ export default function Sidebar({ username, isHost }: SidebarProps) {
         </div>
         <nav>
           <ul>
-            <li className="mb-2">
-              <Link href="/enterscores">
-                <span className="block px-4 py-2 hover:bg-gray-700 rounded cursor-pointer">Enter Scores</span>
-              </Link>
-            </li>
-            <li className="mb-2">
-              <Link href="/viewseason">
-                <span className="block px-4 py-2 hover:bg-gray-700 rounded cursor-pointer">View Season</span>
-              </Link>
-            </li>
-            {isHost && (
+            {loggedIn ? (
+              <>
+                <li className="mb-2">
+                  <Link href="/dashboard">
+                    <span className="block px-4 py-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded cursor-pointer">Home</span>
+                  </Link>
+                </li>
+                <li className="mb-2">
+                  <Link href="/enterscores">
+                    <span className="block px-4 py-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded cursor-pointer">Enter Score</span>
+                  </Link>
+                </li>
+                <li className="mb-2">
+                  <Link href="/viewseason">
+                    <span className="block px-4 py-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded cursor-pointer">View Season</span>
+                  </Link>
+                </li>
+                {isHost && (
+                  <li className="mb-2">
+                    <Link href="/createseason">
+                      <span className="block px-4 py-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded cursor-pointer">Create Season</span>
+                    </Link>
+                  </li>
+                )}
+                <li className="mb-2">
+                  <Link href="/profilesettings">
+                    <span className="block px-4 py-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded cursor-pointer">Profile Settings</span>
+                  </Link>
+                </li>
+                <li className="mb-2">
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded"
+                  >
+                    Sign Out
+                  </button>
+                </li>
+              </>
+            ) : (
               <li className="mb-2">
-                <Link href="/createseason">
-                  <span className="block px-4 py-2 hover:bg-gray-700 rounded cursor-pointer">Create League</span>
+                <Link href="/">
+                  <span className="block px-4 py-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded cursor-pointer">Login / Sign Up</span>
                 </Link>
               </li>
             )}
-            <li className="mb-2">
-              <Link href="/profilesettings">
-                <span className="block px-4 py-2 hover:bg-gray-700 rounded cursor-pointer">Profile Settings</span>
-              </Link>
-            </li>
-            <li className="mb-2">
-              <button
-                onClick={handleSignOut}
-                className="w-full text-left px-4 py-2 hover:bg-gray-700 rounded"
-              >
-                Sign Out
-              </button>
-            </li>
           </ul>
         </nav>
       </div>
     </div>
   );
-};
+}
