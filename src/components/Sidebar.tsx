@@ -10,9 +10,10 @@ import { supabase } from '../../supabaseClient';
 type SidebarProps = {
   loggedIn: boolean;
   isHost?: boolean;
+  username?: string;
 };
 
-export default function Sidebar({ loggedIn, isHost }: SidebarProps) {
+export default function Sidebar({ loggedIn, isHost, username }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
@@ -75,6 +76,7 @@ export default function Sidebar({ loggedIn, isHost }: SidebarProps) {
             </svg>
           </button>
         </div>
+        {username && <p className="mb-4">Welcome, {username}</p>}
         <nav>
           <ul>
             {loggedIn ? (

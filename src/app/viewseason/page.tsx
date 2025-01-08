@@ -4,7 +4,6 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../supabaseClient';
-import { useRouter } from 'next/navigation';
 import DarkModeToggle from '../../components/darkModeToggle';
 import Sidebar from '../../components/Sidebar';
 
@@ -20,10 +19,11 @@ type Player = {
   username: string;
 };
 
-type UserProfile = {
-  id: string;
-  username: string;
-  is_host?: boolean;
+type SeasonPlayer = {
+  player_id: string;
+  profiles: {
+    username: string;
+  }[];
 };
 
 export default function ViewSeason() {
@@ -31,29 +31,8 @@ export default function ViewSeason() {
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [message, setMessage] = useState('');
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        setMessage('Error fetching user');
-        return;
-      }
-
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, username, is_host')
-        .eq('id', user.id)
-        .single();
-      if (profileError) {
-        setMessage('Error fetching user profile');
-      } else {
-        setProfile(profile);
-      }
-    };
-
     const fetchSeasons = async () => {
       const { data, error } = await supabase
         .from('seasons')
@@ -65,7 +44,6 @@ export default function ViewSeason() {
       }
     };
 
-    fetchProfile();
     fetchSeasons();
   }, []);
 
@@ -73,18 +51,21 @@ export default function ViewSeason() {
     setSelectedSeason(season);
     const { data, error } = await supabase
       .from('season_players')
-      .select('player_id, profiles(username)')
+      .select('player_id, profiles!inner(username)')
       .eq('season_id', season.id);
     if (error) {
       setMessage('Error fetching players for the season');
     } else {
-      setPlayers(data.map((sp: any) => ({ id: sp.player_id, username: sp.profiles.username })));
+      setPlayers(data.map((sp: SeasonPlayer) => ({
+        id: sp.player_id,
+        username: sp.profiles.length > 0 ? sp.profiles[0].username : 'Unknown'
+      })));
     }
   };
 
   return (
     <div className="flex">
-      <Sidebar loggedIn={!!profile} isHost={profile?.is_host} />
+      <Sidebar loggedIn={true} />
       <div className="flex-grow flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
         <div className="absolute top-4 right-4">
           <DarkModeToggle />

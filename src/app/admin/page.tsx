@@ -1,3 +1,5 @@
+//app/admin/page.tsx
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -13,31 +15,27 @@ type UserProfile = {
 
 export default function AdminPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [message, setMessage] = useState('');
   const [loggedIn, setLoggedIn] = useState(false);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error || !session) {
-        setMessage('');
-        setLoggedIn(false);
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        setMessage('Error fetching user');
         return;
       }
 
-      const user = session.user;
-      if (user) {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, username, is_host')
-          .eq('id', user.id)
-          .single();
-        if (profileError) {
-          setMessage('Error fetching user profile');
-        } else {
-          setProfile(profile);
-          setLoggedIn(true);
-        }
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, username, is_host')
+        .eq('id', user.id)
+        .single();
+      if (profileError) {
+        setMessage('Error fetching user profile');
+      } else {
+        setProfile(profile);
+        setLoggedIn(true);
       }
     };
 
