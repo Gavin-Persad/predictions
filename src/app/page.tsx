@@ -1,8 +1,8 @@
-// src/app/page.tsx
+//src/app/page.tsx
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../supabaseClient';
 import DarkModeToggle from '../components/darkModeToggle';
@@ -14,6 +14,16 @@ export default function Home() {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const router = useRouter();
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.push('/dashboard');
+      }
+    };
+    checkUser();
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +43,7 @@ export default function Home() {
           setMessage('Error fetching user profile');
           setMessageType('error');
         } else {
-          setMessage(`Logged in successfully! Hello, ${profile.is_host ? 'Skipper!!!' : 'Football Fan!!!'}`);
+          setMessage(`Hello ${profile.is_host ? 'Skipper' : 'Football Fan'}`);
           setMessageType('success');
           setTimeout(() => {
             router.push('/dashboard');
@@ -98,31 +108,22 @@ export default function Home() {
           </div>
           <button
             type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition duration-300"
           >
             {isLogin ? 'Login' : 'Sign Up'}
           </button>
         </form>
-        <div className="mt-4 text-center">
+        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+          {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200"
+            className="text-indigo-600 hover:text-indigo-700 transition duration-300"
           >
             {isLogin ? 'Sign Up' : 'Login'}
           </button>
-        </div>
-        {message && (
-          <p
-            className={`mt-4 text-center px-4 py-2 rounded ${
-              messageType === 'success'
-                ? 'bg-green-100 text-green-800 border border-green-400 animate-bounce'
-                : 'bg-red-100 text-red-800 border border-red-400'
-            }`}
-          >
-            {message}
-          </p>
-        )}
+        </p>
+        {message && <p className={`mt-4 text-center ${messageType === 'error' ? 'text-red-500' : 'text-green-500'}`}>{message}</p>}
       </div>
     </div>
   );
-};
+}

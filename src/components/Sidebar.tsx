@@ -8,12 +8,12 @@ import Link from 'next/link';
 import { supabase } from '../../supabaseClient';
 
 type SidebarProps = {
-  username?: string;
-  isHost?: boolean;
   loggedIn: boolean;
+  isHost?: boolean;
+  username?: string;
 };
 
-export default function Sidebar({ username, isHost, loggedIn }: SidebarProps) {
+export default function Sidebar({ loggedIn, isHost, username }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
@@ -49,11 +49,6 @@ export default function Sidebar({ username, isHost, loggedIn }: SidebarProps) {
           </svg>
         </button>
       </div>
-      {loggedIn && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2">
-          <p className="text-lg text-gray-900 dark:text-gray-100">Welcome, {username}</p>
-        </div>
-      )}
       <div
         className={`fixed top-0 left-0 h-full bg-gray-800 dark:bg-gray-700 text-white dark:text-gray-200 transition-transform transform ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
@@ -81,13 +76,14 @@ export default function Sidebar({ username, isHost, loggedIn }: SidebarProps) {
             </svg>
           </button>
         </div>
+        {username && <p className="mb-4">Welcome, {username}</p>}
         <nav>
           <ul>
             {loggedIn ? (
               <>
                 <li className="mb-2">
                   <Link href="/dashboard">
-                    <span className="block px-4 py-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded cursor-pointer">Home</span>
+                    <span className="block px-4 py-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded cursor-pointer">Dashboard</span>
                   </Link>
                 </li>
                 <li className="mb-2">
