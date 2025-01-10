@@ -20,10 +20,24 @@ type Season = {
   end_date: string;
 };
 
+type Player = {
+  id: string;
+  username: string;
+};
+
+type SeasonPlayer = {
+  player_id: string;
+  profiles: {
+    username: string;
+  }[];
+};
+
 export default function ViewSeason() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [viewPlayers, setViewPlayers] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -70,8 +84,19 @@ export default function ViewSeason() {
     if (error) {
       setMessage('Error fetching players for the season');
     } else {
-      // Handle the fetched players data if needed
+      setPlayers(data.map((sp: SeasonPlayer) => ({
+        id: sp.player_id,
+        username: sp.profiles.length > 0 ? sp.profiles[0].username : 'Unknown'
+      })));
     }
+  };
+
+  const handleViewPlayersClick = () => {
+    setViewPlayers(true);
+  };
+
+  const handleBackToSeasonClick = () => {
+    setViewPlayers(false);
   };
 
   return (
@@ -95,6 +120,23 @@ export default function ViewSeason() {
                 </li>
               ))}
             </ul>
+          ) : viewPlayers ? (
+            <div className="flex flex-col items-center">
+              <button
+                onClick={handleBackToSeasonClick}
+                className="absolute top-4 left-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+              >
+                Back to Season
+              </button>
+              <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Players</h2>
+              <ul className="space-y-2 mt-4">
+                {players.map(player => (
+                  <li key={player.id} className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow">
+                    {player.username}
+                  </li>
+                ))}
+              </ul>
+            </div>
           ) : (
             <div className="flex flex-col items-center">
               <button
@@ -107,7 +149,10 @@ export default function ViewSeason() {
               <div className="mb-8 w-full flex flex-col items-center">
                 <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Players</h2>
                 <div className="flex space-x-4">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300">
+                  <button
+                    onClick={handleViewPlayersClick}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                  >
                     View Players
                   </button>
                   {profile?.is_host && (
