@@ -20,23 +20,10 @@ type Season = {
   end_date: string;
 };
 
-type Player = {
-  id: string;
-  username: string;
-};
-
-type SeasonPlayer = {
-  player_id: string;
-  profiles: {
-    username: string;
-  }[];
-};
-
 export default function ViewSeason() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
-  const [players, setPlayers] = useState<Player[]>([]);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -83,10 +70,7 @@ export default function ViewSeason() {
     if (error) {
       setMessage('Error fetching players for the season');
     } else {
-      setPlayers(data.map((sp: SeasonPlayer) => ({
-        id: sp.player_id,
-        username: sp.profiles.length > 0 ? sp.profiles[0].username : 'Unknown'
-      })));
+      // Handle the fetched players data if needed
     }
   };
 
