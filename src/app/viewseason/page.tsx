@@ -1,3 +1,5 @@
+//src/app/viewseason/page.tsx
+
 "use client";
 
 import { useState, useEffect } from 'react';
