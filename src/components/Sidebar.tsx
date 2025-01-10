@@ -119,9 +119,15 @@ export default function Sidebar({ loggedIn, isHost, username }: SidebarProps) {
               </>
             ) : (
               <li className="mb-2">
-                <Link href="/">
-                  <span className="block px-4 py-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded cursor-pointer">Login / Sign Up</span>
-                </Link>
+                <button
+                    onClick={() => {
+                      handleSignOut();
+                      router.push('/');
+                    }}
+                    className="login-signup-button"
+                  >
+                    Login / Sign Up
+                  </button>
               </li>
             )}
           </ul>
