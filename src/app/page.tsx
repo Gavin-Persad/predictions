@@ -23,7 +23,7 @@ export default function Home() {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLogin) {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -31,27 +31,24 @@ export default function Home() {
         setMessage(error.message);
         setMessageType('error');
       } else {
-        const user = data.user;
-        if (user) {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('is_host')
-            .eq('id', user.id)
-            .single();
-          if (profileError) {
-            setMessage('Error fetching user profile');
-            setMessageType('error');
-          } else {
-            setMessage(`Hello ${profile.is_host ? 'skipper' : 'football fan'}`);
-            setMessageType('success');
-            setTimeout(() => {
-              router.push('/dashboard');
-            }, 2500);
-          }
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_host')
+          .eq('id', supabase.auth.user()?.id)
+          .single();
+        if (profileError) {
+          setMessage('Error fetching user profile');
+          setMessageType('error');
+        } else {
+          setMessage(`Hello ${profile.is_host ? 'skipper' : 'football fan'}`);
+          setMessageType('success');
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 2500);
         }
       }
     } else {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
       });
