@@ -10,6 +10,8 @@ import DarkModeToggle from '../components/darkModeToggle';
 export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [club, setClub] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
@@ -55,7 +57,7 @@ export default function Home() {
         }
       }
     } else {
-      const { error } = await supabase.auth.signUp({
+      const { data: { user }, error } = await supabase.auth.signUp({
         email,
         password,
       });
@@ -63,8 +65,16 @@ export default function Home() {
         setMessage(error.message);
         setMessageType('error');
       } else {
-        setMessage('Sign-up successful! Please check your email to confirm your account.');
-        setMessageType('success');
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({ id: user.id, username, club, is_host: false });
+        if (profileError) {
+          setMessage('Error creating user profile');
+          setMessageType('error');
+        } else {
+          setMessage('Sign-up successful! Please check your email to confirm your account.');
+          setMessageType('success');
+        }
       }
     }
   };
@@ -79,7 +89,7 @@ export default function Home() {
           {isLogin ? 'Login' : 'Sign Up'}
         </h1>
         {isClient && message && (
-          <p className={`mb-4 text-${messageType === 'error' ? 'red' : 'green'}-500 dark:text-${messageType === 'error' ? 'red' : 'green'}-400`}>
+          <p className={`mb-4 ${messageType === 'error' ? 'text-red-500' : 'text-red-500 font-bold animate-bounce'}`}>
             {message}
           </p>
         )}
@@ -97,7 +107,7 @@ export default function Home() {
               required
             />
           </div>
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block text-gray-700 dark:text-gray-300 mb-2" htmlFor="password">
               Password
             </label>
@@ -111,6 +121,36 @@ export default function Home() {
             />
             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Passwords must be 6-18 characters long.</p>
           </div>
+          {!isLogin && (
+            <>
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 mb-2" htmlFor="username">
+                  Display Name
+                </label>
+                <input
+                  type="text"
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 mb-2" htmlFor="club">
+                  Club
+                </label>
+                <input
+                  type="text"
+                  id="club"
+                  value={club}
+                  onChange={(e) => setClub(e.target.value)}
+                  className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
+                  required
+                />
+              </div>
+            </>
+          )}
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition duration-300"
