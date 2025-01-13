@@ -2,10 +2,11 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../supabaseClient';
+import { Session } from '@supabase/supabase-js';
 
 type SidebarProps = {
   loggedIn: boolean;
@@ -15,12 +16,29 @@ type SidebarProps = {
 
 export default function Sidebar({ loggedIn, isHost, username }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
   const router = useRouter();
 
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Error fetching session:', error.message);
+      } else {
+        setSession(session);
+      }
+    };
+    checkSession();
+  }, []);
+
   const handleSignOut = async () => {
+    if (!session) {
+      console.error('No auth session found');
+      return;
+    }
     const { error } = await supabase.auth.signOut();
     if (error) {
-      console.error('Error signing out');
+      console.error('Error signing out:', error.message);
     } else {
       router.push('/');
     }
@@ -120,14 +138,14 @@ export default function Sidebar({ loggedIn, isHost, username }: SidebarProps) {
             ) : (
               <li className="mb-2">
                 <button
-                    onClick={() => {
-                      handleSignOut();
-                      router.push('/');
-                    }}
-                    className="login-signup-button"
-                  >
-                    Login / Sign Up
-                  </button>
+                  onClick={() => {
+                    handleSignOut();
+                    router.push('/');
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-700 dark:hover:bg-gray-600 rounded"
+                >
+                  Login / Sign Up
+                </button>
               </li>
             )}
           </ul>

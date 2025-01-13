@@ -13,30 +13,31 @@ export default function Home() {
   const [isLogin, setIsLogin] = useState(true);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.push('/dashboard');
-      }
-    };
-    checkUser();
-  }, [router]);
+    setIsClient(true);
+  }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) {
-      setMessage(error.message);
-      setMessageType('error');
-    } else {
-      const user = data.user;
-      if (user) {
+    if (isLogin) {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) {
+        setMessage(error.message);
+        setMessageType('error');
+      } else {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          setMessage('Error fetching user');
+          setMessageType('error');
+          return;
+        }
+
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('is_host')
@@ -50,8 +51,20 @@ export default function Home() {
           setMessageType('success');
           setTimeout(() => {
             router.push('/dashboard');
-          }, 2000);
+          }, 2500);
         }
+      }
+    } else {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (error) {
+        setMessage(error.message);
+        setMessageType('error');
+      } else {
+        setMessage('Sign-up successful! Please check your email to confirm your account.');
+        setMessageType('success');
       }
     }
   };
@@ -65,12 +78,12 @@ export default function Home() {
         <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
           {isLogin ? 'Login' : 'Sign Up'}
         </h1>
-        {message && (
-          <p className={`mb-4 text-${messageType === 'error' ? 'red' : 'green'}-500 dark:text-${messageType === 'error' ? 'red' : 'green'}-400 font-bold animate-bounce`}>
+        {isClient && message && (
+          <p className={`mb-4 text-${messageType === 'error' ? 'red' : 'green'}-500 dark:text-${messageType === 'error' ? 'red' : 'green'}-400`}>
             {message}
           </p>
         )}
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleAuth}>
           <div className="mb-4">
             <label className="block text-gray-700 dark:text-gray-300 mb-2" htmlFor="email">
               Email
@@ -96,6 +109,7 @@ export default function Home() {
               className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
               required
             />
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Passwords must be 6-18 characters long.</p>
           </div>
           <button
             type="submit"
