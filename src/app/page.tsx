@@ -64,7 +64,7 @@ export default function Home() {
       if (error) {
         setMessage(error.message);
         setMessageType('error');
-      } else {
+      } else if (user) {
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({ id: user.id, username, club, is_host: false });
@@ -75,6 +75,9 @@ export default function Home() {
           setMessage('Sign-up successful! Please check your email to confirm your account.');
           setMessageType('success');
         }
+      } else {
+        setMessage('Error creating user profile');
+        setMessageType('error');
       }
     }
   };
