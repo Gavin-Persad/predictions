@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../supabaseClient';
+import { Session } from '@supabase/supabase-js';
 
 type SidebarProps = {
   loggedIn: boolean;
@@ -15,7 +16,7 @@ type SidebarProps = {
 
 export default function Sidebar({ loggedIn, isHost, username }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState<Session | null>(null);
   const router = useRouter();
 
   useEffect(() => {
