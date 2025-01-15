@@ -1,4 +1,4 @@
-//src/app/viewseason/page.tsx
+// src/app/viewseason/page.tsx
 
 "use client";
 
@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../../supabaseClient';
 import DarkModeToggle from '../../components/darkModeToggle';
 import Sidebar from '../../components/Sidebar';
+import EditPlayers from '../../components/EditPlayers';
 
 type UserProfile = {
   id: string;
@@ -25,19 +26,13 @@ type Player = {
   username: string;
 };
 
-type SeasonPlayer = {
-  player_id: string;
-  profiles: {
-    username: string;
-  }[];
-};
-
 export default function ViewSeason() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [viewPlayers, setViewPlayers] = useState(false);
+  const [editPlayers, setEditPlayers] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -75,20 +70,27 @@ export default function ViewSeason() {
     fetchSeasons();
   }, []);
 
-  const handleSeasonClick = async (season: Season) => {
-    setSelectedSeason(season);
+  const fetchPlayers = async (seasonId: string) => {
     const { data, error } = await supabase
       .from('season_players')
       .select('player_id, profiles!inner(username)')
-      .eq('season_id', season.id);
+      .eq('season_id', seasonId);
     if (error) {
       setMessage('Error fetching players for the season');
     } else {
-      setPlayers(data.map((sp: SeasonPlayer) => ({
+      console.log('Fetched players:', data); // Add logging to verify data structure
+      setPlayers(data.map((sp: { player_id: string; profiles: { username: string }[] }) => ({
         id: sp.player_id,
-        username: sp.profiles.length > 0 ? sp.profiles[0].username : 'Unknown'
+        username: sp.profiles[0]?.username || 'Unknown'
       })));
     }
+  };
+
+  const handleSeasonClick = async (season: Season) => {
+    setSelectedSeason(season);
+    await fetchPlayers(season.id);
+    setViewPlayers(false);
+    setEditPlayers(false);
   };
 
   const handleViewPlayersClick = () => {
@@ -97,6 +99,17 @@ export default function ViewSeason() {
 
   const handleBackToSeasonClick = () => {
     setViewPlayers(false);
+  };
+
+  const handleEditPlayersClick = () => {
+    setEditPlayers(true);
+  };
+
+  const handleCloseEditPlayers = async () => {
+    if (selectedSeason) {
+      await fetchPlayers(selectedSeason.id);
+    }
+    setEditPlayers(false);
   };
 
   return (
@@ -120,6 +133,8 @@ export default function ViewSeason() {
                 </li>
               ))}
             </ul>
+          ) : editPlayers ? (
+            <EditPlayers seasonId={selectedSeason.id} onClose={handleCloseEditPlayers} />
           ) : viewPlayers ? (
             <div className="flex flex-col items-center">
               <button
@@ -156,60 +171,11 @@ export default function ViewSeason() {
                     View Players
                   </button>
                   {profile?.is_host && (
-                    <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition duration-300">
+                    <button
+                      onClick={handleEditPlayersClick}
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                    >
                       Edit Players
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="mb-8 w-full flex flex-col items-center">
-                <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">League</h2>
-                <div className="flex space-x-4">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300">
-                    View League
-                  </button>
-                  {profile?.is_host && (
-                    <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition duration-300">
-                      Edit League
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="mb-8 w-full flex flex-col items-center">
-                <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Cups</h2>
-                <div className="flex space-x-4 mb-4">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300">
-                    View Lavery Cup
-                  </button>
-                  {profile?.is_host && (
-                    <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition duration-300">
-                      Edit Lavery Cup
-                    </button>
-                  )}
-                </div>
-                <div className="flex space-x-4">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300">
-                    View George Cup
-                  </button>
-                  {profile?.is_host && (
-                    <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition duration-300">
-                      Edit George Cup
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="mb-8 w-full flex flex-col items-center">
-                <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Scores</h2>
-                <div className="flex space-x-4">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300">
-                    View Scores
-                  </button>
-                  {profile?.is_host && (
-                    <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition duration-300">
-                      Edit Scores
                     </button>
                   )}
                 </div>
