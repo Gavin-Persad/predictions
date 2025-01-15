@@ -30,7 +30,7 @@ type SeasonPlayer = {
   player_id: string;
   profiles: {
     username: string;
-  };
+  }[];
 };
 
 export default function ViewSeason() {
@@ -86,9 +86,9 @@ export default function ViewSeason() {
       setMessage('Error fetching players for the season');
     } else {
       console.log('Fetched players:', data); // Add logging to verify data structure
-      setPlayers(data.map((sp: SeasonPlayer) => ({
+      setPlayers(data.map((sp: { player_id: string; profiles: { username: string }[] }) => ({
         id: sp.player_id,
-        username: sp.profiles.username || 'Unknown'
+        username: sp.profiles[0]?.username || 'Unknown'
       })));
     }
   };
