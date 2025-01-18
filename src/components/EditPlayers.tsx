@@ -4,11 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
-
-type UserProfile = {
-  id: string;
-  username: string;
-};
+import { DatabasePlayer, UserProfile } from '../types/players';
 
 type EditPlayersProps = {
   seasonId: string;
@@ -39,7 +35,7 @@ export default function EditPlayers({ seasonId, onClose }: EditPlayersProps) {
         return;
       }
 
-      const activePlayers = activePlayersData.map((sp: { player_id: string; profiles: { username: string } }) => ({
+      const activePlayers = (activePlayersData as unknown as DatabasePlayer[]).map(sp => ({
         id: sp.player_id,
         username: sp.profiles.username || 'Unknown',
       }));
