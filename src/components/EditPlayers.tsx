@@ -39,9 +39,9 @@ export default function EditPlayers({ seasonId, onClose }: EditPlayersProps) {
         return;
       }
 
-      const activePlayers = activePlayersData.map((sp: { player_id: string; profiles: { username: string }[] }) => ({
+      const activePlayers = activePlayersData.map((sp: { player_id: string; profiles: { username: string } }) => ({
         id: sp.player_id,
-        username: sp.profiles[0].username,
+        username: sp.profiles.username || 'Unknown',
       }));
 
       const inactivePlayers = allPlayersData.filter(
@@ -93,7 +93,7 @@ export default function EditPlayers({ seasonId, onClose }: EditPlayersProps) {
       {message && <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>}
       <div className="flex space-x-4">
         <div className="w-1/2">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Inactive Players</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Not Taking Part</h3>
           <ul className="mt-2 space-y-2">
             {inactivePlayers.map(player => (
               <li key={player.id} className="cursor-pointer" onClick={() => handlePlayerClick(player, false)}>
@@ -105,7 +105,7 @@ export default function EditPlayers({ seasonId, onClose }: EditPlayersProps) {
           </ul>
         </div>
         <div className="w-1/2">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Active Players</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Taking Part</h3>
           <ul className="mt-2 space-y-2">
             {activePlayers.map(player => (
               <li key={player.id} className="cursor-pointer" onClick={() => handlePlayerClick(player, true)}>
