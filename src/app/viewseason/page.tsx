@@ -7,6 +7,7 @@ import { supabase } from '../../../supabaseClient';
 import DarkModeToggle from '../../components/darkModeToggle';
 import Sidebar from '../../components/Sidebar';
 import EditPlayers from '../../components/EditPlayers';
+import { DatabasePlayer, Player } from '../../types/players';
 
 type UserProfile = {
   id: string;
@@ -19,11 +20,6 @@ type Season = {
   name: string;
   start_date: string;
   end_date: string;
-};
-
-type Player = {
-  id: string;
-  username: string;
 };
 
 export default function ViewSeason() {
@@ -70,6 +66,7 @@ export default function ViewSeason() {
     fetchSeasons();
   }, []);
 
+
   const fetchPlayers = async (seasonId: string) => {
     const { data, error } = await supabase
       .from('season_players')
@@ -78,10 +75,10 @@ export default function ViewSeason() {
     if (error) {
       setMessage('Error fetching players for the season');
     } else {
-      console.log('Fetched players:', data); // Add logging to verify data structure
-      setPlayers(data.map((sp: { player_id: string; profiles: { username: string }[] }) => ({
+      const typedData = data as unknown as DatabasePlayer[];
+      setPlayers(typedData.map(sp => ({
         id: sp.player_id,
-        username: sp.profiles[0]?.username || 'Unknown'
+        username: sp.profiles.username || 'Unknown'
       })));
     }
   };
