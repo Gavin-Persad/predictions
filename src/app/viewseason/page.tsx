@@ -26,13 +26,6 @@ type Player = {
   username: string;
 };
 
-type SeasonPlayer = {
-  player_id: string;
-  profiles: {
-    username: string;
-  };
-};
-
 export default function ViewSeason() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [seasons, setSeasons] = useState<Season[]>([]);
