@@ -26,6 +26,13 @@ type Player = {
   username: string;
 };
 
+type SeasonPlayer = {
+  player_id: string;
+  profiles: {
+    username: string;
+  };
+};
+
 export default function ViewSeason() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [seasons, setSeasons] = useState<Season[]>([]);
@@ -78,7 +85,6 @@ export default function ViewSeason() {
     if (error) {
       setMessage('Error fetching players for the season');
     } else {
-      console.log('Fetched players:', data); // Add logging to verify data structure
       setPlayers(data.map((sp: { player_id: string; profiles: { username: string } }) => ({
         id: sp.player_id,
         username: sp.profiles.username || 'Unknown'
