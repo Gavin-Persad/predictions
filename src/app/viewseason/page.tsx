@@ -31,6 +31,7 @@ export default function ViewSeason() {
   const [editPlayers, setEditPlayers] = useState(false);
   const [viewGameWeek, setViewGameWeek] = useState(false);
   const [editGameWeek, setEditGameWeek] = useState(false);
+  const [gameWeekOptionView, setGameWeekOptionView] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -119,7 +120,8 @@ export default function ViewSeason() {
   };
 
   const handleEditGameWeekClick = () => {
-    setEditGameWeek(true);
+    setGameWeekOptionView(true);
+    setEditGameWeek(false);
     setViewGameWeek(false);
     setViewPlayers(false);
     setEditPlayers(false);
@@ -164,6 +166,35 @@ export default function ViewSeason() {
                   </li>
                 ))}
               </ul>
+            </div>
+          ) : gameWeekOptionView ? (
+            <div className="flex flex-col items-center">
+              <button
+                onClick={() => setGameWeekOptionView(false)}
+                className="absolute top-4 left-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+              >
+                Back to Season
+              </button>
+              <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Game Week Options</h2>
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => {
+                    setGameWeekOptionView(false);
+                    setEditGameWeek(true);
+                  }}
+                  className="px-6 py-2 w-40 text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                >
+                  Create Game Week
+                </button>
+                <button
+                  onClick={() => {
+                    setGameWeekOptionView(false);
+                  }}
+                  className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                >
+                  Edit Game Week
+                </button>
+              </div>
             </div>
           ) : (
             <div className="flex flex-col items-center">
