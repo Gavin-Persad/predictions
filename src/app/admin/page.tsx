@@ -62,16 +62,16 @@ export default function AdminPage() {
 
   const toggleHostStatus = async (profileId: string, currentStatus: boolean) => {
     setMessage('');
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({ is_host: !currentStatus })
-      .eq('id', profileId)
-      .select();
+    const { error } = await supabase
+    .from('profiles')
+    .update({ is_host: !currentStatus })
+    .eq('id', profileId)
+    .select();
   
-    if (error) {
-      setMessage('Error updating host status');
-      return;
-    }
+  if (error) {
+    setMessage('Error updating host status');
+    return;
+  }
   
     setProfiles(profiles.map(profile => 
       profile.id === profileId 
