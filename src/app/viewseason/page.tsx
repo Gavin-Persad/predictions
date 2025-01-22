@@ -29,6 +29,8 @@ export default function ViewSeason() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [viewPlayers, setViewPlayers] = useState(false);
   const [editPlayers, setEditPlayers] = useState(false);
+  const [viewGameWeek, setViewGameWeek] = useState(false);
+  const [editGameWeek, setEditGameWeek] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -109,6 +111,20 @@ export default function ViewSeason() {
     setEditPlayers(false);
   };
 
+  const handleViewGameWeekClick = () => {
+    setViewGameWeek(true);
+    setEditGameWeek(false);
+    setViewPlayers(false);
+    setEditPlayers(false);
+  };
+
+  const handleEditGameWeekClick = () => {
+    setEditGameWeek(true);
+    setViewGameWeek(false);
+    setViewPlayers(false);
+    setEditPlayers(false);
+  };
+
   return (
     <div className="flex">
       <Sidebar loggedIn={!!profile} isHost={profile?.is_host} />
@@ -159,20 +175,36 @@ export default function ViewSeason() {
               </button>
               <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">{selectedSeason.name}</h2>
               <div className="mb-8 w-full flex flex-col items-center">
-                <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Players</h2>
+                <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Season Management</h2>
                 <div className="flex space-x-4">
                   <button
                     onClick={handleViewPlayersClick}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                    className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
                   >
                     View Players
                   </button>
                   {profile?.is_host && (
                     <button
                       onClick={handleEditPlayersClick}
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                      className="px-6 py-2 w-40 text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
                     >
                       Edit Players
+                    </button>
+                  )}
+                </div>
+                <div className="flex space-x-4 mt-4">
+                  <button
+                    onClick={handleViewGameWeekClick}
+                    className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                  >
+                    View Game Week
+                  </button>
+                  {profile?.is_host && (
+                    <button
+                      onClick={handleEditGameWeekClick}
+                      className="px-6 py-2 w-40 text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                    >
+                      Create/Edit Week
                     </button>
                   )}
                 </div>
