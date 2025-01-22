@@ -7,6 +7,8 @@ import { supabase } from '../../../supabaseClient';
 import DarkModeToggle from '../../components/darkModeToggle';
 import Sidebar from '../../components/Sidebar';
 import EditPlayers from '../../components/EditPlayers';
+import GameWeekOptions from '../../components/GameWeekOptions';
+import CreateGameWeek from '../../components/CreateGameWeek';
 import { DatabasePlayer, Player } from '../../types/players';
 
 type UserProfile = {
@@ -127,7 +129,7 @@ export default function ViewSeason() {
     setEditPlayers(false);
   };
 
-  return (
+ return (
     <div className="flex">
       <Sidebar loggedIn={!!profile} isHost={profile?.is_host} />
       <div className="flex-grow flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -168,34 +170,18 @@ export default function ViewSeason() {
               </ul>
             </div>
           ) : gameWeekOptionView ? (
-            <div className="flex flex-col items-center">
-              <button
-                onClick={() => setGameWeekOptionView(false)}
-                className="absolute top-4 left-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-              >
-                Back to Season
-              </button>
-              <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Game Week Options</h2>
-              <div className="flex space-x-4">
-                <button
-                  onClick={() => {
-                    setGameWeekOptionView(false);
-                    setEditGameWeek(true);
-                  }}
-                  className="px-6 py-2 w-40 text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
-                >
-                  Create Game Week
-                </button>
-                <button
-                  onClick={() => {
-                    setGameWeekOptionView(false);
-                  }}
-                  className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                >
-                  Edit Game Week
-                </button>
-              </div>
-            </div>
+            <GameWeekOptions 
+              seasonId={selectedSeason.id} 
+              onClose={() => setGameWeekOptionView(false)} 
+            />
+          ) : editGameWeek ? (
+            <CreateGameWeek 
+              seasonId={selectedSeason.id} 
+              onClose={() => {
+                setEditGameWeek(false);
+                setGameWeekOptionView(true);
+              }} 
+            />
           ) : (
             <div className="flex flex-col items-center">
               <button

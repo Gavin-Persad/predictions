@@ -1,3 +1,5 @@
+//src/types/players.ts
+
 export type DatabasePlayer = {
     player_id: string;
     profiles: {
