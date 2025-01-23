@@ -4,6 +4,7 @@
 
 import { useState } from 'react';
 import { supabase } from '../../supabaseClient';
+import ConfirmationModal from './ConfirmationModal';
 
 type CreateGameWeekProps = {
     seasonId: string;
@@ -14,6 +15,7 @@ export default function CreateGameWeek({ seasonId, onClose }: CreateGameWeekProp
     const [predictionsOpen, setPredictionsOpen] = useState('');
     const [liveStart, setLiveStart] = useState('');
     const [liveEnd, setLiveEnd] = useState('');
+    const [showConfirmation, setShowConfirmation] = useState(false);
     const [fixtures, setFixtures] = useState<Array<{number: number, home: string, away: string}>>([
         ...Array(10).fill(null).map((_, i) => ({
             number: i + 1,
@@ -23,6 +25,7 @@ export default function CreateGameWeek({ seasonId, onClose }: CreateGameWeekProp
     ]);
     const [message, setMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+
 
     const calculatePredictionsClose = () => {
         if (!liveStart) return '';
@@ -59,31 +62,28 @@ export default function CreateGameWeek({ seasonId, onClose }: CreateGameWeekProp
         setFixtures(newFixtures);
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setMessage('');
-        setIsSubmitting(true);
-    
-        // Validate form
+
         if (!predictionsOpen || !liveStart || !liveEnd) {
             setMessage('All fields are required');
-            setIsSubmitting(false);
             return;
         }
-    
-        if (!validateDates()) {
-            setIsSubmitting(false);
-            return;
-        }
-    
+
+        if (!validateDates()) return;
+
         if (fixtures.some(f => !f.home || !f.away)) {
             setMessage('All fixtures must have both teams');
-            setIsSubmitting(false);
             return;
         }
-    
+
+        setShowConfirmation(true);
+    };
+
+    const handleConfirm = async () => {
+        setIsSubmitting(true);
         try {
-            // Insert game week
             const { data: gameWeek, error: gameWeekError } = await supabase
                 .from('game_weeks')
                 .insert([{
@@ -95,10 +95,9 @@ export default function CreateGameWeek({ seasonId, onClose }: CreateGameWeekProp
                 }])
                 .select()
                 .single();
-    
+
             if (gameWeekError) throw gameWeekError;
-    
-            // Insert fixtures
+
             const { error: fixturesError } = await supabase
                 .from('fixtures')
                 .insert(
@@ -111,15 +110,16 @@ export default function CreateGameWeek({ seasonId, onClose }: CreateGameWeekProp
                         away_score: 0
                     }))
                 );
-    
+
             if (fixturesError) throw fixturesError;
-    
+
             onClose();
         } catch (error) {
             setMessage('Error creating game week');
             console.error(error);
         } finally {
             setIsSubmitting(false);
+            setShowConfirmation(false);
         }
     };
 
@@ -215,10 +215,24 @@ export default function CreateGameWeek({ seasonId, onClose }: CreateGameWeekProp
                         disabled={isSubmitting}
                         className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition duration-300 disabled:opacity-50"
                     >
-                        {isSubmitting ? 'Creating...' : 'Create Game Week'}
+                        Next
                     </button>
                 </div>
             </form>
+
+            {showConfirmation && (
+                <ConfirmationModal
+                    gameWeekData={{
+                        predictionsOpen,
+                        predictionsClose: calculatePredictionsClose(),
+                        liveStart,
+                        liveEnd,
+                        fixtures
+                    }}
+                    onConfirm={handleConfirm}
+                    onCancel={() => setShowConfirmation(false)}
+                />
+            )}
         </div>
     );
 }
