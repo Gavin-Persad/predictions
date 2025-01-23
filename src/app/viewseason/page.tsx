@@ -9,7 +9,8 @@ import Sidebar from '../../components/Sidebar';
 import EditPlayers from '../../components/EditPlayers';
 import GameWeekOptions from '../../components/GameWeekOptions';
 import CreateGameWeek from '../../components/CreateGameWeek';
-import { DatabasePlayer, Player } from '../../types/players';
+import ViewGameWeeks from '../../components/ViewGameWeeks';
+import { Player, SeasonPlayer } from '../../types/players';
 
 type UserProfile = {
   id: string;
@@ -74,19 +75,19 @@ export default function ViewSeason() {
 
   const fetchPlayers = async (seasonId: string) => {
     const { data, error } = await supabase
-      .from('season_players')
-      .select('player_id, profiles!inner(username)')
-      .eq('season_id', seasonId);
+        .from('season_players')
+        .select('player_id, profiles!inner(username)')
+        .eq('season_id', seasonId);
     if (error) {
-      setMessage('Error fetching players for the season');
+        setMessage('Error fetching players for the season');
     } else {
-      const typedData = data as unknown as DatabasePlayer[];
-      setPlayers(typedData.map(sp => ({
-        id: sp.player_id,
-        username: sp.profiles.username || 'Unknown'
-      })));
+        const typedData = data as unknown as SeasonPlayer[];
+        setPlayers(typedData.map(sp => ({
+            id: sp.player_id,
+            username: sp.profiles.username || 'Unknown'
+        })));
     }
-  };
+};
 
   const handleSeasonClick = async (season: Season) => {
     setSelectedSeason(season);
@@ -152,6 +153,11 @@ export default function ViewSeason() {
             </ul>
           ) : editPlayers ? (
             <EditPlayers seasonId={selectedSeason.id} onClose={handleCloseEditPlayers} />
+          ) : viewGameWeek ? (
+            <ViewGameWeeks
+                seasonId={selectedSeason.id}
+                onClose={() => setViewGameWeek(false)}
+            />
           ) : viewPlayers ? (
             <div className="flex flex-col items-center">
               <button
@@ -192,7 +198,6 @@ export default function ViewSeason() {
               </button>
               <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">{selectedSeason.name}</h2>
               <div className="mb-8 w-full flex flex-col items-center">
-                <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Season Management</h2>
                 <div className="flex space-x-4">
                   <button
                     onClick={handleViewPlayersClick}
