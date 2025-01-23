@@ -2,17 +2,17 @@
 
 1. Reverted back to manual fixture entry until i find a free api or build a webscraper. ✅
 
-2. Test this is working. Both ways
+2. Test this is working. Both ways✅
 
-3. Create Edit Game Week component, with both API calls and manual entry
+3. Create Edit Game Week component, with manual entry✅
 
-4. Again test this all works
+4. Again test this all works✅
 
-5. Create View game week options component
+5. Create View game week options component✅
 
-6. Create Game week options individual components (view fixtures, view players scores). These will need to be linked to Supabase for data
+6. Create Game week options individual components (view fixtures, view MOTW). These will need to be linked to Supabase for data✅
 
-7. Test everything is working and linked to Supabase correctly
+7. Test everything is working and linked to Supabase correctly✅
 
 8. Update ReadMe
 

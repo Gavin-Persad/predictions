@@ -34,7 +34,7 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        
+
         const fetchData = async () => {
             const { data: fixturesData } = await supabase
                 .from('fixtures')
@@ -80,47 +80,39 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
                 {loading ? (
                     <div>Loading...</div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full">
-                            <thead>
-                                <tr>
-                                    <th className="px-4 py-2 text-left">Players</th>
-                                    {fixtures.map((fixture) => (
-                                        <th key={fixture.id} className="px-4 py-2">
-                                            <div className="whitespace-nowrap">
-                                                {fixture.home_team}
-                                            </div>
-                                            <div className="text-xs">vs</div>
-                                            <div className="whitespace-nowrap">
-                                                {fixture.away_team}
-                                            </div>
-                                        </th>
-                                    ))}
-                                </tr>
-                                <tr>
-                                    <th className="px-4 py-2 text-left">Correct Score</th>
-                                    {fixtures.map((fixture) => (
-                                        <th key={fixture.id} className="px-4 py-2">
-                                            0-0
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {players.map((player) => (
-                                    <tr key={player.id}>
-                                        <td className="px-4 py-2 font-medium">
-                                            {player.username}
-                                        </td>
-                                        {fixtures.map((fixture) => (
-                                            <td key={fixture.id} className="px-4 py-2 text-center">
-                                                0-0
-                                            </td>
-                                        ))}
-                                    </tr>
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800">
+                <table className="min-w-full">
+                    <thead>
+                        <tr>
+                            <th className="px-4 py-2 text-left text-gray-900 dark:text-gray-100"> </th>
+                            {fixtures.map((fixture) => (
+                                <th key={fixture.id} className="px-4 py-2 text-gray-900 dark:text-gray-100">
+                                    <div className="whitespace-nowrap">
+                                        {fixture.home_team}
+                                    </div>
+                                    <div className="text-xs">vs</div>
+                                    <div className="whitespace-nowrap">
+                                        {fixture.away_team}
+                                    </div>
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {players.map((player) => (
+                            <tr key={player.id}>
+                                <td className="px-4 py-2 font-medium text-gray-900 dark:text-gray-100">
+                                    {player.username}
+                                </td>
+                                {fixtures.map((fixture) => (
+                                    <td key={fixture.id} className="px-4 py-2 text-center text-gray-900 dark:text-gray-100">
+                                        0-0
+                                    </td>
                                 ))}
-                            </tbody>
-                        </table>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table> 
                     </div>
                 )}
             </div>
