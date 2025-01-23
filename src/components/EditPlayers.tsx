@@ -6,49 +6,49 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import { DatabasePlayer, UserProfile } from '../types/players';
 
+
 type EditPlayersProps = {
-  seasonId: string;
-  onClose: () => void;
+    seasonId: string;
+    onClose: () => void;
 };
 
 export default function EditPlayers({ seasonId, onClose }: EditPlayersProps) {
-  const [activePlayers, setActivePlayers] = useState<UserProfile[]>([]);
-  const [inactivePlayers, setInactivePlayers] = useState<UserProfile[]>([]);
-  const [message, setMessage] = useState('');
+    const [activePlayers, setActivePlayers] = useState<UserProfile[]>([]);
+    const [inactivePlayers, setInactivePlayers] = useState<UserProfile[]>([]);
+    const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      const { data: allPlayersData, error: allPlayersError } = await supabase
-        .from('profiles')
-        .select('id, username');
-      if (allPlayersError) {
-        setMessage('Error fetching players');
-        return;
-      }
-
-      const { data: activePlayersData, error: activePlayersError } = await supabase
-        .from('season_players')
-        .select('player_id, profiles!inner(username)')
-        .eq('season_id', seasonId);
-      if (activePlayersError) {
-        setMessage('Error fetching active players');
-        return;
-      }
-
-      const activePlayers = (activePlayersData as unknown as DatabasePlayer[]).map(sp => ({
-        id: sp.player_id,
-        username: sp.profiles.username || 'Unknown',
-      }));
-
-      const inactivePlayers = allPlayersData.filter(
-        (player: UserProfile) => !activePlayers.some((ap: UserProfile) => ap.id === player.id)
-      );
-
-      setActivePlayers(activePlayers);
-      setInactivePlayers(inactivePlayers);
-    };
-
-    fetchPlayers();
+    useEffect(() => {
+      const fetchPlayers = async () => {
+          const { data: allPlayersData, error: allPlayersError } = await supabase
+              .from('profiles')
+              .select('id, username');
+  
+          if (allPlayersError) {
+              setMessage('Error fetching players');
+              return;
+          }
+  
+          const typedData = allPlayersData as DatabasePlayer[];
+  
+          const { data: activePlayersData, error: activePlayersError } = await supabase
+              .from('season_players')
+              .select('player_id, profiles!inner(username)')
+              .eq('season_id', seasonId);
+  
+          if (activePlayersError) {
+              setMessage('Error fetching active players');
+              return;
+          }
+  
+          const activePlayerIds = activePlayersData?.map(p => p.player_id) || [];
+          const activePlayers = typedData.filter(p => activePlayerIds.includes(p.id));
+          const inactivePlayers = typedData.filter(p => !activePlayerIds.includes(p.id));
+  
+          setActivePlayers(activePlayers);
+          setInactivePlayers(inactivePlayers);
+      };
+  
+      fetchPlayers();
   }, [seasonId]);
 
   const handlePlayerClick = (player: UserProfile, isActive: boolean) => {
