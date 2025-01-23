@@ -1,5 +1,10 @@
 //src/types/players.ts
 
+export type DatabasePlayer = {
+  id: string;
+  username: string;
+};
+
 export type SeasonPlayer = {
   player_id: string;
   profiles: {

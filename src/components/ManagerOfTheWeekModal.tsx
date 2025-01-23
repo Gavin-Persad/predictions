@@ -12,7 +12,7 @@ type ManagerOfTheWeekModalProps = {
     onClose: () => void;
 };
 
-export default function ManagerOfTheWeekModal({ gameWeekId, seasonId, onClose }: ManagerOfTheWeekModalProps) {
+export default function ManagerOfTheWeekModal({ seasonId, onClose }: ManagerOfTheWeekModalProps) {
     const [players, setPlayers] = useState<Player[]>([]);
     const [loading, setLoading] = useState(true);
 

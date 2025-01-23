@@ -1,9 +1,10 @@
-//src/components/GameWeekOptions.tsx
+// src/components/GameWeekOptions.tsx
 
 "use client";
 
-import CreateGameWeek from './CreateGameWeek';
 import { useState } from 'react';
+import CreateGameWeek from './CreateGameWeek';
+import EditGameWeekList from './EditGameWeekList';
 
 type GameWeekOptionsProps = {
     seasonId: string;
@@ -12,12 +13,14 @@ type GameWeekOptionsProps = {
 
 export default function GameWeekOptions({ seasonId, onClose }: GameWeekOptionsProps) {
     const [showCreateWeek, setShowCreateWeek] = useState(false);
+    const [showEditWeeks, setShowEditWeeks] = useState(false);
 
     if (showCreateWeek) {
-        return <CreateGameWeek 
-            seasonId={seasonId} 
-            onClose={() => setShowCreateWeek(false)} 
-        />;
+        return <CreateGameWeek seasonId={seasonId} onClose={() => setShowCreateWeek(false)} />;
+    }
+
+    if (showEditWeeks) {
+        return <EditGameWeekList seasonId={seasonId} onClose={() => setShowEditWeeks(false)} />;
     }
 
     return (
@@ -37,6 +40,7 @@ export default function GameWeekOptions({ seasonId, onClose }: GameWeekOptionsPr
                     Create Game Week
                 </button>
                 <button
+                    onClick={() => setShowEditWeeks(true)}
                     className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
                 >
                     Edit Game Week
