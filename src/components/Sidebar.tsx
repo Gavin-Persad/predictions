@@ -64,7 +64,7 @@ export default function Sidebar() {
                 </div>
 
                 {profile?.username && (
-                    <p className="mb-4 px-4">Welcome, {profile.username}</p>
+                    <p className="mb-4 px-4 text-lg underline">{profile.username}</p>
                 )}
 
                 <nav>

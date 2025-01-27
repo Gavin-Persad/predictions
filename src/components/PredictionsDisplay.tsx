@@ -28,15 +28,15 @@ export default function PredictionsDisplay({
     return (
         <div className="space-y-4">
             {fixtures.map((fixture) => (
-                <div key={fixture.id} className="grid grid-cols-3 gap-4 items-center">
-                    <div className="text-right">{fixture.home_team}</div>
-                    <div className="flex justify-center space-x-2">
-                        <span>{predictions[fixture.id]?.home ?? '*'}</span>
-                        <span>-</span>
-                        <span>{predictions[fixture.id]?.away ?? '*'}</span>
-                    </div>
-                    <div className="text-left">{fixture.away_team}</div>
+                <div key={fixture.id} className="grid grid-cols-3 gap-4 items-center text-gray-900 dark:text-white">
+                <div className="text-right">{fixture.home_team}</div>
+                <div className="flex justify-center space-x-2">
+                    <span>{predictions[fixture.id]?.home ?? '*'}</span>
+                    <span>-</span>
+                    <span>{predictions[fixture.id]?.away ?? '*'}</span>
                 </div>
+                <div className="text-left">{fixture.away_team}</div>
+            </div>
             ))}
             {canEdit && (
                 <div className="flex justify-end">

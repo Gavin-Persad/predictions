@@ -9,7 +9,6 @@ type Fixture = {
     fixture_number: number;
     home_team: string;
     away_team: string;
-    game_week_id: string;
 };
 
 type PredictionsFormProps = {
@@ -18,36 +17,24 @@ type PredictionsFormProps = {
     initialPredictions?: { [key: string]: { home: number; away: number } };
 };
 
-export default function PredictionsForm({ fixtures, onSubmit, initialPredictions }: PredictionsFormProps) {
-    const [predictions, setPredictions] = useState<{ [key: string]: { home: number; away: number } }>({});
-    const [isComplete, setIsComplete] = useState(false);
-
-    useEffect(() => {
-        if (initialPredictions) {
-            setPredictions(initialPredictions);
-        }
-    }, [initialPredictions]);
-
-    useEffect(() => {
-        const complete = fixtures.every(
-            (fixture) => 
-                predictions[fixture.id]?.home !== undefined && 
-                predictions[fixture.id]?.away !== undefined
-        );
-        setIsComplete(complete);
-    }, [predictions, fixtures]);
+export default function PredictionsForm({ 
+    fixtures, 
+    onSubmit, 
+    initialPredictions 
+}: PredictionsFormProps) {
+    const [predictions, setPredictions] = useState<{
+        [key: string]: { home: number; away: number }
+    }>(initialPredictions || {});
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (isComplete) {
-            onSubmit(predictions);
-        }
+        onSubmit(predictions);
     };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             {fixtures.map((fixture) => (
-                <div key={fixture.id} className="grid grid-cols-3 gap-4 items-center">
+                <div key={fixture.id} className="grid grid-cols-3 gap-4 items-center text-gray-900 dark:text-white">
                     <div className="text-right">{fixture.home_team}</div>
                     <div className="flex justify-center space-x-2">
                         <input
@@ -58,10 +45,10 @@ export default function PredictionsForm({ fixtures, onSubmit, initialPredictions
                                 ...predictions,
                                 [fixture.id]: { 
                                     ...predictions[fixture.id],
-                                    home: parseInt(e.target.value) 
+                                    home: parseInt(e.target.value) || 0
                                 }
                             })}
-                            className="w-16 text-center p-2 border rounded"
+                            className="w-16 text-center p-2 border rounded dark:bg-gray-700 dark:text-white"
                             required
                         />
                         <span>-</span>
@@ -73,10 +60,10 @@ export default function PredictionsForm({ fixtures, onSubmit, initialPredictions
                                 ...predictions,
                                 [fixture.id]: { 
                                     ...predictions[fixture.id],
-                                    away: parseInt(e.target.value)
+                                    away: parseInt(e.target.value) || 0
                                 }
                             })}
-                            className="w-16 text-center p-2 border rounded"
+                            className="w-16 text-center p-2 border rounded dark:bg-gray-700 dark:text-white"
                             required
                         />
                     </div>
@@ -86,8 +73,7 @@ export default function PredictionsForm({ fixtures, onSubmit, initialPredictions
             <div className="flex justify-end">
                 <button
                     type="submit"
-                    disabled={!isComplete}
-                    className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                     Submit Predictions
                 </button>
