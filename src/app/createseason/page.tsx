@@ -141,29 +141,29 @@ export default function CreateSeason() {
               />
             </div>
             <div className="flex space-x-4">
-              <div className="w-1/2">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Not Taking Part</h3>
-                <ul className="mt-2 space-y-2">
-                  {allPlayers.map(player => (
+            <div className="w-1/2">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Not Taking Part</h3>
+            <ul className="mt-2 space-y-2">
+                {allPlayers.map(player => (
                     <li key={player.id} className="cursor-pointer" onClick={() => handlePlayerClick(player, false)}>
-                      <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600">
-                        {player.username}
-                      </div>
+                        <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100">
+                            {player.username}
+                        </div>
                     </li>
-                  ))}
-                </ul>
-              </div>
+                ))}
+            </ul>
+        </div>
               <div className="w-1/2">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Taking Part</h3>
-                <ul className="mt-2 space-y-2">
-                  {selectedPlayers.map(player => (
-                    <li key={player.id} className="cursor-pointer" onClick={() => handlePlayerClick(player, true)}>
-                      <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600">
-                        {player.username}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Taking Part</h3>
+                  <ul className="mt-2 space-y-2">
+                      {selectedPlayers.map(player => (
+                          <li key={player.id} className="cursor-pointer" onClick={() => handlePlayerClick(player, true)}>
+                              <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100">
+                                  {player.username}
+                              </div>
+                          </li>
+                      ))}
+                  </ul>
               </div>
             </div>
             <button
