@@ -46,3 +46,4 @@
 ## bugs
 
 - back to seasons buttons show under hamburger icon, need to be moved down so they are seperate.
+- create season modal confirmation screen needed

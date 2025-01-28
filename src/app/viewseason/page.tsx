@@ -101,8 +101,13 @@ export default function ViewSeason() {
   };
 
   const handleBackToSeasonClick = () => {
+    setSelectedSeason(null);
+    setViewGameWeek(false);
     setViewPlayers(false);
-  };
+    setEditPlayers(false);
+    setGameWeekOptionView(false);
+    setEditGameWeek(false);
+};
 
   const handleEditPlayersClick = () => {
     setEditPlayers(true);
@@ -130,43 +135,44 @@ export default function ViewSeason() {
     setEditPlayers(false);
   };
 
- return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-grow flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-        <div className="absolute top-4 right-4">
-          <DarkModeToggle />
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl">
-          {message && <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>}
-          {!selectedSeason ? (
-            <ul className="space-y-4">
-              {seasons.map(season => (
-                <li key={season.id} className="cursor-pointer" onClick={() => handleSeasonClick(season)}>
-                  <div className="p-4 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{season.name}</h2>
-                    <p className="text-gray-700 dark:text-gray-300">Start Date: {season.start_date}</p>
-                    <p className="text-gray-700 dark:text-gray-300">End Date: {season.end_date}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : editPlayers ? (
-            <EditPlayers seasonId={selectedSeason.id} onClose={handleCloseEditPlayers} />
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900">
+          <Sidebar />
+          <div className="absolute top-4 right-4">
+              <DarkModeToggle />
+          </div>
+          <div className="container mx-auto p-4 pl-24 pt-20">
+              <div className="max-w-4xl mx-auto">
+                {!selectedSeason ? (
+                    <ul className="space-y-4">
+                        {seasons.map(season => (
+                            <li key={season.id} className="cursor-pointer" onClick={() => handleSeasonClick(season)}>
+                                <div className="p-4 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600">
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{season.name}</h2>
+                                    <p className="text-gray-700 dark:text-gray-300">Start Date: {season.start_date}</p>
+                                    <p className="text-gray-700 dark:text-gray-300">End Date: {season.end_date}</p>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+            ) : editPlayers ? (
+              <EditPlayers seasonId={selectedSeason.id} onClose={handleCloseEditPlayers} />
           ) : viewGameWeek ? (
-            <ViewGameWeeks
-                seasonId={selectedSeason.id}
-                onClose={() => setViewGameWeek(false)}
-            />
+              <ViewGameWeeks
+                  seasonId={selectedSeason.id}
+                  onClose={() => setViewGameWeek(false)}
+              />
           ) : viewPlayers ? (
-            <div className="flex flex-col items-center">
-              <button
-                onClick={handleBackToSeasonClick}
-                className="absolute top-4 left-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-              >
-                Back to Season
-              </button>
-              <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Players</h2>
+                    <div className="space-y-4">
+                <button
+                    onClick={handleBackToSeasonClick}
+                    className="mb-8 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                >
+                    Back to Seasons
+                </button>
+                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+                    Players
+                </h2>
               <ul className="space-y-2 mt-4">
                 {players.map(player => (
                   <li key={player.id} className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow">
@@ -174,67 +180,69 @@ export default function ViewSeason() {
                   </li>
                 ))}
               </ul>
-            </div>
-          ) : gameWeekOptionView ? (
-            <GameWeekOptions 
-              seasonId={selectedSeason.id} 
-              onClose={() => setGameWeekOptionView(false)} 
-            />
-          ) : editGameWeek ? (
-            <CreateGameWeek 
-              seasonId={selectedSeason.id} 
-              onClose={() => {
-                setEditGameWeek(false);
-                setGameWeekOptionView(true);
-              }} 
-            />
-          ) : (
-            <div className="flex flex-col items-center">
-              <button
-                onClick={() => setSelectedSeason(null)}
-                className="absolute top-4 left-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-              >
-                Back to Seasons
-              </button>
-              <h2 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">{selectedSeason.name}</h2>
-              <div className="mb-8 w-full flex flex-col items-center">
-                <div className="flex space-x-4">
-                  <button
-                    onClick={handleViewPlayersClick}
-                    className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                  >
-                    View Players
-                  </button>
-                  {profile?.is_host && (
-                    <button
-                      onClick={handleEditPlayersClick}
-                      className="px-6 py-2 w-40 text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
-                    >
-                      Edit Players
-                    </button>
-                  )}
-                </div>
-                <div className="flex space-x-4 mt-4">
-                  <button
-                    onClick={handleViewGameWeekClick}
-                    className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                  >
-                    View Game Week
-                  </button>
-                  {profile?.is_host && (
-                    <button
-                      onClick={handleEditGameWeekClick}
-                      className="px-6 py-2 w-40 text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
-                    >
-                      Create/Edit Week
-                    </button>
-                  )}
-                </div>
               </div>
-            </div>
-          )}
-        </div>
+                    ) : gameWeekOptionView ? (
+                      <GameWeekOptions 
+                          seasonId={selectedSeason.id} 
+                          onClose={() => setGameWeekOptionView(false)} 
+                      />
+                  ) : editGameWeek ? (
+                      <CreateGameWeek 
+                          seasonId={selectedSeason.id} 
+                          onClose={() => {
+                              setEditGameWeek(false);
+                              setGameWeekOptionView(true);
+                          }} 
+                      />
+                  ) : (
+                      <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md">
+                          <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+                              {selectedSeason.name}
+                          </h2>
+                          <button
+                              onClick={handleBackToSeasonClick}
+                              className="mb-8 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                          >
+                              Back to Season
+                          </button>
+                          <div className="w-full flex flex-col items-center">
+                              <div className="flex space-x-4">
+                                  <button
+                                      onClick={handleViewPlayersClick}
+                                      className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                  >
+                                      View Players
+                                  </button>
+                                  {profile?.is_host && (
+                                      <button
+                                          onClick={handleEditPlayersClick}
+                                          className="px-6 py-2 w-40 text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                      >
+                                          Edit Players
+                                      </button>
+                                  )}
+                              </div>
+                              <div className="flex space-x-4 mt-4">
+                                  <button
+                                      onClick={handleViewGameWeekClick}
+                                      className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                  >
+                                      View Game Week
+                                  </button>
+                                  {profile?.is_host && (
+                                      <button
+                                          onClick={handleEditGameWeekClick}
+                                          className="px-6 py-2 w-40 text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                      >
+                                          Create/Edit Week
+                                      </button>
+                                  )}
+                              </div>
+                          </div>
+                      </div>
+                  )}
+              </div>
+          </div>
       </div>
-    </div>
   );
 }
