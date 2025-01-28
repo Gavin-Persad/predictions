@@ -132,7 +132,7 @@ export default function ViewSeason() {
 
  return (
     <div className="flex">
-      <Sidebar loggedIn={!!profile} isHost={profile?.is_host} />
+      <Sidebar />
       <div className="flex-grow flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
         <div className="absolute top-4 right-4">
           <DarkModeToggle />

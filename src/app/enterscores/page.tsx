@@ -4,10 +4,10 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../supabaseClient';
-import PredictionsForm from '@/components/PredictionsForm';
-import PredictionsDisplay from '@/components/PredictionsDisplay';
-import Sidebar from '@/components/Sidebar';
-import DarkModeToggle from '@/components/darkModeToggle';
+import PredictionsForm from '../../components/PredictionsForm';
+import PredictionsDisplay from '../../components/PredictionsDisplay';
+import Sidebar from '../../components/Sidebar';
+import DarkModeToggle from '../../components/darkModeToggle';
 
 type GameWeek = {
     id: string;
@@ -190,6 +190,9 @@ export default function PredictionsPage() {
                                         )}
                                         {status === 'live' && (
                                             <span>Ends: {new Date(gameWeek.live_end).toLocaleString()}</span>
+                                        )}
+                                        {status === 'upcoming' && (
+                                            <span>Opens for predictions: {new Date(gameWeek.predictions_open).toLocaleString()}</span>
                                         )}
                                     </div>
                                 </button>
