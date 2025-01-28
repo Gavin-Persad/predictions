@@ -21,7 +21,7 @@
 10. Test enter scores functionality✅
 
 11. Create scoring league table view and add this where desired (dashboard) and view seasons
-    - create player score table on supabase
+    - create player score table on supabase (season_id, player_id, corectscores, points)
     - create add correct score section for hosts
     - create functionality to update the scores
     - create league table that pulls and sorts from player scores ( try to make this sortable by position, name, correct scores and points)
@@ -42,3 +42,7 @@
 18. Update ReadMe and announce on LinkedIn
 
 19. Receive feedback and fix bugs/make improvements
+
+## bugs
+
+- back to seasons buttons show under hamburger icon, need to be moved down so they are seperate.
