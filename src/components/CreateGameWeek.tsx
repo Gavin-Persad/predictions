@@ -124,29 +124,33 @@ export default function CreateGameWeek({ seasonId, onClose }: CreateGameWeekProp
     };
 
     return (
-        <div className="flex flex-col items-center w-full">
-            <button
-                onClick={onClose}
-                className="absolute top-4 left-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-            >
-                Back
-            </button>
-            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Create Game Week</h2>
-            
-            {message && <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>}
-            
-            <form onSubmit={handleSubmit} className="w-full max-w-2xl space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Predictions Open
-                        <input
-                            type="datetime-local"
-                            value={predictionsOpen}
-                            onChange={(e) => setPredictionsOpen(e.target.value)}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-                            required
-                        />
-                    </label>
+        <div className="container mx-auto p-4 pl-24">
+            <div className="max-w-4xl mx-auto">
+                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+                    Create Game Week
+                </h2>
+                <button
+                    onClick={onClose}
+                    className="mb-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                >
+                    Back
+                </button>
+                
+                <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md">
+                    {message && <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>}
+                    
+                    <form onSubmit={handleSubmit} className="w-full space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Predictions Open
+                                <input
+                                    type="datetime-local"
+                                    value={predictionsOpen}
+                                    onChange={(e) => setPredictionsOpen(e.target.value)}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                                    required
+                                />
+                            </label>
     
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Live Start
@@ -234,5 +238,7 @@ export default function CreateGameWeek({ seasonId, onClose }: CreateGameWeekProp
                 />
             )}
         </div>
+    </div>
+</div>
     );
 }

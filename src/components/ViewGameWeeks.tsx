@@ -55,32 +55,37 @@ export default function ViewGameWeeks({ seasonId, onClose }: ViewGameWeeksProps)
     }
 
     return (
-        <div className="flex flex-col items-center w-full">
-            <button
-                onClick={onClose}
-                className="absolute top-4 left-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-            >
-                Back
-            </button>
-            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Game Weeks</h2>
-            
-            {message && <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>}
-            
-            <div className="w-full max-w-2xl space-y-4">
-                {gameWeeks.map((gameWeek) => (
-                    <div
-                        key={gameWeek.id}
-                        onClick={() => setSelectedGameWeek(gameWeek)}
-                        className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg shadow hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
-                    >
-                        <p className="font-medium text-gray-900 dark:text-gray-100">
-                            Game Week {new Date(gameWeek.live_start).toLocaleDateString()}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Live: {new Date(gameWeek.live_start).toLocaleString()} - {new Date(gameWeek.live_end).toLocaleString()}
-                        </p>
+        <div className="container mx-auto p-4 pl-24">
+            <div className="max-w-4xl mx-auto">
+                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+                    View Game Weeks
+                </h2>
+                <button
+                    onClick={onClose}
+                    className="mb-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                >
+                    Back to Season
+                </button>
+                {message && <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>}
+                
+                <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md">
+                    <div className="w-full max-w-2xl space-y-4">
+                        {gameWeeks.map((gameWeek) => (
+                            <div
+                                key={gameWeek.id}
+                                onClick={() => setSelectedGameWeek(gameWeek)}
+                                className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg shadow hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
+                            >
+                                <p className="font-medium text-gray-900 dark:text-gray-100">
+                                    Game Week {new Date(gameWeek.live_start).toLocaleDateString()}
+                                </p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Live: {new Date(gameWeek.live_start).toLocaleString()} - {new Date(gameWeek.live_end).toLocaleString()}
+                                </p>
+                            </div>
+                        ))}
                     </div>
-                ))}
+                </div>
             </div>
         </div>
     );

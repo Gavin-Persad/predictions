@@ -162,24 +162,26 @@ export default function ViewSeason() {
                   seasonId={selectedSeason.id}
                   onClose={() => setViewGameWeek(false)}
               />
-          ) : viewPlayers ? (
-                    <div className="space-y-4">
-                <button
-                    onClick={handleBackToSeasonClick}
-                    className="mb-8 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-                >
-                    Back to Seasons
-                </button>
-                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
-                    Players
-                </h2>
-              <ul className="space-y-2 mt-4">
-                {players.map(player => (
-                  <li key={player.id} className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow">
-                    {player.username}
-                  </li>
-                ))}
-              </ul>
+            ) : viewPlayers ? (
+              <div className="space-y-4">
+                  <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+                      Players
+                  </h2>
+                  <button
+                      onClick={handleBackToSeasonClick}
+                      className="mb-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                  >
+                      Back to Seasons
+                  </button>
+                  <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md">
+                      <ul className="space-y-2">
+                          {players.map(player => (
+                              <li key={player.id} className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow">
+                                  {player.username}
+                              </li>
+                          ))}
+                      </ul>
+                  </div>
               </div>
                     ) : gameWeekOptionView ? (
                       <GameWeekOptions 
@@ -194,49 +196,51 @@ export default function ViewSeason() {
                               setGameWeekOptionView(true);
                           }} 
                       />
-                  ) : (
-                      <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md">
+                    ) : (
+                      <div>
                           <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
                               {selectedSeason.name}
                           </h2>
                           <button
                               onClick={handleBackToSeasonClick}
-                              className="mb-8 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                              className="mb-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
                           >
-                              Back to Season
+                              Back to Seasons
                           </button>
-                          <div className="w-full flex flex-col items-center">
-                              <div className="flex space-x-4">
-                                  <button
-                                      onClick={handleViewPlayersClick}
-                                      className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                                  >
-                                      View Players
-                                  </button>
-                                  {profile?.is_host && (
+                          <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md">
+                              <div className="w-full flex flex-col items-center">
+                                  <div className="flex space-x-4">
                                       <button
-                                          onClick={handleEditPlayersClick}
-                                          className="px-6 py-2 w-40 text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                          onClick={handleViewPlayersClick}
+                                          className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
                                       >
-                                          Edit Players
+                                          View Players
                                       </button>
-                                  )}
-                              </div>
-                              <div className="flex space-x-4 mt-4">
-                                  <button
-                                      onClick={handleViewGameWeekClick}
-                                      className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                                  >
-                                      View Game Week
-                                  </button>
-                                  {profile?.is_host && (
+                                      {profile?.is_host && (
+                                          <button
+                                              onClick={handleEditPlayersClick}
+                                              className="px-6 py-2 w-40 text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                          >
+                                              Edit Players
+                                          </button>
+                                      )}
+                                  </div>
+                                  <div className="flex space-x-4 mt-4">
                                       <button
-                                          onClick={handleEditGameWeekClick}
-                                          className="px-6 py-2 w-40 text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                          onClick={handleViewGameWeekClick}
+                                          className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
                                       >
-                                          Create/Edit Week
+                                          View Game Week
                                       </button>
-                                  )}
+                                      {profile?.is_host && (
+                                          <button
+                                              onClick={handleEditGameWeekClick}
+                                              className="px-6 py-2 w-40 text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                          >
+                                              Create/Edit Week
+                                          </button>
+                                      )}
+                                  </div>
                               </div>
                           </div>
                       </div>
