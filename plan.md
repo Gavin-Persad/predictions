@@ -14,24 +14,31 @@
 
 7. Test everything is working and linked to Supabase correctly✅
 
-8. Update ReadMe
+8. Update ReadMe✅
 
-9. Create enter scores functionality
+9. Create enter scores functionality✅
 
-10. Test enter scores functionality
+10. Test enter scores functionality✅
 
 11. Create scoring league table view and add this where desired (dashboard) and view seasons
+    - create player score table on supabase
+    - create add correct score section for hosts
+    - create functionality to update the scores
+    - create league table that pulls and sorts from player scores ( try to make this sortable by position, name, correct scores and points)
+    - add table to dashboard
+    - add table to view season
+12. add edit score entries section for hosts.
 
-12. Test scoring and table works
+13. Test scoring and table works
 
-13. Add in cup competitions, rules and format
+14. Add in cup competitions, rules and format
 
-14. Test cups and format
+15. Test cups and format
 
-15. Test thoroughly with 1 player and 1 host
+16. Test thoroughly with 1 player and 1 host
 
-16. Prepare for beta testing
+17. Prepare for beta testing
 
-17. Update ReadMe and announce on LinkedIn
+18. Update ReadMe and announce on LinkedIn
 
-18. Receive feedback and fix bugs/make improvements
+19. Receive feedback and fix bugs/make improvements
