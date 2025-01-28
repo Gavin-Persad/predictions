@@ -45,7 +45,7 @@
 
 ## bugs
 
-- back to seasons buttons show under hamburger icon, need to be moved down so they are seperate.
+- back to seasons buttons show under hamburger icon, need to be moved down so they are seperate.✅
+- admin page needs centering✅
 - create season modal confirmation screen needed
-- admin page needs centering
 - view scores modal in view seasons can now be updated to collect scores from supabase predictions table
