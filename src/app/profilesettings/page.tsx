@@ -88,65 +88,63 @@ export default function ProfileSettings() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="flex">
         <Sidebar />
-        <div className="absolute top-4 right-4">
-            <DarkModeToggle />
-        </div>
-        <div className="container mx-auto p-4 pl-24">
-            <div className="max-w-4xl mx-auto">
-                <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+        <div className="flex-grow flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+            <div className="absolute top-4 right-4">
+                <DarkModeToggle />
+            </div>
+            <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl">
+                <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
                     Profile Settings
                 </h1>
-                                <button
+                <button
                     onClick={() => router.push('/dashboard')}
-                    className="mb-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                    className="mb-8 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
                 >
                     Back to Dashboard
                 </button>
-                <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md">
-                    {message && (
-                        <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>
-                    )}
-                    <form onSubmit={handleUpdateProfile}>
-                        <div className="mb-4">
-                            <label className="block text-gray-700 dark:text-gray-300 mb-2" htmlFor="username">
-                                Display Name
-                            </label>
-                            <input
-                                id="username"
-                                type="text"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700 dark:text-gray-300 mb-2" htmlFor="club">
-                                Favorite Club
-                            </label>
-                            <input
-                                id="club"
-                                type="text"
-                                value={club}
-                                onChange={(e) => setClub(e.target.value)}
-                                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition duration-300"
-                        >
-                            Update Profile
-                        </button>
-                    </form>
+                {message && (
+                    <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>
+                )}
+                <form onSubmit={handleUpdateProfile}>
+                    <div className="mb-4">
+                        <label className="block text-gray-700 dark:text-gray-300 mb-2" htmlFor="username">
+                            Display Name
+                        </label>
+                        <input
+                            id="username"
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-gray-700 dark:text-gray-300 mb-2" htmlFor="club">
+                            Favorite Club
+                        </label>
+                        <input
+                            id="club"
+                            type="text"
+                            value={club}
+                            onChange={(e) => setClub(e.target.value)}
+                            className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                    </div>
                     <button
-                        onClick={handleDeleteAccount}
-                        className="w-full mt-4 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition duration-300"
+                        type="submit"
+                        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition duration-300"
                     >
-                        Delete Account
+                        Update Profile
                     </button>
-                </div>
+                </form>
+                <button
+                    onClick={handleDeleteAccount}
+                    className="w-full mt-4 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition duration-300"
+                >
+                    Delete Account
+                </button>
             </div>
         </div>
     </div>

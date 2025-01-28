@@ -48,7 +48,8 @@
 - back to seasons buttons show under hamburger icon, need to be moved down so they are seperate.✅
 - admin page needs centering✅
 - responsive design repairs:
-- Predictions form elements over lap
+- Predictions form elements over lap✅
+- fix enter scores and view seasons to not have left margin
 - View seasons, (view players, Edit players, View game week, create/edit game week. All not fitting in box).
 - View game week, game weeks are to vertical need to be more horizontal.
 - in game week view, (View Scores and View manager of the week not fitting in the box)

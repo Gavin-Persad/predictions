@@ -154,89 +154,35 @@ export default function PredictionsPage() {
         return <div className="flex justify-center items-center h-screen">Loading...</div>;
     }
 
-    return (
-        <div className="min-h-screen bg-white dark:bg-gray-900">
-            <Sidebar />
+return (
+    <div className="flex">
+        <Sidebar />
+        <div className="flex-grow flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
             <div className="absolute top-4 right-4">
                 <DarkModeToggle />
             </div>
-            <div className="container mx-auto p-4 pl-24">
-                <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
-                    Game Week Predictions
+            <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl">
+                <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
+                    Enter Scores
                 </h1>
-                
-                {selectedGameWeek && (
-                    <button
-                        onClick={() => setSelectedGameWeek(null)}
-                        className="mb-4 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                    >
-                        Back to Game Weeks
-                    </button>
+                {loading ? (
+                    <div>Loading...</div>
+                ) : canEdit ? (
+                    <PredictionsForm
+                        fixtures={fixtures}
+                        onSubmit={handleSubmit}
+                        initialPredictions={predictions}
+                    />
+                ) : (
+                    <PredictionsDisplay
+                        fixtures={fixtures}
+                        predictions={predictions}
+                        canEdit={canEdit}
+                        onEdit={() => setCanEdit(true)}
+                    />
                 )}
-
-                <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md">
-                    {!selectedGameWeek ? (
-                        <div className="space-y-4">
-                            {gameWeeks.map((gameWeek) => {
-                                const status = checkGameWeekStatus(gameWeek);
-                                return (
-                                    <button
-                                        key={gameWeek.id}
-                                        className={`w-full p-4 rounded-lg shadow transition-colors duration-200 ${getStatusStyle(status)}`}
-                                        onClick={() => setSelectedGameWeek(gameWeek.id)}
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <span className="font-medium">Game Week {gameWeek.week_number}</span>
-                                            <span className="text-sm">
-                                                {status === 'predictions' && 'Open for Predictions'}
-                                                {status === 'live' && 'Live'}
-                                                {status === 'past' && 'Closed'}
-                                                {status === 'upcoming' && 'Upcoming'}
-                                            </span>
-                                        </div>
-                                        <div className="text-sm mt-2">
-                                            {status === 'predictions' && (
-                                                <span>Predictions close: {new Date(gameWeek.predictions_close).toLocaleString()}</span>
-                                            )}
-                                            {status === 'live' && (
-                                                <span>Ends: {new Date(gameWeek.live_end).toLocaleString()}</span>
-                                            )}
-                                            {status === 'upcoming' && (
-                                                <span>Opens for predictions: {new Date(gameWeek.predictions_open).toLocaleString()}</span>
-                                            )}
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <>
-                            {checkGameWeekStatus(gameWeeks.find(gw => gw.id === selectedGameWeek)!) === 'predictions' ? (
-                                isEditing || Object.keys(predictions).length === 0 ? (
-                                    <PredictionsForm
-                                        fixtures={fixtures}
-                                        onSubmit={handleSubmitPredictions}
-                                        initialPredictions={predictions}
-                                    />
-                                ) : (
-                                    <PredictionsDisplay
-                                        fixtures={fixtures}
-                                        predictions={predictions}
-                                        canEdit={true}
-                                        onEdit={() => setIsEditing(true)}
-                                    />
-                                )
-                            ) : (
-                                <PredictionsDisplay
-                                    fixtures={fixtures}
-                                    predictions={predictions}
-                                    canEdit={false}
-                                />
-                            )}
-                        </>
-                    )}
-                </div>
             </div>
         </div>
-    );
+    </div>
+);
 }
