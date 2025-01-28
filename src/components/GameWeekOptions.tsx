@@ -24,14 +24,16 @@ export default function GameWeekOptions({ seasonId, onClose }: GameWeekOptionsPr
     }
 
     return (
-        <div className="flex flex-col items-center w-full">
+        <div className="container mx-auto p-4 pl-24">
+            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+                Game Week Management
+            </h2>
             <button
                 onClick={onClose}
-                className="absolute top-4 left-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                className="mb-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
             >
                 Back to Season
-            </button>
-            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Game Week Management</h2>
+            </button>  
             <div className="flex space-x-4">
                 <button
                     onClick={() => setShowCreateWeek(true)}
