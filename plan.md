@@ -47,5 +47,15 @@
 
 - back to seasons buttons show under hamburger icon, need to be moved down so they are seperate.✅
 - admin page needs centering✅
+- responsive design repairs:
+- Predictions form elements over lap
+- View seasons, (view players, Edit players, View game week, create/edit game week. All not fitting in box).
+- View game week, game weeks are to vertical need to be more horizontal.
+- in game week view, (View Scores and View manager of the week not fitting in the box)
+- in create/edit game week (create game week and edit game week not fitting in box)
+- the create game week form is too thin and crushes elements.
+- in edit game week, game weeks are too vertical and not horizontal
+- the edit game week form is too thin and crushes elements.
+-
 - create season modal confirmation screen needed
 - view scores modal in view seasons can now be updated to collect scores from supabase predictions table
