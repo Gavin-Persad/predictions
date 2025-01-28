@@ -34,8 +34,8 @@ export default function PredictionsForm({
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             {fixtures.map((fixture) => (
-                <div key={fixture.id} className="grid grid-cols-3 gap-4 items-center text-gray-900 dark:text-white">
-                    <div className="text-right">{fixture.home_team}</div>
+                <div key={fixture.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 items-center text-gray-900 dark:text-white p-2">
+                    <div className="text-center sm:text-right text-sm sm:text-base">{fixture.home_team}</div>
                     <div className="flex justify-center space-x-2">
                         <input
                             type="number"
@@ -48,8 +48,7 @@ export default function PredictionsForm({
                                     home: parseInt(e.target.value) || 0
                                 }
                             })}
-                            className="w-16 text-center p-2 border rounded dark:bg-gray-700 dark:text-white"
-                            required
+                            className="w-12 p-1 text-center border rounded dark:bg-gray-700 dark:border-gray-600"
                         />
                         <span>-</span>
                         <input
@@ -63,18 +62,14 @@ export default function PredictionsForm({
                                     away: parseInt(e.target.value) || 0
                                 }
                             })}
-                            className="w-16 text-center p-2 border rounded dark:bg-gray-700 dark:text-white"
-                            required
+                            className="w-12 p-1 text-center border rounded dark:bg-gray-700 dark:border-gray-600"
                         />
                     </div>
-                    <div className="text-left">{fixture.away_team}</div>
+                    <div className="text-center sm:text-left text-sm sm:text-base">{fixture.away_team}</div>
                 </div>
             ))}
-            <div className="flex justify-end">
-                <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
+            <div className="flex justify-center mt-4">
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                     Submit Predictions
                 </button>
             </div>
