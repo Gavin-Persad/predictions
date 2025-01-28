@@ -93,7 +93,7 @@ export default function EditPlayers({ seasonId, onClose }: EditPlayersProps) {
           <ul className="mt-2 space-y-2">
             {inactivePlayers.map(player => (
               <li key={player.id} className="cursor-pointer" onClick={() => handlePlayerClick(player, false)}>
-                <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600">
+                <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100">
                   {player.username}
                 </div>
               </li>
@@ -105,8 +105,8 @@ export default function EditPlayers({ seasonId, onClose }: EditPlayersProps) {
           <ul className="mt-2 space-y-2">
             {activePlayers.map(player => (
               <li key={player.id} className="cursor-pointer" onClick={() => handlePlayerClick(player, true)}>
-                <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600">
-                  {player.username}
+                <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100">
+                    {player.username}
                 </div>
               </li>
             ))}

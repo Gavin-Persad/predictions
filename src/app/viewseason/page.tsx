@@ -176,7 +176,7 @@ export default function ViewSeason() {
                   <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md">
                       <ul className="space-y-2">
                           {players.map(player => (
-                              <li key={player.id} className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow">
+                              <li key={player.id} className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow text-gray-900 dark:text-gray-100">
                                   {player.username}
                               </li>
                           ))}
