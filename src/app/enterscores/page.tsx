@@ -162,34 +162,36 @@ export default function PredictionsPage() {
                     <DarkModeToggle />
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl">
-                    <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
-                        Game Week Predictions
-                    </h1>
                     {loading ? (
                         <div>Loading...</div>
                     ) : !selectedGameWeek ? (
-                        <div className="space-y-4">
-                            {gameWeeks.map((gameWeek) => {
-                                const status = checkGameWeekStatus(gameWeek);
-                                return (
-                                    <button
-                                        key={gameWeek.id}
-                                        onClick={() => setSelectedGameWeek(gameWeek.id)}
-                                        className={`w-full p-4 rounded-lg shadow transition-colors duration-200 ${getStatusStyle(status)}`}
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <span className="font-medium">Game Week {gameWeek.week_number}</span>
-                                            <span className="text-sm">
-                                                {status === 'predictions' && 'Open for Predictions'}
-                                                {status === 'live' && 'Live'}
-                                                {status === 'past' && 'Closed'}
-                                                {status === 'upcoming' && 'Upcoming'}
-                                            </span>
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
+                        <>
+                            <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
+                                Game Week Predictions
+                            </h1>
+                            <div className="space-y-4">
+                                {gameWeeks.map((gameWeek) => {
+                                    const status = checkGameWeekStatus(gameWeek);
+                                    return (
+                                        <button
+                                            key={gameWeek.id}
+                                            onClick={() => setSelectedGameWeek(gameWeek.id)}
+                                            className={`w-full p-4 rounded-lg shadow transition-colors duration-200 ${getStatusStyle(status)}`}
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-medium">Game Week {gameWeek.week_number}</span>
+                                                <span className="text-sm">
+                                                    {status === 'predictions' && 'Open for Predictions'}
+                                                    {status === 'live' && 'Live'}
+                                                    {status === 'past' && 'Closed'}
+                                                    {status === 'upcoming' && 'Upcoming'}
+                                                </span>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </>
                     ) : (
                         <>
                             {checkGameWeekStatus(gameWeeks.find(gw => gw.id === selectedGameWeek)!) === 'predictions' ? (
@@ -198,6 +200,7 @@ export default function PredictionsPage() {
                                         fixtures={fixtures}
                                         onSubmit={handleSubmitPredictions}
                                         initialPredictions={predictions}
+                                        onBack={() => setSelectedGameWeek(null)}
                                     />
                                 ) : (
                                     <PredictionsDisplay
@@ -205,6 +208,7 @@ export default function PredictionsPage() {
                                         predictions={predictions}
                                         canEdit={true}
                                         onEdit={() => setIsEditing(true)}
+                                        onBack={() => setSelectedGameWeek(null)}
                                     />
                                 )
                             ) : (
@@ -212,6 +216,7 @@ export default function PredictionsPage() {
                                     fixtures={fixtures}
                                     predictions={predictions}
                                     canEdit={false}
+                                    onBack={() => setSelectedGameWeek(null)}
                                 />
                             )}
                         </>
