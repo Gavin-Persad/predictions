@@ -189,7 +189,7 @@ export default function EditGameWeekForm({ gameWeek, onBack, onDelete }: EditGam
                     Back to Game Weeks
                 </button>
 
-                <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md">
+                <div>
                     {message && <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>}
                     
                     <form onSubmit={handleSubmit} className="w-full space-y-6">

@@ -75,7 +75,7 @@ export default function EditGameWeekList({ seasonId, onClose }: EditGameWeekList
                     Back to Options
                 </button>
     
-                <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md">
+                <div>
                     {loading ? (
                         <p>Loading...</p>
                     ) : (
