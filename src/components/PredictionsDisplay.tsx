@@ -17,16 +17,24 @@ type PredictionDisplayProps = {
     };
     canEdit?: boolean;
     onEdit?: () => void;
+    onBack: () => void;
 };
 
 export default function PredictionsDisplay({ 
     fixtures, 
     predictions, 
     canEdit,
-    onEdit 
+    onEdit,
+    onBack 
 }: PredictionDisplayProps) {
     return (
         <div className="space-y-4">
+            <button
+                onClick={onBack}
+                className="mb-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+            >
+                Back
+            </button>
             {fixtures.map((fixture) => (
                 <div key={fixture.id} className="grid grid-cols-3 gap-4 items-center">
                     <div className="text-right text-gray-900 dark:text-gray-100">{fixture.home_team}</div>

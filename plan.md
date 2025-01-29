@@ -49,8 +49,8 @@
 - admin page needs centering✅
 - responsive design repairs:
 - Predictions form elements over lap✅
-- fix enter scores and view seasons to not have left margin⏳
-- Fix enterscores form and display to have cancel and back buttons.⌛
+- fix enter scores and view seasons to not have left margin✅
+- Fix enterscores form and display to have cancel and back buttons.✅
 - View seasons, (view players, Edit players, View game week, create/edit game week. All not fitting in box).
 - View game week, game weeks are to vertical need to be more horizontal.
 - in game week view, (View Scores and View manager of the week not fitting in the box)
