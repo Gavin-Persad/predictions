@@ -84,10 +84,17 @@ export default function EditPlayers({ seasonId, onClose }: EditPlayersProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl">
-      <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Edit Players</h1>
-      {message && <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>}
-      <div className="flex space-x-4">
+    <div>
+        <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+            Edit Players
+        </h2>
+        <button
+            onClick={onClose}
+            className="mb-8 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+        >
+            Back
+        </button>
+        <div className="flex space-x-4">
         <div className="w-1/2">
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Not Taking Part</h3>
           <ul className="mt-2 space-y-2">
@@ -112,8 +119,8 @@ export default function EditPlayers({ seasonId, onClose }: EditPlayersProps) {
             ))}
           </ul>
         </div>
-      </div>
-      <div className="mt-6 flex justify-end space-x-4">
+        </div>
+        <div className="mt-6 flex justify-end space-x-4">
         <button
           onClick={onClose}
           className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition duration-300"
@@ -126,7 +133,7 @@ export default function EditPlayers({ seasonId, onClose }: EditPlayersProps) {
         >
           Save Changes
         </button>
-      </div>
-    </div>
-  );
+        </div>
+        </div>
+    );
 }
