@@ -129,24 +129,20 @@ export default function ViewSeason() {
 
   const handleEditGameWeekClick = () => {
     setGameWeekOptionView(true);
-    setEditGameWeek(false);
-    setViewGameWeek(false);
-    setViewPlayers(false);
-    setEditPlayers(false);
   };
 
   return (
     <div className="flex">
-        <Sidebar />
-        <div className="flex-grow flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-            <div className="absolute top-4 right-4">
-                <DarkModeToggle />
-            </div>
-            <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl mx-4">
-                {!selectedSeason ? (
+      <Sidebar />
+      <div className="flex-grow flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="absolute top-4 right-4">
+          <DarkModeToggle />
+        </div>
+        <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl mx-4">
+          {!selectedSeason ? (
                     <>
                         <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
-                            Available Seasons
+                            Prediction Years
                         </h1>
                         <ul className="space-y-4">
                             {seasons.map(season => (
@@ -160,14 +156,24 @@ export default function ViewSeason() {
                             ))}
                         </ul>
                     </>
-                ) : editPlayers ? (
-                  <EditPlayers seasonId={selectedSeason.id} onClose={handleCloseEditPlayers} />
-              ) : viewGameWeek ? (
-                  <ViewGameWeeks
-                      seasonId={selectedSeason.id}
-                      onClose={() => setViewGameWeek(false)}
-                  />
-              ) : viewPlayers ? (
+                    ) : editPlayers ? (
+                      <EditPlayers seasonId={selectedSeason.id} onClose={handleCloseEditPlayers} />
+                    ) : viewGameWeek ? (
+                      <ViewGameWeeks
+                        seasonId={selectedSeason.id}
+                        onClose={() => setViewGameWeek(false)}
+                      />
+                    ) : gameWeekOptionView ? (
+                      <GameWeekOptions
+                        seasonId={selectedSeason.id}
+                        onClose={() => setGameWeekOptionView(false)}
+                      />
+                    ) : editGameWeek ? (
+                      <GameWeekOptions
+                          seasonId={selectedSeason.id}
+                          onClose={() => setEditGameWeek(false)}
+                      />
+                  ) : viewPlayers ? (
                   <div>
                       <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
                           Players
