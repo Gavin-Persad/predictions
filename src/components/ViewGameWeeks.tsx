@@ -68,7 +68,7 @@ export default function ViewGameWeeks({ seasonId, onClose }: ViewGameWeeksProps)
                 </button>
                 {message && <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>}
                 
-                <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md">
+                <div>
                     <div className="w-full max-w-2xl space-y-4">
                         {gameWeeks.map((gameWeek) => (
                             <div

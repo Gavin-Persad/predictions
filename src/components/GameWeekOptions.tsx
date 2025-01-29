@@ -35,7 +35,7 @@ export default function GameWeekOptions({ seasonId, onClose }: GameWeekOptionsPr
                 >
                     Back to Season
                 </button>  
-                <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md">
+                <div>
                     <div className="flex space-x-4">
                         <button
                             onClick={() => setShowCreateWeek(true)}

@@ -14,6 +14,7 @@ type GameWeekDetailProps = {
     seasonId: string;
     onBack: () => void;
 };
+
 export default function GameWeekDetail({ gameWeek, seasonId, onBack }: GameWeekDetailProps) {
     const [showScores, setShowScores] = useState(false);
     const [showManagerOfTheWeek, setShowManagerOfTheWeek] = useState(false);
@@ -30,21 +31,19 @@ export default function GameWeekDetail({ gameWeek, seasonId, onBack }: GameWeekD
                 >
                     Back to Game Weeks
                 </button>                
-                <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md">
-                    <div className="flex space-x-4">
-                        <button
-                            onClick={() => setShowScores(true)}
-                            className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                        >
-                            View Scores
-                        </button>
-                        <button
-                            onClick={() => setShowManagerOfTheWeek(true)}
-                            className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                        >
-                            View Manager of the Week
-                        </button>
-                    </div>
+                <div className="flex space-x-4">
+                    <button
+                        onClick={() => setShowScores(true)}
+                        className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                    >
+                        View Scores
+                    </button>
+                    <button
+                        onClick={() => setShowManagerOfTheWeek(true)}
+                        className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                    >
+                        View Manager of the Week
+                    </button>
                 </div>
             </div>
 
