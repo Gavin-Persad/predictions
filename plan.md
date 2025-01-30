@@ -60,4 +60,4 @@
 - the edit game week form is too thin and crushes elements.✅
 -
 - create season modal confirmation screen needed✅
-- view scores modal in view seasons can now be updated to collect scores from supabase predictions table
+- view scores modal in view seasons can now be updated to collect scores from supabase predictions table✅
