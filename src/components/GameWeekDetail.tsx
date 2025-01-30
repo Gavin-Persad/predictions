@@ -20,32 +20,34 @@ export default function GameWeekDetail({ gameWeek, seasonId, onBack }: GameWeekD
     const [showManagerOfTheWeek, setShowManagerOfTheWeek] = useState(false);
 
     return (
-        <div className="container mx-auto p-4 pl-24">
-            <div className="w-full max-w-md mx-auto"> 
-                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
-                    Game Week {new Date(gameWeek.live_start).toLocaleDateString()}
-                </h2>
-                <button
-                    onClick={onBack}
-                    className="mb-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-                >
-                    Back to Game Weeks
-                </button>                
-                <div className="flex space-x-4">
+        <div>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+                Game Week {new Date(gameWeek.live_start).toLocaleDateString()}
+            </h2>
+            <button
+                onClick={onBack}
+                className="mb-8 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+            >
+                Back to Game Weeks
+            </button>
+            <div className="w-full flex flex-col items-center">
+                <div className="flex flex-wrap justify-center gap-4">
                     <button
                         onClick={() => setShowScores(true)}
-                        className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                        className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
                     >
                         View Scores
                     </button>
                     <button
                         onClick={() => setShowManagerOfTheWeek(true)}
-                        className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                        className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
                     >
                         View Manager of the Week
                     </button>
                 </div>
             </div>
+
+
 
             {showScores && (
                 <ScoresModal

@@ -204,39 +204,39 @@ export default function ViewSeason() {
                             Back to Seasons
                         </button>
                         <div className="w-full flex flex-col items-center">
-                            <div className="flex space-x-4">
-                                <button
-                                    onClick={handleViewPlayersClick}
-                                    className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                                >
-                                    View Players
-                                </button>
-                                {profile?.is_host && (
-                                    <button
-                                        onClick={handleEditPlayersClick}
-                                        className="px-6 py-2 w-40 text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
-                                    >
-                                        Edit Players
-                                    </button>
-                                )}
-                            </div>
-                            <div className="flex space-x-4 mt-4">
-                                <button
-                                    onClick={handleViewGameWeekClick}
-                                    className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                                >
-                                    View Game Week
-                                </button>
-                                {profile?.is_host && (
-                                    <button
-                                        onClick={handleEditGameWeekClick}
-                                        className="px-6 py-2 w-40 text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
-                                    >
-                                        Create/Edit Week
-                                    </button>
-                                )}
-                            </div>
-                        </div>
+                          <div className="flex flex-wrap justify-center gap-4">
+                              <button
+                                  onClick={handleViewPlayersClick}
+                                  className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                              >
+                                  View Players
+                              </button>
+                              {profile?.is_host && (
+                                  <button
+                                      onClick={handleEditPlayersClick}
+                                      className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                  >
+                                      Edit Players
+                                  </button>
+                              )}
+                          </div>
+                          <div className="flex flex-wrap justify-center gap-4 mt-4">
+                              <button
+                                  onClick={handleViewGameWeekClick}
+                                  className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                              >
+                                  View Game Week
+                              </button>
+                              {profile?.is_host && (
+                                  <button
+                                      onClick={handleEditGameWeekClick}
+                                      className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                  >
+                                      Create/Edit Week
+                                  </button>
+                              )}
+                          </div>
+                      </div>
                     </div>
                 )}
                 </div>
