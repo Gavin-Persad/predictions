@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
 import PredictionsForm from '../../components/PredictionsForm';
 import PredictionsDisplay from '../../components/PredictionsDisplay';
@@ -27,6 +28,7 @@ type Fixture = {
 };
 
 export default function PredictionsPage() {
+    const router = useRouter();
     const [gameWeeks, setGameWeeks] = useState<GameWeek[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedGameWeek, setSelectedGameWeek] = useState<string | null>(null);
@@ -48,7 +50,14 @@ export default function PredictionsPage() {
     };
 
     useEffect(() => {
-        const fetchGameWeeks = async () => {
+        const checkAuthAndFetchData = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (!session) {
+                router.push('/');
+                return;
+            }
+
             const { data, error } = await supabase
                 .from('game_weeks')
                 .select('*')
@@ -62,8 +71,8 @@ export default function PredictionsPage() {
             setLoading(false);
         };
 
-        fetchGameWeeks();
-    }, []);
+        checkAuthAndFetchData();
+    }, [router]);
 
     useEffect(() => {
         if (selectedGameWeek) {
