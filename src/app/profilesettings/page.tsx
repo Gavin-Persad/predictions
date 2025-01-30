@@ -23,29 +23,38 @@ export default function ProfileSettings() {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        setMessage('Error fetching user');
-        return;
-      }
+    const checkAuthAndFetchProfile = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+            router.push('/');
+            return;
+        }
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, username, club, is_host')
-        .eq('id', user.id)
-        .single();
-      if (profileError) {
-        setMessage('Error fetching user profile');
-      } else {
-        setProfile(profile);
-        setUsername(profile.username || '');
-        setClub(profile.club || '');
-      }
+        // Fetch profile data
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+            setMessage('Error fetching user');
+            return;
+        }
+
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, username, club, is_host')
+            .eq('id', user.id)
+            .single();
+
+        if (profileError) {
+            setMessage('Error fetching user profile');
+        } else {
+            setProfile(profile);
+            setUsername(profile.username || '');
+            setClub(profile.club || '');
+        }
     };
 
-    fetchProfile();
-  }, []);
+    checkAuthAndFetchProfile();
+}, [router]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();

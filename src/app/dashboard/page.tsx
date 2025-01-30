@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
 import DarkModeToggle from '../../components/darkModeToggle';
 import LeagueTable from '../../components/leagueTable';
@@ -14,35 +15,37 @@ type UserProfile = {
   is_host: boolean;
 };
 
-export default function DashboardPage() {
+export default function Dashboard() {
+  const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error || !session) {
-        setMessage('');
+    const checkAuthAndFetchProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        router.push('/');
         return;
       }
-
-      const user = session.user;
-      if (user) {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, username, is_host')
-          .eq('id', user.id)
-          .single();
-        if (profileError) {
-          setMessage('Error fetching user profile');
-        } else {
-          setProfile(profile);
-        }
+  
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, username, is_host')
+        .eq('id', session.user.id)
+        .single();
+  
+      if (profileError) {
+        setMessage('Error fetching user profile');
+      } else {
+        setProfile(profile);
       }
     };
+  
+    checkAuthAndFetchProfile();
+  }, [router]);
 
-    fetchProfile();
-  }, []);
+
 
   return (
     <div className="flex">

@@ -1,244 +1,239 @@
-// src/app/viewseason/page.tsx
+//src/app/viewseason/page.tsx
 
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
-import DarkModeToggle from '../../components/darkModeToggle';
+import { Player } from '../../types/players';
 import Sidebar from '../../components/Sidebar';
+import DarkModeToggle from '../../components/darkModeToggle';
+import ViewGameWeeks from '../../components/ViewGameWeeks';
 import EditPlayers from '../../components/EditPlayers';
 import GameWeekOptions from '../../components/GameWeekOptions';
-import CreateGameWeek from '../../components/CreateGameWeek';
-import ViewGameWeeks from '../../components/ViewGameWeeks';
-import { Player, SeasonPlayer } from '../../types/players';
 
-type UserProfile = {
-  id: string;
-  username: string;
-  is_host: boolean;
-};
 
 type Season = {
-  id: string;
-  name: string;
-  start_date: string;
-  end_date: string;
+    id: string;
+    name: string;
+    start_date: string;
+    end_date: string;
+};
+
+type UserProfile = {
+    id: string;
+    username: string;
+    is_host: boolean;
 };
 
 export default function ViewSeason() {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [seasons, setSeasons] = useState<Season[]>([]);
-  const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [viewPlayers, setViewPlayers] = useState(false);
-  const [editPlayers, setEditPlayers] = useState(false);
-  const [viewGameWeek, setViewGameWeek] = useState(false);
-  const [editGameWeek, setEditGameWeek] = useState(false);
-  const [gameWeekOptionView, setGameWeekOptionView] = useState(false);
-  const [message, setMessage] = useState('');
+    const router = useRouter();
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [message, setMessage] = useState('');
+    const [seasons, setSeasons] = useState<Season[]>([]);
+    const [players, setPlayers] = useState<Player[]>([]);
+    const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
+    const [viewPlayers, setViewPlayers] = useState(false);
+    const [editPlayers, setEditPlayers] = useState(false);
+    const [viewGameWeek, setViewGameWeek] = useState(false);
+    const [gameWeekOptionView, setGameWeekOptionView] = useState(false);
+    const [editGameWeek, setEditGameWeek] = useState(false);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) {
-        setMessage('Error fetching user');
-        return;
-      }
-
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, username, is_host')
-        .eq('id', user.id)
-        .single();
-      if (profileError) {
-        setMessage('Error fetching user profile');
-      } else {
-        setProfile(profile);
+    const fetchPlayers = async (seasonId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('season_players')
+          .select(`
+            profiles (
+              id,
+              username
+            )
+          `)
+          .eq('season_id', seasonId);
+    
+        if (error) {
+          setMessage('Error fetching players');
+          return;
+        }
+    
+        const formattedPlayers = ((data as unknown) as Array<{
+          profiles: {
+            id: string;
+            username: string;
+          };
+        }>).map(sp => ({
+          id: sp.profiles.id,
+          username: sp.profiles.username
+        }));
+    
+        setPlayers(formattedPlayers);
+      } catch (error) {
+        console.error('Error:', error);
+        setMessage('Error fetching players');
       }
     };
 
-    const fetchSeasons = async () => {
-      const { data, error } = await supabase
-        .from('seasons')
-        .select('id, name, start_date, end_date');
-      if (error) {
-        setMessage('Error fetching seasons');
-      } else {
-        setSeasons(data);
-      }
+    useEffect(() => {
+        const checkAuthAndFetchData = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (!session) {
+                router.push('/');
+                return;
+            }
+
+            const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('id, username, is_host')
+                .eq('id', session.user.id)
+                .single();
+
+            if (profileError) {
+                setMessage('Error fetching user profile');
+            } else {
+                setProfile(profile);
+            }
+
+            const { data: seasonsData, error: seasonsError } = await supabase
+                .from('seasons')
+                .select('id, name, start_date, end_date');
+            
+            if (seasonsError) {
+                setMessage('Error fetching seasons');
+            } else {
+                setSeasons(seasonsData);
+            }
+        };
+
+        checkAuthAndFetchData();
+    }, [router]);
+
+    const handleSeasonClick = async (season: Season) => {
+        setSelectedSeason(season);
+        await fetchPlayers(season.id);
+        setViewPlayers(false);
+        setEditPlayers(false);
     };
 
-    fetchProfile();
-    fetchSeasons();
-  }, []);
+    const handleViewPlayersClick = () => {
+        setViewPlayers(true);
+    };
 
+    const handleBackToSeasonClick = () => {
+        setSelectedSeason(null);
+        setViewGameWeek(false);
+        setViewPlayers(false);
+        setEditPlayers(false);
+        setGameWeekOptionView(false);
+        setEditGameWeek(false);
+    };
 
-  const fetchPlayers = async (seasonId: string) => {
-    const { data, error } = await supabase
-        .from('season_players')
-        .select('player_id, profiles!inner(username)')
-        .eq('season_id', seasonId);
-    if (error) {
-        setMessage('Error fetching players for the season');
-    } else {
-        const typedData = data as unknown as SeasonPlayer[];
-        setPlayers(typedData.map(sp => ({
-            id: sp.player_id,
-            username: sp.profiles.username || 'Unknown'
-        })));
-    }
-};
+    const handleEditPlayersClick = () => {
+        setEditPlayers(true);
+    };
 
-  const handleSeasonClick = async (season: Season) => {
-    setSelectedSeason(season);
-    await fetchPlayers(season.id);
-    setViewPlayers(false);
-    setEditPlayers(false);
-  };
+    const handleCloseEditPlayers = async () => {
+        if (selectedSeason) {
+            await fetchPlayers(selectedSeason.id);
+        }
+        setEditPlayers(false);
+    };
 
-  const handleViewPlayersClick = () => {
-    setViewPlayers(true);
-  };
+    const handleViewGameWeekClick = () => {
+        setViewGameWeek(true);
+        setEditGameWeek(false);
+        setViewPlayers(false);
+        setEditPlayers(false);
+    };
 
-  const handleBackToSeasonClick = () => {
-    setSelectedSeason(null);
-    setViewGameWeek(false);
-    setViewPlayers(false);
-    setEditPlayers(false);
-    setGameWeekOptionView(false);
-    setEditGameWeek(false);
-};
+    const handleEditGameWeekClick = () => {
+        setGameWeekOptionView(true);
+    };
 
-  const handleEditPlayersClick = () => {
-    setEditPlayers(true);
-  };
-
-  const handleCloseEditPlayers = async () => {
-    if (selectedSeason) {
-      await fetchPlayers(selectedSeason.id);
-    }
-    setEditPlayers(false);
-  };
-
-  const handleViewGameWeekClick = () => {
-    setViewGameWeek(true);
-    setEditGameWeek(false);
-    setViewPlayers(false);
-    setEditPlayers(false);
-  };
-
-  const handleEditGameWeekClick = () => {
-    setGameWeekOptionView(true);
-  };
-
-  return (
-    <div className="flex">
-      <Sidebar />
-      <div className="flex-grow flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-        <div className="absolute top-4 right-4">
-          <DarkModeToggle />
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl mx-4">
-          {!selectedSeason ? (
-                    <>
-                        <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
-                            Prediction Years
-                        </h1>
-                        <ul className="space-y-4">
-                            {seasons.map(season => (
-                                <li key={season.id} className="cursor-pointer" onClick={() => handleSeasonClick(season)}>
-                                    <div className="p-4 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600">
-                                        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{season.name}</h2>
-                                        <p className="text-gray-700 dark:text-gray-300">Start Date: {season.start_date}</p>
-                                        <p className="text-gray-700 dark:text-gray-300">End Date: {season.end_date}</p>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    </>
+    return (
+        <div className="flex">
+            <Sidebar />
+            <div className="flex-grow flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+                <div className="absolute top-4 right-4">
+                    <DarkModeToggle />
+                </div>
+                <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl mx-4">
+                    {!selectedSeason ? (
+                        <>
+                            <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
+                                Prediction Years
+                            </h1>
+                            <ul className="space-y-4">
+                                {seasons.map(season => (
+                                    <li key={season.id} className="cursor-pointer" onClick={() => handleSeasonClick(season)}>
+                                        <div className="p-4 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600">
+                                            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{season.name}</h2>
+                                            <p className="text-gray-700 dark:text-gray-300">Start Date: {season.start_date}</p>
+                                            <p className="text-gray-700 dark:text-gray-300">End Date: {season.end_date}</p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </>
                     ) : editPlayers ? (
-                      <EditPlayers seasonId={selectedSeason.id} onClose={handleCloseEditPlayers} />
+                        <EditPlayers 
+                            seasonId={selectedSeason.id} 
+                            onClose={handleCloseEditPlayers} 
+                        />
                     ) : viewGameWeek ? (
-                      <ViewGameWeeks
-                        seasonId={selectedSeason.id}
-                        onClose={() => setViewGameWeek(false)}
-                      />
+                        <ViewGameWeeks
+                            seasonId={selectedSeason.id}
+                            onClose={() => setViewGameWeek(false)}
+                        />
                     ) : gameWeekOptionView ? (
-                      <GameWeekOptions
-                        seasonId={selectedSeason.id}
-                        onClose={() => setGameWeekOptionView(false)}
-                      />
-                    ) : editGameWeek ? (
-                      <GameWeekOptions
-                          seasonId={selectedSeason.id}
-                          onClose={() => setEditGameWeek(false)}
-                      />
-                  ) : viewPlayers ? (
-                  <div>
-                      <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
-                          Players
-                      </h2>
-                      <button
-                          onClick={handleBackToSeasonClick}
-                          className="mb-8 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-                      >
-                          Back to Seasons
-                      </button>
-                      <ul className="space-y-2">
-                          {players.map(player => (
-                              <li key={player.id} className="p-2 bg-gray-200 dark:bg-gray-700 rounded shadow text-gray-900 dark:text-gray-100">
-                                  {player.username}
-                              </li>
-                          ))}
-                      </ul>
-                  </div>
-              ) : (
-                    <div>
-                        <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
-                            {selectedSeason.name}
-                        </h2>
-                        <button
-                            onClick={handleBackToSeasonClick}
-                            className="mb-8 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-                        >
-                            Back to Seasons
-                        </button>
-                        <div className="w-full flex flex-col items-center">
-                          <div className="flex flex-wrap justify-center gap-4">
-                              <button
-                                  onClick={handleViewPlayersClick}
-                                  className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                              >
-                                  View Players
-                              </button>
-                              {profile?.is_host && (
-                                  <button
-                                      onClick={handleEditPlayersClick}
-                                      className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
-                                  >
-                                      Edit Players
-                                  </button>
-                              )}
-                          </div>
-                          <div className="flex flex-wrap justify-center gap-4 mt-4">
-                              <button
-                                  onClick={handleViewGameWeekClick}
-                                  className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                              >
-                                  View Game Week
-                              </button>
-                              {profile?.is_host && (
-                                  <button
-                                      onClick={handleEditGameWeekClick}
-                                      className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
-                                  >
-                                      Create/Edit Week
-                                  </button>
-                              )}
-                          </div>
-                      </div>
-                    </div>
-                )}
+                        <GameWeekOptions
+                            seasonId={selectedSeason.id}
+                            onClose={() => setGameWeekOptionView(false)}
+                        />
+                    ) : (
+                        <div>
+                            <button
+                                onClick={handleBackToSeasonClick}
+                                className="mb-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                            >
+                                Back to Seasons
+                            </button>
+                            <div className="w-full flex flex-col items-center">
+                                <div className="flex flex-wrap justify-center gap-4">
+                                    <button
+                                        onClick={handleViewPlayersClick}
+                                        className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                    >
+                                        View Players
+                                    </button>
+                                    {profile?.is_host && (
+                                        <button
+                                            onClick={handleEditPlayersClick}
+                                            className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                        >
+                                            Edit Players
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="flex flex-wrap justify-center gap-4 mt-4">
+                                    <button
+                                        onClick={handleViewGameWeekClick}
+                                        className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                    >
+                                        View Game Week
+                                    </button>
+                                    {profile?.is_host && (
+                                        <button
+                                            onClick={handleEditGameWeekClick}
+                                            className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                        >
+                                            Create/Edit Week
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
