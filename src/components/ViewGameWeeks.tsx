@@ -55,7 +55,7 @@ export default function ViewGameWeeks({ seasonId, onClose }: ViewGameWeeksProps)
     }
 
     return (
-        <div className="container mx-auto p-4 pl-24">
+        <div>
             <div className="max-w-4xl mx-auto">
                 <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
                     View Game Weeks
@@ -83,7 +83,7 @@ export default function ViewGameWeeks({ seasonId, onClose }: ViewGameWeeksProps)
                                     Live: {new Date(gameWeek.live_start).toLocaleString()} - {new Date(gameWeek.live_end).toLocaleString()}
                                 </p>
                             </div>
-                        ))}
+                    ))}
                     </div>
                 </div>
             </div>

@@ -20,17 +20,17 @@ export default function GameWeekDetail({ gameWeek, seasonId, onBack }: GameWeekD
     const [showManagerOfTheWeek, setShowManagerOfTheWeek] = useState(false);
 
     return (
-        <div className="container mx-auto p-4 pl-24">
-            <div className="w-full max-w-md mx-auto"> 
-                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
-                    Game Week {new Date(gameWeek.live_start).toLocaleDateString()}
-                </h2>
-                <button
-                    onClick={onBack}
-                    className="mb-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-                >
-                    Back to Game Weeks
-                </button>                
+        <div>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+                Game Week {new Date(gameWeek.live_start).toLocaleDateString()}
+            </h2>
+            <button
+                onClick={onBack}
+                className="mb-8 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+            >
+                Back to Game Weeks
+            </button>
+            <div className="w-full flex flex-col items-center">
                 <div className="flex space-x-4">
                     <button
                         onClick={() => setShowScores(true)}
@@ -46,6 +46,8 @@ export default function GameWeekDetail({ gameWeek, seasonId, onBack }: GameWeekD
                     </button>
                 </div>
             </div>
+
+
 
             {showScores && (
                 <ScoresModal

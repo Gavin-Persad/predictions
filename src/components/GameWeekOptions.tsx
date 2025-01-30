@@ -23,19 +23,18 @@ export default function GameWeekOptions({ seasonId, onClose }: GameWeekOptionsPr
         return <EditGameWeekList seasonId={seasonId} onClose={() => setShowEditWeeks(false)} />;
     }
 
-    return (
-        <div className="container mx-auto p-4 pl-24">
-            <div className="max-w-4xl mx-auto">
+        return (
+            <div>
                 <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
                     Game Week Management
                 </h2>
                 <button
                     onClick={onClose}
-                    className="mb-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                    className="mb-8 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
                 >
                     Back to Season
-                </button>  
-                <div>
+                </button>
+                <div className="w-full flex flex-col items-center">
                     <div className="flex space-x-4">
                         <button
                             onClick={() => setShowCreateWeek(true)}
@@ -52,6 +51,5 @@ export default function GameWeekOptions({ seasonId, onClose }: GameWeekOptionsPr
                     </div>
                 </div>
             </div>
-        </div>
-    );
-}
+        );
+    }
