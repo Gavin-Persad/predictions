@@ -31,16 +31,16 @@ export default function GameWeekDetail({ gameWeek, seasonId, onBack }: GameWeekD
                 Back to Game Weeks
             </button>
             <div className="w-full flex flex-col items-center">
-                <div className="flex space-x-4">
+                <div className="flex flex-wrap justify-center gap-4">
                     <button
                         onClick={() => setShowScores(true)}
-                        className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                        className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
                     >
                         View Scores
                     </button>
                     <button
                         onClick={() => setShowManagerOfTheWeek(true)}
-                        className="px-6 py-2 w-40 text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                        className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
                     >
                         View Manager of the Week
                     </button>
