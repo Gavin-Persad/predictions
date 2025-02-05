@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import CreateGameWeek from './CreateGameWeek';
 import EditGameWeekList from './EditGameWeekList';
+import EnterScoresForm from './EnterScoresForm';
 
 type GameWeekOptionsProps = {
     seasonId: string;
@@ -14,6 +15,7 @@ type GameWeekOptionsProps = {
 export default function GameWeekOptions({ seasonId, onClose }: GameWeekOptionsProps) {
     const [showCreateWeek, setShowCreateWeek] = useState(false);
     const [showEditWeeks, setShowEditWeeks] = useState(false);
+    const [showEnterScores, setShowEnterScores] = useState(false);
 
     if (showCreateWeek) {
         return <CreateGameWeek seasonId={seasonId} onClose={() => setShowCreateWeek(false)} />;
@@ -21,6 +23,14 @@ export default function GameWeekOptions({ seasonId, onClose }: GameWeekOptionsPr
 
     if (showEditWeeks) {
         return <EditGameWeekList seasonId={seasonId} onClose={() => setShowEditWeeks(false)} />;
+    }
+
+    if (showEnterScores) {
+        return <EnterScoresForm 
+            gameWeekId={seasonId} 
+            onClose={() => setShowEnterScores(false)}
+            onSave={() => setShowEnterScores(false)}
+        />;
     }
 
     return (
@@ -48,8 +58,14 @@ export default function GameWeekOptions({ seasonId, onClose }: GameWeekOptionsPr
                     >
                         Edit Game Week
                     </button>
+                    <button
+                        onClick={() => setShowEnterScores(true)}
+                        className="px-4 py-2 w-32 sm:w-40 text-sm sm:text-base bg-yellow-600 text-white rounded hover:bg-yellow-700 transition duration-300"
+                    >
+                        Enter Scores
+                    </button>
                 </div>
             </div>
         </div>
     );
-    }
+}

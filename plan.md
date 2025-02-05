@@ -46,7 +46,7 @@
 11. add edit score entries section for hosts.
 
 - create enter correct scores button for host.
-- create enter scores form and link to supabase
+- create enter scores form and link to supabase fixtures table
 - add correct scores to scores modal
 - add colour coding to scores modal
 
