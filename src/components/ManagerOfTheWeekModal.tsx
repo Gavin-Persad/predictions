@@ -40,13 +40,7 @@ export default function ManagerOfTheWeekModal({ seasonId, onClose }: ManagerOfTh
     return (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 backdrop-blur-sm overflow-y-auto h-full w-full z-50">
             <div className="relative top-20 mx-auto p-8 border w-[90%] max-w-2xl shadow-lg rounded-md bg-white dark:bg-gray-800">
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-                >
-                    ×
-                </button>
-                
+
                 <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Manager of the Week</h2>
                 
                 {loading ? (
@@ -83,6 +77,13 @@ export default function ManagerOfTheWeekModal({ seasonId, onClose }: ManagerOfTh
                         </table>
                     </div>
                 )}
+
+                <button
+                        onClick={onClose}
+                        className="mt-6 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                    >
+                        Close
+                </button>
             </div>
         </div>
     );

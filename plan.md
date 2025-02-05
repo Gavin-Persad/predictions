@@ -20,28 +20,7 @@
 
 10. Test enter scores functionality✅
 
-11. Create scoring league table view and add this where desired (dashboard) and view seasons
-    - create player score table on supabase (season_id, player_id, corectscores, points)
-    - create add correct score section for hosts
-    - create functionality to update the scores
-    - create league table that pulls and sorts from player scores ( try to make this sortable by position, name, correct scores and points)
-    - add table to dashboard
-    - add table to view season
-12. add edit score entries section for hosts.
-
-13. Test scoring and table works
-
-14. Add in cup competitions, rules and format
-
-15. Test cups and format
-
-16. Test thoroughly with 1 player and 1 host
-
-17. Prepare for beta testing
-
-18. Update ReadMe and announce on LinkedIn
-
-19. Receive feedback and fix bugs/make improvements
+---
 
 ## bugs
 
@@ -61,3 +40,40 @@
 -
 - create season modal confirmation screen needed✅
 - view scores modal in view seasons can now be updated to collect scores from supabase predictions table✅
+
+---
+
+11. add edit score entries section for hosts.
+
+- create enter correct scores button for host.
+- create enter scores form and link to supabase
+- add correct scores to scores modal
+- add colour coding to scores modal
+
+12. Create scoring league table view and add this where desired (dashboard) and view seasons
+
+    - create player score table on supabase (season_id, player_id, corectscores, points)
+    - create add correct score section for hosts
+    - create functionality to update the scores
+    - create league table that pulls and sorts from player scores ( try to make this sortable by position, name, correct scores and points)
+    - add table to dashboard
+    - add table to view season
+
+13. Test scoring and table works
+
+14. Add in cup competitions, rules and format
+
+15. Test cups and format
+
+16. Test thoroughly with 1 player and 1 host
+
+17. Prepare for beta testing
+
+- correct all page titles and button titles and labels.
+- add functionality to dashboard
+- add message section to dashboard
+- add rules section and note from chris to dashboard.
+
+18. Update ReadMe and announce on LinkedIn
+
+19. Receive feedback and fix bugs/make improvements
