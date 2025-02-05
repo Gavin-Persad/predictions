@@ -19,13 +19,57 @@ type Fixture = {
     away_team: string;
     home_score: number | null;
     away_score: number | null;
-    created_at?: string;
+};
+
+const ConfirmScoresModal = ({ fixtures, onConfirm, onCancel }: { 
+    fixtures: Fixture[], 
+    onConfirm: () => void, 
+    onCancel: () => void 
+}) => {
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full mx-4">
+                <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+                    Confirm Scores
+                </h2>
+                <div className="space-y-4 mb-6">
+                    {fixtures.map(fixture => (
+                        <div 
+                            key={fixture.id}
+                            className="grid grid-cols-3 gap-4 items-center text-gray-900 dark:text-gray-100"
+                        >
+                            <div className="text-right">{fixture.home_team}</div>
+                            <div className="text-center font-bold">
+                                {fixture.home_score} - {fixture.away_score}
+                            </div>
+                            <div className="text-left">{fixture.away_team}</div>
+                        </div>
+                    ))}
+                </div>
+                <div className="flex justify-end gap-4">
+                    <button
+                        onClick={onCancel}
+                        className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition duration-300"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                    >
+                        Update League
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterScoresFormProps) {
     const [fixtures, setFixtures] = useState<Fixture[]>([]);
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(true);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     useEffect(() => {
         const fetchFixtures = async () => {
@@ -59,7 +103,19 @@ export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterSc
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setMessage('');
-    
+
+        if (fixtures.some(f => 
+            (f.home_score === null && f.away_score !== null) || 
+            (f.home_score !== null && f.away_score === null)
+        )) {
+            setMessage('Both scores must be entered for each fixture');
+            return;
+        }
+
+        setShowConfirmModal(true);
+    };
+
+    const handleSaveScores = async () => {
         try {
             const updates = fixtures.map(fixture => ({
                 id: fixture.id,
@@ -77,10 +133,11 @@ export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterSc
                     onConflict: 'id',
                     ignoreDuplicates: false
                 });
-    
+
             if (error) throw error;
-    
+
             setMessage('Scores updated successfully');
+            setShowConfirmModal(false);
             onSave();
         } catch (error) {
             console.error('Error:', error);
@@ -103,7 +160,7 @@ export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterSc
             {message && (
                 <p className={`mb-4 ${
                     message.includes('Error') ? 'text-red-500' : 'text-green-500'
-                } dark:text-${message.includes('Error') ? 'red' : 'green'}-400`}>
+                }`}>
                     {message}
                 </p>
             )}
@@ -149,6 +206,14 @@ export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterSc
                     </button>
                 </div>
             </form>
+
+            {showConfirmModal && (
+                <ConfirmScoresModal
+                    fixtures={fixtures}
+                    onConfirm={handleSaveScores}
+                    onCancel={() => setShowConfirmModal(false)}
+                />
+            )}
         </div>
     );
 }

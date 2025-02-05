@@ -51,12 +51,12 @@
 
 12. Create scoring league table view and add this where desired (dashboard) and view seasons
 
-    - create player score table on supabase (season_id, player_id, corectscores, points)
-    - create add correct score section for hosts
-    - create functionality to update the scores
+    - create player game week score table on supabase (game_week_id, player_id, corectscores, points)✅
+    - create player season score table on supabase (season_id, player_id, corectscores, points)✅
+    - create functionality to update the game_week_scores(This will need to be done from a logic place, when the host updates scores) This will then update the season score table as well. (This can be done from adding the points and correct scores in the game week score table)
+    - add view table button to view season
     - create league table that pulls and sorts from player scores ( try to make this sortable by position, name, correct scores and points)
     - add table to dashboard
-    - add table to view season
 
 13. Test scoring and table works
 
