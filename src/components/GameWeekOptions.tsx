@@ -6,6 +6,7 @@ import { useState } from 'react';
 import CreateGameWeek from './CreateGameWeek';
 import EditGameWeekList from './EditGameWeekList';
 import EnterScoresForm from './EnterScoresForm';
+import EnterScoresGameWeekList from './EnterScoresGameWeekList';
 
 type GameWeekOptionsProps = {
     seasonId: string;
@@ -26,10 +27,9 @@ export default function GameWeekOptions({ seasonId, onClose }: GameWeekOptionsPr
     }
 
     if (showEnterScores) {
-        return <EnterScoresForm 
-            gameWeekId={seasonId} 
+        return <EnterScoresGameWeekList
+            seasonId={seasonId}
             onClose={() => setShowEnterScores(false)}
-            onSave={() => setShowEnterScores(false)}
         />;
     }
 

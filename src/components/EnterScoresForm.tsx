@@ -13,11 +13,13 @@ type EnterScoresFormProps = {
 
 type Fixture = {
     id: string;
+    game_week_id: string;
     fixture_number: number;
     home_team: string;
     away_team: string;
     home_score: number | null;
     away_score: number | null;
+    created_at?: string;
 };
 
 export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterScoresFormProps) {
@@ -57,29 +59,27 @@ export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterSc
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setMessage('');
-
-        // Validate scores
-        if (fixtures.some(f => 
-            (f.home_score === null && f.away_score !== null) || 
-            (f.home_score !== null && f.away_score === null)
-        )) {
-            setMessage('Both scores must be entered for each fixture');
-            return;
-        }
-
+    
         try {
             const updates = fixtures.map(fixture => ({
                 id: fixture.id,
+                game_week_id: fixture.game_week_id,
+                fixture_number: fixture.fixture_number,
+                home_team: fixture.home_team,
+                away_team: fixture.away_team,
                 home_score: fixture.home_score,
                 away_score: fixture.away_score
             }));
-
+            
             const { error } = await supabase
                 .from('fixtures')
-                .upsert(updates);
-
+                .upsert(updates, {
+                    onConflict: 'id',
+                    ignoreDuplicates: false
+                });
+    
             if (error) throw error;
-
+    
             setMessage('Scores updated successfully');
             onSave();
         } catch (error) {
