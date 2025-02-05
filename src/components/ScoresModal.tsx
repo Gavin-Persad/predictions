@@ -106,9 +106,9 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
                         <table className="min-w-full border-collapse">
                             <thead>
                                 <tr>
-                                    <th className="px-4 py-2 text-left border-b dark:border-gray-700">Players</th>
+                                    <th className="px-4 py-2 text-left border-b dark:border-gray-700"> </th>
                                     {fixtures.map(fixture => (
-                                        <th key={fixture.id} className="px-4 py-2 text-center border-b dark:border-gray-700">
+                                        <th key={fixture.id} className="px-4 py-2 text-center border-b dark:text-gray-100 border-gray-700">
                                             {fixture.home_team}<br/>vs<br/>{fixture.away_team}
                                         </th>
                                     ))}
@@ -117,7 +117,7 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
                             <tbody>
                                 {players.map(player => (
                                     <tr key={player.id}>
-                                        <td className="px-4 py-2 font-medium border-b dark:border-gray-700">
+                                        <td className="px-4 py-2 font-medium border-b dark:text-gray-100 border-gray-700">
                                             {player.username}
                                         </td>
                                         {fixtures.map(fixture => {
@@ -125,7 +125,7 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
                                                 p => p.user_id === player.id && p.fixture_id === fixture.id
                                             );
                                             return (
-                                                <td key={fixture.id} className="px-4 py-2 text-center border-b dark:border-gray-700">
+                                                <td key={fixture.id} className="px-4 py-2 text-center border-b dark:text-gray-100 border-gray-700">
                                                     {prediction ? 
                                                         `${prediction.home_prediction}-${prediction.away_prediction}` : 
                                                         '-'
