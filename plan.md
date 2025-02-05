@@ -46,9 +46,8 @@
 11. add edit score entries section for hosts.
 
 - create enter correct scores button for host.✅
-- create enter scores form and link to supabase fixtures table
-- add correct scores to scores modal
-- add colour coding to scores modal
+- create enter scores form and link to supabase fixtures table✅
+- add correct scores to scores modal✅
 
 12. Create scoring league table view and add this where desired (dashboard) and view seasons
 
@@ -65,9 +64,11 @@
 
 15. Test cups and format
 
-16. Test thoroughly with 1 player and 1 host
+16. add colour coding to scores modal
 
-17. Prepare for beta testing
+17. Test thoroughly with 1 player and 1 host
+
+18. Prepare for beta testing
 
 - correct all page titles and button titles and labels.
 - add functionality to dashboard

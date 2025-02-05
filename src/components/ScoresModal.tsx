@@ -115,6 +115,19 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
                                 </tr>
                             </thead>
                             <tbody>
+                                <tr className="bg-gray-200 dark:bg-gray-700">
+                                    <td className="px-4 py-2 font-medium border-b dark:text-gray-100 border-gray-700">
+                                        Correct Scores
+                                    </td>
+                                    {fixtures.map(fixture => (
+                                        <td key={fixture.id} className="px-4 py-2 text-center border-b dark:text-gray-100 border-gray-700">
+                                            {fixture.home_score !== null && fixture.away_score !== null
+                                                ? `${fixture.home_score}-${fixture.away_score}`
+                                                : '-'
+                                            }
+                                        </td>
+                                    ))}
+                                </tr>
                                 {players.map(player => (
                                     <tr key={player.id}>
                                         <td className="px-4 py-2 font-medium border-b dark:text-gray-100 border-gray-700">
