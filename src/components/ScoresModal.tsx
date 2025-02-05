@@ -44,6 +44,12 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
     const [predictions, setPredictions] = useState<Prediction[]>([]);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState<string>('');
+    const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
+    const [selectedFixture, setSelectedFixture] = useState<string | null>(null);
+    const [selectedCell, setSelectedCell] = useState<{playerId: string | null, fixtureId: string | null}>({
+        playerId: null,
+        fixtureId: null
+    });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -93,7 +99,31 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
 
         fetchData();
     }, [gameWeekId, seasonId]);  
-
+    
+    const handlePlayerClick = (playerId: string) => {
+        setSelectedPlayer(current => current === playerId ? null : playerId);
+        setSelectedCell({ playerId: null, fixtureId: null });
+        setSelectedFixture(null);
+    };
+    
+    const handleFixtureClick = (fixtureId: string) => {
+        setSelectedFixture(current => current === fixtureId ? null : fixtureId);
+        setSelectedCell({ playerId: null, fixtureId: null });
+        setSelectedPlayer(null);
+    };
+    
+    const handleCellClick = (playerId: string, fixtureId: string) => {
+        if (selectedCell.playerId === playerId && selectedCell.fixtureId === fixtureId) {
+            setSelectedCell({ playerId: null, fixtureId: null });
+            setSelectedPlayer(null);
+            setSelectedFixture(null);
+        } else {
+            setSelectedCell({ playerId, fixtureId });
+            setSelectedPlayer(playerId);
+            setSelectedFixture(fixtureId);
+        }
+    };
+    
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-6xl w-full">
@@ -108,7 +138,15 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
                                 <tr>
                                     <th className="px-4 py-2 text-left border-b dark:border-gray-700"> </th>
                                     {fixtures.map(fixture => (
-                                        <th key={fixture.id} className="px-4 py-2 text-center border-b dark:text-gray-100 border-gray-700">
+                                        <th 
+                                            key={fixture.id} 
+                                            onClick={() => handleFixtureClick(fixture.id)}
+                                            className={`px-4 py-2 text-center border-b cursor-pointer transition-colors
+                                                ${selectedFixture === fixture.id ? 
+                                                    'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' : 
+                                                    'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'}
+                                                border-gray-700`}
+                                        >
                                             {fixture.home_team}<br/>vs<br/>{fixture.away_team}
                                         </th>
                                     ))}
@@ -120,7 +158,12 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
                                         Correct Scores
                                     </td>
                                     {fixtures.map(fixture => (
-                                        <td key={fixture.id} className="px-4 py-2 text-center border-b dark:text-gray-100 border-gray-700">
+                                        <td 
+                                            key={fixture.id}
+                                            className={`px-4 py-2 text-center border-b dark:text-gray-100 border-gray-700
+                                                ${selectedFixture === fixture.id ? 
+                                                    'bg-blue-100 dark:bg-blue-900' : ''}`}
+                                        >
                                             {fixture.home_score !== null && fixture.away_score !== null
                                                 ? `${fixture.home_score}-${fixture.away_score}`
                                                 : '-'
@@ -130,7 +173,14 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
                                 </tr>
                                 {players.map(player => (
                                     <tr key={player.id}>
-                                        <td className="px-4 py-2 font-medium border-b dark:text-gray-100 border-gray-700">
+                                        <td 
+                                            onClick={() => handlePlayerClick(player.id)}
+                                            className={`px-4 py-2 font-medium border-b cursor-pointer transition-colors
+                                                ${selectedPlayer === player.id ? 
+                                                    'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' : 
+                                                    'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'}
+                                                border-gray-700`}
+                                        >
                                             {player.username}
                                         </td>
                                         {fixtures.map(fixture => {
@@ -138,12 +188,20 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
                                                 p => p.user_id === player.id && p.fixture_id === fixture.id
                                             );
                                             return (
-                                                <td key={fixture.id} className="px-4 py-2 text-center border-b dark:text-gray-100 border-gray-700">
-                                                    {prediction ? 
-                                                        `${prediction.home_prediction}-${prediction.away_prediction}` : 
-                                                        '-'
-                                                    }
-                                                </td>
+                                                    <td 
+                                                        key={fixture.id}
+                                                        onClick={() => prediction && handleCellClick(player.id, fixture.id)}
+                                                        className={`px-4 py-2 text-center border-b transition-colors
+                                                            ${(selectedPlayer === player.id || 
+                                                            selectedFixture === fixture.id ||
+                                                            (selectedCell.playerId === player.id && selectedCell.fixtureId === fixture.id)) 
+                                                            ? 'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' : 
+                                                            'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'}
+                                                            border-gray-700
+                                                            ${prediction ? 'cursor-pointer' : ''}`}
+                                                    >
+                                                        {prediction ? `${prediction.home_prediction}-${prediction.away_prediction}` : '-'}
+                                                    </td>
                                             );
                                         })}
                                     </tr>
