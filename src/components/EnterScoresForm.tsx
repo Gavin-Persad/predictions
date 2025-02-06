@@ -4,6 +4,11 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
+import { 
+    calculatePoints, 
+    calculateUniqueScoreBonus, 
+    calculateWeeklyCorrectScoreBonus 
+} from '../utils/scoreCalculator';
 
 type EnterScoresFormProps = {
     gameWeekId: string;
@@ -91,6 +96,144 @@ export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterSc
         fetchFixtures();
     }, [gameWeekId]);
 
+    const handleSaveScores = async () => {
+        setLoading(true);
+        try {
+            // 1. Get season_id for this game week
+            const { data: gameWeekData, error: gameWeekError } = await supabase
+                .from('game_weeks')
+                .select('season_id')
+                .eq('id', gameWeekId)
+                .single();
+
+            if (gameWeekError || !gameWeekData?.season_id) {
+                throw new Error('Failed to fetch game week data');
+            }
+
+            // 2. Update fixtures
+            const { error: fixturesError } = await supabase
+                .from('fixtures')
+                .upsert(fixtures);
+
+            if (fixturesError) throw fixturesError;
+
+            // 3. Get predictions
+            const { data: predictions, error: predictionsError } = await supabase
+                .from('predictions')
+                .select('*')
+                .in('fixture_id', fixtures.map(f => f.id));
+
+            if (predictionsError || !predictions) throw predictionsError;
+
+            // 4. Calculate scores with bonuses
+            const playerScores: Record<string, { correct_scores: number, points: number }> = {};
+
+            // First pass - calculate base points and track correct scores
+            predictions.forEach(prediction => {
+                const fixture = fixtures.find(f => f.id === prediction.fixture_id);
+                if (!fixture || fixture.home_score === null || fixture.away_score === null) return;
+
+                // Initialize player scores
+                if (!playerScores[prediction.user_id]) {
+                    playerScores[prediction.user_id] = { correct_scores: 0, points: 0 };
+                }
+
+                // Calculate base points
+                const basePoints = calculatePoints(
+                    { 
+                        home_prediction: prediction.home_prediction, 
+                        away_prediction: prediction.away_prediction 
+                    },
+                    { 
+                        home_score: fixture.home_score, 
+                        away_score: fixture.away_score 
+                    }
+                );
+
+                // Calculate unique score bonus
+                const uniqueBonus = calculateUniqueScoreBonus(
+                    prediction,
+                    {
+                        id: fixture.id,
+                        home_score: fixture.home_score,
+                        away_score: fixture.away_score
+                    },
+                    predictions
+                );
+
+                // Update points and correct scores
+                playerScores[prediction.user_id].points += basePoints + uniqueBonus;
+                if (basePoints >= 3) {
+                    playerScores[prediction.user_id].correct_scores++;
+                }
+            });
+
+            // Add weekly bonus for multiple correct scores
+            Object.values(playerScores).forEach(score => {
+                const weeklyBonus = calculateWeeklyCorrectScoreBonus(score.correct_scores);
+                score.points += weeklyBonus;
+            });
+
+            // 5. Update game week scores
+            const gameWeekScores = Object.entries(playerScores).map(([player_id, scores]) => ({
+                game_week_id: gameWeekId,
+                player_id,
+                correct_scores: scores.correct_scores,
+                points: scores.points
+            }));
+
+            const { error: gameWeekScoresError } = await supabase
+                .from('game_week_scores')
+                .upsert(gameWeekScores, {
+                    onConflict: 'game_week_id,player_id',
+                    ignoreDuplicates: false
+                });
+
+            if (gameWeekScoresError) throw gameWeekScoresError;
+
+            // 6. Update season scores
+            const seasonScores = Object.entries(playerScores).map(([player_id, scores]) => ({
+                season_id: gameWeekData.season_id,
+                player_id,
+                correct_scores: scores.correct_scores,
+                points: scores.points
+            }));
+
+            const { error: seasonUpdateError } = await supabase
+                .from('season_scores')
+                .upsert(seasonScores, {
+                    onConflict: 'season_id,player_id',
+                    ignoreDuplicates: false
+                });
+
+            if (seasonUpdateError) throw seasonUpdateError;
+
+            setMessage('Scores updated successfully');
+            setShowConfirmModal(false);
+            onSave();
+        } catch (error) {
+            console.error('Error:', error);
+            setMessage('Error updating scores');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setMessage('');
+    
+        if (fixtures.some(f => 
+            (f.home_score === null && f.away_score !== null) || 
+            (f.home_score !== null && f.away_score === null)
+        )) {
+            setMessage('Both scores must be entered for each fixture');
+            return;
+        }
+    
+        setShowConfirmModal(true);
+    };
+
     const handleScoreChange = (fixtureId: string, field: 'home_score' | 'away_score', value: string) => {
         const score = value === '' ? null : parseInt(value);
         setFixtures(fixtures.map(fixture => 
@@ -99,51 +242,7 @@ export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterSc
                 : fixture
         ));
     };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setMessage('');
-
-        if (fixtures.some(f => 
-            (f.home_score === null && f.away_score !== null) || 
-            (f.home_score !== null && f.away_score === null)
-        )) {
-            setMessage('Both scores must be entered for each fixture');
-            return;
-        }
-
-        setShowConfirmModal(true);
-    };
-
-    const handleSaveScores = async () => {
-        try {
-            const updates = fixtures.map(fixture => ({
-                id: fixture.id,
-                game_week_id: fixture.game_week_id,
-                fixture_number: fixture.fixture_number,
-                home_team: fixture.home_team,
-                away_team: fixture.away_team,
-                home_score: fixture.home_score,
-                away_score: fixture.away_score
-            }));
-            
-            const { error } = await supabase
-                .from('fixtures')
-                .upsert(updates, {
-                    onConflict: 'id',
-                    ignoreDuplicates: false
-                });
-
-            if (error) throw error;
-
-            setMessage('Scores updated successfully');
-            setShowConfirmModal(false);
-            onSave();
-        } catch (error) {
-            console.error('Error:', error);
-            setMessage('Error updating scores');
-        }
-    };
+    
 
     if (loading) return <div>Loading...</div>;
 

@@ -60,7 +60,7 @@ export default function Dashboard() {
             <p className="text-lg text-gray-900 dark:text-gray-100 mb-6">Welcome, {profile.username}</p>
           )}
           {message && <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>}
-          <LeagueTable />
+          <p className="text-center text-gray-600 dark:text-gray-400 italic">Page under construction</p>
         </div>
       </div>
     </div>

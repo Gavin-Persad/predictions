@@ -11,6 +11,7 @@ import DarkModeToggle from '../../components/darkModeToggle';
 import ViewGameWeeks from '../../components/ViewGameWeeks';
 import EditPlayers from '../../components/EditPlayers';
 import GameWeekOptions from '../../components/GameWeekOptions';
+import LeagueTable from '../../components/leagueTable';
 
 type Season = {
     id: string;
@@ -39,6 +40,8 @@ export default function ViewSeason() {
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showLeagueTable, setShowLeagueTable] = useState(false);
+
 
     const fetchPlayers = async (seasonId: string) => {
         try {
@@ -218,6 +221,13 @@ export default function ViewSeason() {
         setGameWeekOptionView(true);
     };
 
+    if (showLeagueTable && selectedSeason) {
+        return <LeagueTable 
+            seasonId={selectedSeason.id} 
+            onClose={() => setShowLeagueTable(false)} 
+        />;
+    }
+
     return (
         <div className="flex">
             <Sidebar />
@@ -303,6 +313,12 @@ export default function ViewSeason() {
                                         >
                                             View Game Week
                                         </button>
+                                        <button
+                                            onClick={() => setShowLeagueTable(true)}
+                                            className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                        >
+                                            League Table
+                                        </button>
                                     </div>
 
                                     {profile?.is_host && (
@@ -317,7 +333,7 @@ export default function ViewSeason() {
                                                 onClick={handleEditGameWeekClick}
                                                 className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
                                             >
-                                                Create/Edit Week
+                                                Create / Edit Week
                                             </button>
                                         </div>
                                     )}
