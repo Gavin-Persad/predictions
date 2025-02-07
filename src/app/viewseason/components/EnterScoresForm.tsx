@@ -1,14 +1,14 @@
-// src/components/EnterScoresForm.tsx
+//src/app/viewseason/components/EnterScoresForm.tsx
 
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../../supabaseClient';
 import { 
     calculatePoints, 
     calculateUniqueScoreBonus, 
     calculateWeeklyCorrectScoreBonus 
-} from '../utils/scoreCalculator';
+} from '../../../utils/scoreCalculator';
 
 type EnterScoresFormProps = {
     gameWeekId: string;

@@ -1,4 +1,4 @@
-// src/app/createseason/page.tsx
+//src/app/createseason/page.tsx
 
 "use client";
 
@@ -8,7 +8,7 @@ import { supabase } from '../../../supabaseClient';
 import { Player } from '../../types/players';
 import Sidebar from '../../components/Sidebar';
 import DarkModeToggle from '../../components/darkModeToggle';
-import SeasonConfirmationModal from '../../components/SeasonConfirmationModal';
+import SeasonConfirmationModal from './components/SeasonConfirmationModal';
 
 export default function CreateSeason() {
     const router = useRouter();

@@ -1,9 +1,9 @@
-// src/components/leagueTable.tsx
+//src/app/viewseason/components/leagueTable.tsx
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../../supabaseClient';
-import Sidebar from './Sidebar';
-import DarkModeToggle from './darkModeToggle';
+import { supabase } from '../../../../supabaseClient';
+import Sidebar from '../../../components/Sidebar';
+import DarkModeToggle from '../../../components/darkModeToggle';
 
 type LeagueTableProps = {
   seasonId: string;

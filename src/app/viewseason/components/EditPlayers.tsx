@@ -1,10 +1,10 @@
-// src/components/EditPlayers.tsx
+//src/app/viewseason/components/EditPlayers.tsx
 
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../../supabaseClient';
-import { DatabasePlayer, UserProfile } from '../types/players';
+import { supabase } from '../../../../supabaseClient';
+import { DatabasePlayer, UserProfile } from '../../../types/players';
 
 
 type EditPlayersProps = {

@@ -1,4 +1,4 @@
-//src/components/DeleteConfirmationModal.tsx
+//src/app/viewseason/components/DeleteConfirmationModal.tsx
 
 "use client";
 

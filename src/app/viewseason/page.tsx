@@ -8,10 +8,10 @@ import { supabase } from '../../../supabaseClient';
 import { Player } from '../../types/players';
 import Sidebar from '../../components/Sidebar';
 import DarkModeToggle from '../../components/darkModeToggle';
-import ViewGameWeeks from '../../components/ViewGameWeeks';
-import EditPlayers from '../../components/EditPlayers';
-import GameWeekOptions from '../../components/GameWeekOptions';
-import LeagueTable from '../../components/leagueTable';
+import ViewGameWeeks from './components/ViewGameWeeks';
+import EditPlayers from './components/EditPlayers';
+import GameWeekOptions from './components/GameWeekOptions';
+import LeagueTable from './components/leagueTable';
 
 type Season = {
     id: string;

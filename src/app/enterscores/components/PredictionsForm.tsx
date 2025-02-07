@@ -1,8 +1,8 @@
-//src/components/PredictionsForm.tsx
+//src/app/enterscores/components/PredictionsForm.tsx
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 type Fixture = {
     id: string;

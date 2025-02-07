@@ -5,8 +5,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
-import PredictionsForm from '../../components/PredictionsForm';
-import PredictionsDisplay from '../../components/PredictionsDisplay';
+import PredictionsForm from './components/PredictionsForm';
+import PredictionsDisplay from './components/PredictionsDisplay';
 import Sidebar from '../../components/Sidebar';
 import DarkModeToggle from '../../components/darkModeToggle';
 

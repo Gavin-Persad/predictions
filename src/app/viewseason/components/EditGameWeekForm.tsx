@@ -1,9 +1,9 @@
-//src/components/EditGameWeekForm.tsx
+//src/app/viewseason/components/EditGameWeekForm.tsx
 
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../../supabaseClient';
 import ConfirmationModal from './ConfirmationModal';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 
