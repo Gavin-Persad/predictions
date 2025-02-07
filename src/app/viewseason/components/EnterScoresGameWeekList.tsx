@@ -1,9 +1,9 @@
-//src/components/EnterScoresGameWeekList.tsx
+//src/app/viewseason/components/EnterScoresGameWeekList.tsx
 
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../../supabaseClient';
 import EnterScoresForm from './EnterScoresForm';
 
 type GameWeekListProps = {

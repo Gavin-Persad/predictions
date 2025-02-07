@@ -1,9 +1,9 @@
-// src/components/ManagerOfTheWeekModal.tsx
+//src/app/viewseason/components/ManagerOfTheWeekModal.tsx
 
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../../supabaseClient';
 
 type ManagerOfTheWeekModalProps = {
     gameWeekId: string;

@@ -1,4 +1,4 @@
-//src/components/PredictionsDisplay.tsx
+//src/app/enterscores/components/PredictionsDisplay.tsx
 
 "use client";
 

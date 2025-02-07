@@ -1,9 +1,9 @@
-// src/components/EditGameWeekList.tsx
+//src/app/viewseason/components/EditGameWeekList.tsx
 
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../../supabaseClient';
 import EditGameWeekForm from './EditGameWeekForm';
 
 type EditGameWeekListProps = {

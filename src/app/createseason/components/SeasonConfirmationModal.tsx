@@ -1,4 +1,4 @@
-//src/components/SeasonConfirmationModal.tsx
+//src/app/createseason/components/SeasonConfirmationModal.tsx
 
 type SeasonConfirmationModalProps = {
     seasonData: {

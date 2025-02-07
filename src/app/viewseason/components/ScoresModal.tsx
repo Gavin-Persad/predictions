@@ -1,10 +1,10 @@
-//src/components/ScoresModal.tsx
+//src/app/viewseason/components/ScoresModal.tsx
 
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../../supabaseClient';
-import { Player } from '../types/players';
+import { supabase } from '../../../../supabaseClient';
+import { Player } from '../../../types/players';
 
 type ScoresModalProps = {
     gameWeekId: string;

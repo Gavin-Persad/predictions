@@ -1,9 +1,9 @@
-//src/components/CreateGameWeek.tsx
+//src/app/viewseason/components/CreateGameWeek.tsx
 
 "use client";
 
 import { useState } from 'react';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../../supabaseClient';
 import ConfirmationModal from './ConfirmationModal';
 
 type CreateGameWeekProps = {

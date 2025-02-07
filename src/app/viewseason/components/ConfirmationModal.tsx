@@ -1,4 +1,4 @@
-//src/components/ConfirmationModal.tsx
+//src/app/viewseason/components/ConfirmationModal.tsx
 
 type ConfirmationModalProps = {
     gameWeekData: {

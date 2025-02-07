@@ -1,4 +1,4 @@
-//src/components/GameWeekDetail.tsx
+//src/app/viewseason/components/GameWeekDetail.tsx
 
  "use client";
 

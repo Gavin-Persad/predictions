@@ -1,14 +1,14 @@
-// src/components/EnterScoresForm.tsx
+//src/app/viewseason/components/EnterScoresForm.tsx
 
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../../supabaseClient';
 import { 
     calculatePoints, 
     calculateUniqueScoreBonus, 
     calculateWeeklyCorrectScoreBonus 
-} from '../utils/scoreCalculator';
+} from '../../../utils/scoreCalculator';
 
 type EnterScoresFormProps = {
     gameWeekId: string;
@@ -266,25 +266,28 @@ export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterSc
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 {fixtures.map(fixture => (
-                    <div key={fixture.id} className="grid grid-cols-7 gap-4 items-center">
-                        <div className="col-span-3 text-right text-gray-900 dark:text-gray-100">
+                    <div key={fixture.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 items-center text-gray-900 dark:text-white p-2">
+                        <div className="text-center sm:text-right text-sm sm:text-base">
                             {fixture.home_team}
                         </div>
-                        <input
-                            type="number"
-                            min="0"
-                            value={fixture.home_score ?? ''}
-                            onChange={(e) => handleScoreChange(fixture.id, 'home_score', e.target.value)}
-                            className="col-span-1 w-16 px-2 py-1 text-center border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
-                        />
-                        <input
-                            type="number"
-                            min="0"
-                            value={fixture.away_score ?? ''}
-                            onChange={(e) => handleScoreChange(fixture.id, 'away_score', e.target.value)}
-                            className="col-span-1 w-16 px-2 py-1 text-center border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
-                        />
-                        <div className="col-span-2 text-left text-gray-900 dark:text-gray-100">
+                        <div className="flex justify-center space-x-2">
+                            <input
+                                type="number"
+                                min="0"
+                                value={fixture.home_score ?? ''}
+                                onChange={(e) => handleScoreChange(fixture.id, 'home_score', e.target.value)}
+                                className="w-12 p-1 text-center border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
+                            />
+                            <span>-</span>
+                            <input
+                                type="number"
+                                min="0"
+                                value={fixture.away_score ?? ''}
+                                onChange={(e) => handleScoreChange(fixture.id, 'away_score', e.target.value)}
+                                className="w-12 p-1 text-center border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
+                            />
+                        </div>
+                        <div className="text-center sm:text-left text-sm sm:text-base">
                             {fixture.away_team}
                         </div>
                     </div>

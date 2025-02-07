@@ -1,9 +1,9 @@
-//src/components/ViewGameWeeks.tsx
+//src/app/viewseason/components/ViewGameWeeks.tsx
 
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../../supabaseClient';
 import GameWeekDetail from './GameWeekDetail';
 
 type GameWeek = {
