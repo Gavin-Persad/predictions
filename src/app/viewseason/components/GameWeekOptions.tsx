@@ -5,7 +5,6 @@
 import { useState } from 'react';
 import CreateGameWeek from './CreateGameWeek';
 import EditGameWeekList from './EditGameWeekList';
-import EnterScoresForm from './EnterScoresForm';
 import EnterScoresGameWeekList from './EnterScoresGameWeekList';
 
 type GameWeekOptionsProps = {

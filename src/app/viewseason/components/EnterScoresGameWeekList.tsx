@@ -18,7 +18,6 @@ type GameWeek = {
     live_end: string;
 };
 
-// src/components/EnterScoresGameWeekList.tsx
 
 export default function EnterScoresGameWeekList({ seasonId, onClose }: GameWeekListProps) {
     const [gameWeeks, setGameWeeks] = useState<GameWeek[]>([]);
