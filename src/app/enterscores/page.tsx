@@ -42,12 +42,13 @@ export default function PredictionsPage() {
         const predClose = new Date(gameWeek.predictions_close);
         const liveStart = new Date(gameWeek.live_start);
         const liveEnd = new Date(gameWeek.live_end);
-
+    
         if (now > liveEnd) return 'past';
         if (now >= liveStart && now <= liveEnd) return 'live';
         if (now >= predOpen && now <= predClose) return 'predictions';
         return 'upcoming';
     };
+    
 
     useEffect(() => {
         const checkAuthAndFetchData = async () => {
@@ -212,19 +213,22 @@ export default function PredictionsPage() {
                                         onBack={() => setSelectedGameWeek(null)}
                                     />
                                 ) : (
-                                    <PredictionsDisplay
-                                        fixtures={fixtures}
-                                        predictions={predictions}
-                                        canEdit={true}
-                                        onEdit={() => setIsEditing(true)}
-                                        onBack={() => setSelectedGameWeek(null)}
-                                    />
+                                <PredictionsDisplay
+                                    fixtures={fixtures}
+                                    predictions={predictions}
+                                    gameWeekStatus={checkGameWeekStatus(gameWeeks.find(gw => gw.id === selectedGameWeek)!)}
+                                    canEdit={true}
+                                    onEdit={() => setIsEditing(true)}
+                                    onBack={() => setSelectedGameWeek(null)}
+                                />
                                 )
                             ) : (
                                 <PredictionsDisplay
                                     fixtures={fixtures}
                                     predictions={predictions}
-                                    canEdit={false}
+                                    gameWeekStatus={checkGameWeekStatus(gameWeeks.find(gw => gw.id === selectedGameWeek)!)}
+                                    canEdit={true}
+                                    onEdit={() => setIsEditing(true)}
                                     onBack={() => setSelectedGameWeek(null)}
                                 />
                             )}

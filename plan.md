@@ -65,6 +65,8 @@
 
 16. add colour coding to scores modal
 
+- and score breakdown in closed enter scores weeks
+
 17. Test thoroughly with 1 player and 1 host
 
 18. Prepare for beta testing
