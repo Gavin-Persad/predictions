@@ -57,7 +57,7 @@
     - add view table button to view season✅
     - create league table that pulls and sorts from player scores ( try to make this sortable by position, name, correct scores and points)✅
 
-13. Test scoring and table works
+13. Test scoring and table works✅
 
 14. Add in cup competitions, rules and format
 

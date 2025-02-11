@@ -4,13 +4,24 @@ import { calculatePoints } from '../../../utils/scoreCalculator';
 
 type ScoreBreakdownProps = { 
     prediction: { home: number; away: number; }; 
-    fixture: { id: string; home_team: string; away_team: string; home_score: number; away_score: number; };
-    allPredictions?: Array<{ fixture_id: string; home_prediction: number; away_prediction: number; }>;
+    fixture: { 
+        id: string; 
+        home_team: string; 
+        away_team: string; 
+        home_score: number; 
+        away_score: number; 
+    };
+    allPredictions?: Array<{ 
+        fixture_id: string; 
+        home_prediction: number; 
+        away_prediction: number; 
+    }>;
 };
 
-
 export default function ScoreBreakdown({ prediction, fixture, allPredictions }: ScoreBreakdownProps) {
-    if (!fixture.home_score || !fixture.away_score) return null;
+    if (typeof fixture.home_score !== 'number' || typeof fixture.away_score !== 'number') {
+        return null;
+    }
 
     const basePoints = calculatePoints(
         { home_prediction: prediction.home, away_prediction: prediction.away },

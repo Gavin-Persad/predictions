@@ -76,7 +76,7 @@ export default function Sidebar() {
                         </li>
                         <li>
                             <Link href="/enterscores">
-                                <span className="block px-4 py-2 hover:bg-gray-700 rounded">Enter Predictions</span>
+                                <span className="block px-4 py-2 hover:bg-gray-700 rounded">My Predictions</span>
                             </Link>
                         </li>
                         <li>
