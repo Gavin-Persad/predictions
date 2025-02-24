@@ -12,6 +12,7 @@ import ViewGameWeeks from './components/ViewGameWeeks';
 import EditPlayers from './components/EditPlayers';
 import GameWeekOptions from './components/GameWeekOptions';
 import LeagueTable from './components/leagueTable';
+import EditGeorgeCup from './components/EditGeorgeCup';
 
 type Season = {
     id: string;
@@ -289,6 +290,11 @@ export default function ViewSeason() {
                             seasonId={selectedSeason.id}
                             onClose={() => setViewGameWeek(false)}
                         />
+                    ) : editGeorgeCup ? (
+                        <EditGeorgeCup
+                            seasonId={selectedSeason.id}
+                            onClose={() => setEditGeorgeCup(false)}
+                        />
                     ) : gameWeekOptionView ? (
                         <GameWeekOptions
                             seasonId={selectedSeason.id}
@@ -304,71 +310,72 @@ export default function ViewSeason() {
                             </button>
                             <div className="w-full flex flex-col items-center">
                                 <div className="grid grid-cols-3 gap-4 w-full max-w-3xl">
-                                    {/* View buttons column */}
+
+                                <div className="flex flex-col gap-4">
+                                    <button
+                                        onClick={handleViewPlayersClick}
+                                        className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                    >
+                                        View Players
+                                    </button>
+                                    <button
+                                        onClick={handleViewGameWeekClick}
+                                        className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                    >
+                                        View Game Week
+                                    </button>
+                                    <button
+                                        onClick={() => setShowLeagueTable(true)}
+                                        className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                    >
+                                        League Table
+                                    </button>
+                                    <button
+                                        onClick={() => setShowGeorgeCup(true)}
+                                        className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                    >
+                                        George Cup
+                                    </button>
+                                    <button
+                                        onClick={() => setShowLaveryCup(true)}
+                                        className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                    >
+                                        Lavery Cup
+                                    </button>
+                                </div>
+
+                                {profile?.is_host && (
                                     <div className="flex flex-col gap-4">
                                         <button
-                                            onClick={handleViewPlayersClick}
-                                            className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                            onClick={handleEditPlayersClick}
+                                            className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
                                         >
-                                            View Players
+                                            Edit Players
                                         </button>
                                         <button
-                                            onClick={handleViewGameWeekClick}
-                                            className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                            onClick={handleEditGameWeekClick}
+                                            className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
                                         >
-                                            View Game Week
+                                            Create / Edit Week
+                                        </button>
+
+                                        <div className="h-3"></div>
+                                        <div className="h-3"></div>
+                                        <button
+                                            onClick={() => setEditGeorgeCup(true)}
+                                            className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                        >
+                                            Edit George Cup
                                         </button>
                                         <button
-                                            onClick={() => setShowLeagueTable(true)}
-                                            className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                            onClick={() => setEditLaveryCup(true)}
+                                            className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
                                         >
-                                            League Table
-                                        </button>
-                                        <button
-                                            onClick={() => setShowGeorgeCup(true)}
-                                            className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                                        >
-                                            George Cup
-                                        </button>
-                                        <button
-                                            onClick={() => setShowLaveryCup(true)}
-                                            className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                                        >
-                                            Lavery Cup
+                                            Edit Lavery Cup
                                         </button>
                                     </div>
+                                )}
 
-                                    {/* Host Edit buttons column */}
-                                    {profile?.is_host && (
-                                        <div className="flex flex-col gap-4">
-                                            <button
-                                                onClick={handleEditPlayersClick}
-                                                className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
-                                            >
-                                                Edit Players
-                                            </button>
-                                            <button
-                                                onClick={handleEditGameWeekClick}
-                                                className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
-                                            >
-                                                Create / Edit Week
-                                            </button>
-                                            <button
-                                                onClick={() => setEditGeorgeCup(true)}
-                                                className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
-                                            >
-                                                Edit George Cup
-                                            </button>
-                                            <button
-                                                onClick={() => setEditLaveryCup(true)}
-                                                className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
-                                            >
-                                                Edit Lavery Cup
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {/* Delete button column */}
                                     {profile?.is_host && (
                                         <div className="flex flex-col">
                                             <button
