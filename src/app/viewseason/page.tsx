@@ -41,6 +41,10 @@ export default function ViewSeason() {
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
     const [showLeagueTable, setShowLeagueTable] = useState(false);
+    const [showGeorgeCup, setShowGeorgeCup] = useState(false);
+    const [showLaveryCup, setShowLaveryCup] = useState(false);
+    const [editGeorgeCup, setEditGeorgeCup] = useState(false);
+    const [editLaveryCup, setEditLaveryCup] = useState(false);
 
 
     const fetchPlayers = async (seasonId: string) => {
@@ -300,6 +304,7 @@ export default function ViewSeason() {
                             </button>
                             <div className="w-full flex flex-col items-center">
                                 <div className="grid grid-cols-3 gap-4 w-full max-w-3xl">
+                                    {/* View buttons column */}
                                     <div className="flex flex-col gap-4">
                                         <button
                                             onClick={handleViewPlayersClick}
@@ -319,8 +324,21 @@ export default function ViewSeason() {
                                         >
                                             League Table
                                         </button>
+                                        <button
+                                            onClick={() => setShowGeorgeCup(true)}
+                                            className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                        >
+                                            George Cup
+                                        </button>
+                                        <button
+                                            onClick={() => setShowLaveryCup(true)}
+                                            className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                        >
+                                            Lavery Cup
+                                        </button>
                                     </div>
 
+                                    {/* Host Edit buttons column */}
                                     {profile?.is_host && (
                                         <div className="flex flex-col gap-4">
                                             <button
@@ -335,9 +353,22 @@ export default function ViewSeason() {
                                             >
                                                 Create / Edit Week
                                             </button>
+                                            <button
+                                                onClick={() => setEditGeorgeCup(true)}
+                                                className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                            >
+                                                Edit George Cup
+                                            </button>
+                                            <button
+                                                onClick={() => setEditLaveryCup(true)}
+                                                className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                            >
+                                                Edit Lavery Cup
+                                            </button>
                                         </div>
                                     )}
 
+                                    {/* Delete button column */}
                                     {profile?.is_host && (
                                         <div className="flex flex-col">
                                             <button
