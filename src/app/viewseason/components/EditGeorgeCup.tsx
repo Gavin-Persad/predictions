@@ -9,34 +9,17 @@ type Player = {
     number?: number;
 };
 
-type Fixture = {
-    id: string;
-    player1_id: string;
-    player2_id: string | null;
-    game_week_id: string;
-    round_id: string;
-    fixture_number: number;
+type SetupFixture = {
+    index: number;
+    player1: Player | null;
+    player2: Player | null;
 };
 
-type FixtureDisplay = {
+type ProcessedFixture = {
     fixture_number: number;
     player1_name: string;
-    player2_name?: string;
+    player2_name: string | null;
     game_week: number;
-};
-
-type RoundStatus = {
-    round_number: number;
-    total_fixtures: number;
-    completed_fixtures: number;
-};
-
-type WinnerData = {
-    winner_id: string;
-    winner: {
-        id: string;
-        username: string;
-    };
 };
 
 type Props = {
@@ -46,20 +29,13 @@ type Props = {
 
 export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
-    const [selectedPlayer1, setSelectedPlayer1] = useState<Player | null>(null);
-    const [selectedPlayer2, setSelectedPlayer2] = useState<Player | null>(null);
-    const [currentFixture, setCurrentFixture] = useState(1);
-    const [totalFixtures, setTotalFixtures] = useState(0);
-    const [fixtures, setFixtures] = useState<Fixture[]>([]);
+    const [setupFixtures, setSetupFixtures] = useState<SetupFixture[]>([]);
     const [gameWeeks, setGameWeeks] = useState<Array<{ id: string, week_number: number }>>([]);
     const [selectedGameWeek, setSelectedGameWeek] = useState<string>('');
     const [currentRound, setCurrentRound] = useState(1);
     const [showConfirmation, setShowConfirmation] = useState(false);
-    const [roundFixtures, setRoundFixtures] = useState<Fixture[]>([]);
-    const [isLastRound, setIsLastRound] = useState(false);
-    const [processedFixtures, setProcessedFixtures] = useState<FixtureDisplay[]>([]);
-    const [roundStatuses, setRoundStatuses] = useState<RoundStatus[]>([]);
-    const [winners, setWinners] = useState<Player[]>([]);
+    const [nextEmptySpot, setNextEmptySpot] = useState<{fixtureIndex: number, isPlayer1: boolean} | null>(null);
+    const [processedFixtures, setProcessedFixtures] = useState<ProcessedFixture[]>([]);
 
 
     useEffect(() => {
@@ -67,30 +43,26 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         fetchGameWeeks();
     }, [seasonId]);
 
-    useEffect(() => {
-        fetchRoundFixtures();
-    }, [currentRound, seasonId]);
-
-    useEffect(() => {
-        fetchRoundStatuses();
-    }, [seasonId]);
-
-    useEffect(() => {
-        if (currentRound > 1) {
-            fetchPreviousRoundWinners();
-        }
-    }, [currentRound]);
-
-    const fetchRoundFixtures = async () => {
+    const fetchPlayers = async () => {
         const { data, error } = await supabase
-            .from('george_cup_fixtures')
-            .select('*')
-            .eq('round_id', currentRound.toString())
-            .order('fixture_number');
+            .from('season_players')
+            .select(`
+                profiles (
+                    id,
+                    username
+                )
+            `)
+            .eq('season_id', seasonId);
 
         if (!error && data) {
-            setRoundFixtures(data as Fixture[]);
-            setIsLastRound(data.length <= 1);
+            const players = data.map((item: any) => ({
+                id: item.profiles.id,
+                username: item.profiles.username,
+                number: undefined
+            }));
+
+            setAvailablePlayers(players);
+            initializeFixtures(Math.ceil(players.length / 2));
         }
     };
 
@@ -106,356 +78,233 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         }
     };
 
-    const fetchPlayers = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('season_players')
-                .select(`
-                    profiles (
-                        id,
-                        username
-                    )
-                `)
-                .eq('season_id', seasonId);
-    
-            if (error) {
-                console.error('Error fetching players:', error);
-                return;
-            }
-    
-            const formattedPlayers = data.map((item: any) => ({
-                id: item.profiles.id,
-                username: item.profiles.username,
-                number: undefined 
-            }));
-    
-            setAvailablePlayers(formattedPlayers);
-            const numPlayers = formattedPlayers.length;
-            const numFixtures = Math.ceil(numPlayers / 2);
-            setTotalFixtures(numFixtures);
-        } catch (error) {
-            console.error('Error in fetchPlayers:', error);
-        }
+    const initializeFixtures = (numFixtures: number) => {
+        const fixtures = Array.from({ length: numFixtures }, (_, index) => ({
+            index,
+            player1: null,
+            player2: null
+        }));
+        setSetupFixtures(fixtures);
+        updateNextEmptySpot(fixtures);
     };
 
-    const fetchRoundStatuses = async () => {
-        const { data, error } = await supabase
-            .from('george_cup_fixtures')
-            .select('round_id, winner_id')
-            .order('round_id');
-    
-        if (!error && data) {
-            const statuses = data.reduce((acc: RoundStatus[], fixture) => {
-                const roundNum = parseInt(fixture.round_id);
-                const existing = acc.find(s => s.round_number === roundNum);
-                
-                if (existing) {
-                    existing.total_fixtures++;
-                    if (fixture.winner_id) existing.completed_fixtures++;
-                } else {
-                    acc.push({
-                        round_number: roundNum,
-                        total_fixtures: 1,
-                        completed_fixtures: fixture.winner_id ? 1 : 0
-                    });
-                }
-                return acc;
-            }, []);
-            
-            setRoundStatuses(statuses);
-        }
+    const updateNextEmptySpot = (fixtures: SetupFixture[]) => {
+        const nextSpot = fixtures.reduce<{fixtureIndex: number, isPlayer1: boolean} | null>((acc, fixture, index) => {
+            if (acc) return acc;
+            if (!fixture.player1) return { fixtureIndex: index, isPlayer1: true };
+            if (!fixture.player2) return { fixtureIndex: index, isPlayer1: false };
+            return null;
+        }, null);
+        setNextEmptySpot(nextSpot);
     };
 
-    const fetchPreviousRoundWinners = async () => {
-        if (currentRound === 1) {
-            await fetchPlayers();
-            return;
-        }
+    const prepareFixturesForConfirmation = () => {
+        const gameWeek = gameWeeks.find(gw => gw.id === selectedGameWeek);
+        
+        const processed = setupFixtures.map((fixture, index) => ({
+            fixture_number: index + 1,
+            player1_name: fixture.player1?.username || 'Unknown',
+            player2_name: fixture.player2?.username || null,
+            game_week: gameWeek?.week_number || 0
+        }));
     
-        type SupabaseResponse = {
-            winner_id: string;
-            winner: {
-                id: string;
-                username: string;
-            };
-        };
-    
-        const { data, error } = await supabase
-            .from('george_cup_fixtures')
-            .select(`
-                winner_id,
-                winner:profiles!inner(
-                    id,
-                    username
-                )
-            `)
-            .eq('round_id', (currentRound - 1).toString());
-    
-        if (!error && data) {
-            const typedData = data as unknown as SupabaseResponse[];
-            
-            const winners = typedData
-                .filter(d => d.winner_id)
-                .map(d => ({
-                    id: d.winner.id,
-                    username: d.winner.username,
-                    number: undefined
-                } as Player));
-    
-            setAvailablePlayers(winners);
-            setTotalFixtures(Math.ceil(winners.length / 2));
-        }
+        setProcessedFixtures(processed);
     };
 
     const handlePlayerClick = (player: Player) => {
-        if (!selectedPlayer1) {
-            setSelectedPlayer1(player);
-            setAvailablePlayers(prev => prev.filter(p => p.id !== player.id));
-        } else if (!selectedPlayer2) {
-            setSelectedPlayer2(player);
-            setAvailablePlayers(prev => prev.filter(p => p.id !== player.id));
+        if (!nextEmptySpot) return;
+
+        const updatedFixtures = [...setupFixtures];
+        const { fixtureIndex, isPlayer1 } = nextEmptySpot;
+
+        if (isPlayer1) {
+            updatedFixtures[fixtureIndex].player1 = player;
+        } else {
+            updatedFixtures[fixtureIndex].player2 = player;
         }
+
+        setSetupFixtures(updatedFixtures);
+        setAvailablePlayers(prev => prev.filter(p => p.id !== player.id));
+        updateNextEmptySpot(updatedFixtures);
     };
 
-    const processFixturesForDisplay = async () => {
-        const displayFixtures: FixtureDisplay[] = await Promise.all(
-            fixtures.map(async (fixture) => {
-                const player1 = availablePlayers.find(p => p.id === fixture.player1_id);
-                const player2 = fixture.player2_id 
-                    ? availablePlayers.find(p => p.id === fixture.player2_id)
-                    : undefined;
-                
-                const gameWeek = gameWeeks.find(gw => gw.id === fixture.game_week_id);
-                
-                return {
-                    fixture_number: fixture.fixture_number,
-                    player1_name: player1?.username || 'Unknown',
-                    player2_name: player2?.username,
-                    game_week: gameWeek?.week_number || 0
-                };
-            })
-        );
-        setProcessedFixtures(displayFixtures);
-    };
+    const handleRemovePlayer = (fixtureIndex: number, isPlayer1: boolean) => {
+        const updatedFixtures = [...setupFixtures];
+        const player = isPlayer1 ? updatedFixtures[fixtureIndex].player1 : updatedFixtures[fixtureIndex].player2;
 
-    const handleConfirmFixture = async () => {
-        if (!selectedPlayer1 || !selectedGameWeek) return;
-
-        const fixture = {
-            player1_id: selectedPlayer1.id,
-            player2_id: selectedPlayer2?.id || null,
-            game_week_id: selectedGameWeek,
-            round_id: currentRound.toString(),
-            fixture_number: currentFixture
-        };
-
-        const { error } = await supabase
-            .from('george_cup_fixtures')
-            .insert([fixture]);
-
-            if (!error) {
-                setFixtures(prev => [...prev, fixture as Fixture]);
-                setSelectedPlayer1(null);
-                setSelectedPlayer2(null);
-                
-                if (currentFixture >= totalFixtures) {
-                    await processFixturesForDisplay();
-                    setShowConfirmation(true);
-                } else {
-                    setCurrentFixture(prev => prev + 1);
-                }
+        if (player) {
+            if (isPlayer1) {
+                updatedFixtures[fixtureIndex].player1 = null;
+            } else {
+                updatedFixtures[fixtureIndex].player2 = null;
             }
-        };
-
-
-    const handlePreviousRound = () => {
-        if (currentRound > 1) {
-            setCurrentRound(prev => prev - 1);
-            setCurrentFixture(1);
+            setSetupFixtures(updatedFixtures);
+            setAvailablePlayers(prev => [...prev, player]);
+            updateNextEmptySpot(updatedFixtures);
         }
-    };
-
-    const handleNextRound = () => {
-        setCurrentRound(prev => prev + 1);
-        setCurrentFixture(1);
     };
 
     return (
         <div className="flex flex-col h-full">
-        <div className="flex justify-between items-center mb-6 border-b pb-4">
-            <div className="flex items-center gap-4">
-                {roundStatuses.map((status) => (
-                    <button
-                        key={status.round_number}
-                        onClick={() => setCurrentRound(status.round_number)}
-                        className={`px-3 py-1 rounded ${
-                            currentRound === status.round_number
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-600'
-                        }`}
-                    >
-                        Round {status.round_number}
-                        {status.completed_fixtures > 0 && (
-                            <span className="ml-2 text-xs">
-                                ({status.completed_fixtures}/{status.total_fixtures})
-                            </span>
-                        )}
-                    </button>
-                ))}
-            </div>
-        </div>
-            <div className="flex justify-between items-center mb-6 border-b pb-4">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={handlePreviousRound}
-                        disabled={currentRound === 1}
-                        className="p-2 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50"
-                    >
-                        ←
-                    </button>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-200">
-                        George Cup - {currentRound === 1 ? 'First Round' : 
-                                    currentRound === 2 ? 'Second Round' : 
-                                    isLastRound ? 'Final' : `Round ${currentRound}`}
-                    </h2>
-                    <button
-                        onClick={handleNextRound}
-                        disabled={!roundFixtures.length || currentFixture <= totalFixtures}
-                        className="p-2 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50"
-                    >
-                        →
-                    </button>
-                </div>
-                <div className="text-sm font-medium bg-blue-50 px-3 py-1 rounded">
-                    Fixture {currentFixture} of {totalFixtures}
-                </div>
-            </div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                George Cup - Round {currentRound}
+            </h2>
 
-            {/* Main content */}
             <div className="flex gap-6">
                 {/* Left column - Available players */}
                 <div className="w-1/3">
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                        <h3 className="text-lg font-semibold mb-4">Available Players</h3>
+                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold mb-4 dark:text-white">Available Players</h3>
                         <div className="space-y-2">
                             {availablePlayers.map(player => (
                                 <button
                                     key={player.id}
                                     onClick={() => handlePlayerClick(player)}
-                                    className="w-full p-3 text-left bg-white hover:bg-gray-50 
-                                             rounded-md border transition duration-150 ease-in-out"
+                                    className="w-full p-3 text-left bg-white dark:bg-gray-700 
+                                             hover:bg-gray-50 dark:hover:bg-gray-600 
+                                             rounded-md border dark:border-gray-600 
+                                             transition duration-150 ease-in-out
+                                             dark:text-white"
                                 >
-                                    {player.number && `(${player.number}) `}{player.username}
+                                    {player.username}
                                 </button>
                             ))}
                         </div>
                     </div>
                 </div>
 
-                {/* Right column - Fixture setup */}
+                {/* Right column - Fixtures setup */}
                 <div className="w-2/3">
-                    <div className="bg-white p-6 rounded-lg border">
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium mb-2">Select Game Week</label>
-                            <select
-                                value={selectedGameWeek}
-                                onChange={(e) => setSelectedGameWeek(e.target.value)}
-                                className="w-full p-2 border rounded-md bg-white"
-                            >
-                                <option value="">Choose a game week...</option>
-                                {gameWeeks.map(gw => (
-                                    <option key={gw.id} value={gw.id}>
-                                        Week {gw.week_number}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="p-4 border rounded-md bg-gray-50">
-                                {selectedPlayer1 ? (
-                                    <div className="font-medium">{selectedPlayer1.username}</div>
-                                ) : (
-                                    <div className="text-gray-400">Select First Player</div>
-                                )}
-                            </div>
-                            <div className="text-center font-bold text-gray-400">VS</div>
-                            <div className="p-4 border rounded-md bg-gray-50">
-                                {selectedPlayer2 ? (
-                                    <div className="font-medium">{selectedPlayer2.username}</div>
-                                ) : (
-                                    <div className="text-gray-400">Select Second Player or Leave Empty for Bye</div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="mt-6 flex justify-end gap-3">
-                            <button
-                                onClick={onClose}
-                                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleConfirmFixture}
-                                disabled={!selectedPlayer1 || !selectedGameWeek}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md
-                                         hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                            >
-                                Confirm Fixture
-                            </button>
-                        </div>
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium mb-2 dark:text-white">Game Week</label>
+                        <select
+                            value={selectedGameWeek}
+                            onChange={(e) => setSelectedGameWeek(e.target.value)}
+                            className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 
+                                     dark:border-gray-600 dark:text-white"
+                        >
+                            <option value="">Select game week...</option>
+                            {gameWeeks.map(gw => (
+                                <option key={gw.id} value={gw.id}>
+                                    Week {gw.week_number}
+                                </option>
+                            ))}
+                        </select>
                     </div>
-                </div>
-            </div>
 
-            {showConfirmation && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-                <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-2xl w-full mx-4">
-                    <h3 className="text-xl font-bold mb-4">Confirm Round {currentRound} Fixtures</h3>
-                    
-                    <div className="space-y-4 mb-6">
-                        {processedFixtures.map((fixture, index) => (
-                            <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <div className="flex justify-between items-center">
-                                    <div className="flex-1">
-                                        <span className="font-medium">{fixture.player1_name}</span>
-                                    </div>
-                                    <div className="px-4 text-sm text-gray-500 dark:text-gray-400">
-                                        vs
-                                    </div>
-                                    <div className="flex-1 text-right">
-                                        <span className="font-medium">
-                                            {fixture.player2_name || 'BYE'}
-                                        </span>
-                                    </div>
+                    <div className="space-y-4">
+                        {setupFixtures.map((fixture, index) => (
+                            <div key={index} 
+                                className="p-4 border rounded-lg dark:border-gray-600 
+                                         bg-white dark:bg-gray-800">
+                                <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                                    Fixture {index + 1}
                                 </div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                                    Game Week {fixture.game_week}
+                                <div className="grid grid-cols-3 gap-4 items-center">
+                                    <div 
+                                        onClick={() => fixture.player1 && handleRemovePlayer(index, true)}
+                                        className={`p-3 rounded border ${
+                                            nextEmptySpot?.fixtureIndex === index && nextEmptySpot?.isPlayer1
+                                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900'
+                                            : 'border-gray-200 bg-gray-50 dark:bg-gray-700'
+                                        } ${fixture.player1 ? 'cursor-pointer hover:bg-red-50 dark:hover:bg-red-900' : ''}
+                                        dark:border-gray-600 dark:text-white`}
+                                    >
+                                        {fixture.player1?.username || 'Empty'}
+                                    </div>
+                                    <div className="text-center font-bold text-gray-400">VS</div>
+                                    <div 
+                                        onClick={() => fixture.player2 && handleRemovePlayer(index, false)}
+                                        className={`p-3 rounded border ${
+                                            nextEmptySpot?.fixtureIndex === index && !nextEmptySpot?.isPlayer1
+                                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900'
+                                            : 'border-gray-200 bg-gray-50 dark:bg-gray-700'
+                                        } ${fixture.player2 ? 'cursor-pointer hover:bg-red-50 dark:hover:bg-red-900' : ''}
+                                        dark:border-gray-600 dark:text-white`}
+                                    >
+                                        {fixture.player2?.username || 'Empty'}
+                                    </div>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    <div className="flex justify-end gap-4">
+                    <div className="mt-6 flex justify-end gap-3">
                         <button
-                            onClick={() => setShowConfirmation(false)}
-                            className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                            onClick={onClose}
+                            className="px-4 py-2 text-gray-700 dark:text-gray-300 
+                                     hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
                         >
-                            Edit Fixtures
+                            Cancel
                         </button>
                         <button
                             onClick={() => {
-                                setShowConfirmation(false);
-                                onClose();
+                                prepareFixturesForConfirmation();
+                                setShowConfirmation(true);
                             }}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                            disabled={!setupFixtures.every(f => f.player1) || !selectedGameWeek}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md 
+                                    hover:bg-blue-700 disabled:bg-gray-300 
+                                    disabled:cursor-not-allowed"
                         >
-                            Confirm All
+                            Confirm Fixtures
                         </button>
                     </div>
                 </div>
             </div>
-        )}
+
+            {showConfirmation && (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-2xl w-full mx-4">
+            <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+                Confirm Round {currentRound} Fixtures
+            </h3>
+            
+            <div className="space-y-4 mb-6">
+                {processedFixtures.map((fixture, index) => (
+                    <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="flex justify-between items-center">
+                            <div className="flex-1">
+                                <span className="font-medium text-gray-900 dark:text-gray-100">
+                                    {fixture.player1_name}
+                                </span>
+                            </div>
+                            <div className="px-4 text-sm text-gray-500 dark:text-gray-400">
+                                vs
+                            </div>
+                            <div className="flex-1 text-right">
+                                <span className="font-medium text-gray-900 dark:text-gray-100">
+                                    {fixture.player2_name || 'BYE'}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                            Game Week {fixture.game_week}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="flex justify-end gap-4">
+                <button
+                    onClick={() => setShowConfirmation(false)}
+                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 
+                             dark:hover:bg-gray-700 rounded-md"
+                >
+                    Edit Fixtures
+                </button>
+                <button
+                    onClick={() => {
+                        setShowConfirmation(false);
+                        onClose();
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                    Confirm All
+                </button>
+            </div>
+        </div>
+    </div>
+)}
     </div>
 )};
