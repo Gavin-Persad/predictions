@@ -61,21 +61,31 @@
 
 14. Add in cup competitions, rules and format
 
+- george cup
+- navigating rounds doesn't change the round view, still showing previous round fixtures.
+- edit rounds not working, could this be because the round has been completed. Need to test this by creating a new game week.
+- game weeks can still be changed after confirmed, this needs to be locked in.
+
+- create view cup
+- tree format as the rounds are created, shows scores from that game week.
+
+- create lavery cup
+- view lavery cup
+
 15. Test cups and format
 
-16. add colour coding to scores modal
+16. Desired features
 
-- and score breakdown in closed enter scores weeks
-
-17. Test thoroughly with 1 player and 1 host
-
-18. Prepare for beta testing
-
+- add colour coding to scores modal
 - correct all page titles and button titles and labels.
 - add functionality to dashboard
 - add message section to dashboard
 - add rules section and note from chris to dashboard.
 
-18. Update ReadMe and announce on LinkedIn
+17. Test thoroughly with 1 player and 1 host
 
-19. Receive feedback and fix bugs/make improvements
+18. Prepare for beta testing
+
+19. Update ReadMe and announce on LinkedIn
+
+20. Receive feedback and fix bugs/make improvements
