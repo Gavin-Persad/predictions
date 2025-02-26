@@ -62,8 +62,8 @@
 14. Add in cup competitions, rules and format
 
 - george cup
-- navigating rounds doesn't change the round view, still showing previous round fixtures.
-- edit rounds not working, could this be because the round has been completed. Need to test this by creating a new game week.
+- navigating rounds doesn't change the round view, still showing previous round fixtures. ** now working but not showing blank fixtures.
+- edit rounds not working, could this be because the round has been completed. Need to test this by creating a new game week.** now games confirmation is not working. Nothing being created on supabase.
 - game weeks can still be changed after confirmed, this needs to be locked in.
 
 - create view cup
