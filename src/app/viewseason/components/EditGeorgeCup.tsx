@@ -1,6 +1,6 @@
 //src/app/viewseason/components/EditGeorgeCup.tsx
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../../supabaseClient';
 
 type Player = {
@@ -71,74 +71,36 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     const [isRoundConfirmed, setIsRoundConfirmed] = useState<{[key: number]: boolean}>({});
     const [isEditing, setIsEditing] = useState(false);
 
-    useEffect(() => {
-        fetchGameWeeks();
-    }, [seasonId]);
+    const updateNextEmptySpot = useCallback((fixtures: SetupFixture[]) => {
+        const nextSpot = fixtures.reduce<{fixtureIndex: number, isPlayer1: boolean} | null>((acc, fixture, index) => {
+            if (acc) return acc;
+            if (!fixture.player1) return { fixtureIndex: index, isPlayer1: true };
+            if (!fixture.player2) return { fixtureIndex: index, isPlayer1: false };
+            return null;
+        }, null);
+        setNextEmptySpot(nextSpot);
+    }, []);
 
-    useEffect(() => {
-        const loadRoundData = async () => {
-            setSetupFixtures([]); 
-            setAvailablePlayers([]); 
-            
+    const getRoundName = useCallback((round: number, totalPlayers: number) => {
+        const totalRounds = Math.ceil(Math.log2(totalPlayers));
+        
+        if (round === totalRounds) return 'Final';
+        if (round === totalRounds - 1) return 'Semi Finals';
+        if (round === totalRounds - 2) return 'Quarter Finals';
+        return `Round ${round}`;
+    }, []);
 
-            const existingFixtures = await fetchRoundFixtures(currentRound);
-            
-            if (!existingFixtures) {
-                if (currentRound === 1) {
-                    await fetchPlayers();
-                } else {
-                    const previousRoundComplete = await checkPreviousRoundStatus(currentRound - 1);
-                    if (previousRoundComplete) {
-                        await fetchRoundWinners(currentRound - 1);
-                    }
-                }
-            }
-        };
-    
-        loadRoundData();
-    }, [currentRound, seasonId]); 
+    const initializeFixtures = useCallback((numFixtures: number) => {
+        const fixtures = Array.from({ length: numFixtures }, (_, index) => ({
+            index,
+            player1: null,
+            player2: null
+        }));
+        setSetupFixtures(fixtures);
+        updateNextEmptySpot(fixtures);
+    }, [updateNextEmptySpot]);
 
-    const fetchPlayers = async () => {
-        if (currentRound === 1) {
-            const { data, error } = await supabase
-                .from('season_players')
-                .select(`
-                    profiles (
-                        id,
-                        username
-                    )
-                `)
-                .eq('season_id', seasonId);
-    
-            if (!error && data) {
-                const players = data.map((item: any) => ({
-                    id: item.profiles.id,
-                    username: item.profiles.username,
-                    number: undefined
-                }));
-    
-                setAvailablePlayers(players);
-                calculateRoundStructure(players.length); 
-                initializeFixtures(Math.ceil(players.length / 2));
-            }
-        } else {
-            await fetchRoundWinners(currentRound - 1);
-        }
-    };
-
-    const fetchGameWeeks = async () => {
-        const { data, error } = await supabase
-            .from('game_weeks')
-            .select('id, week_number')
-            .eq('season_id', seasonId)
-            .order('week_number');
-
-        if (!error && data) {
-            setGameWeeks(data);
-        }
-    };
-
-    const calculateRoundStructure = (playerCount: number) => {
+    const calculateRoundStructure = useCallback((playerCount: number) => {
         let remaining = playerCount;
         let round = 1;
         const rounds: Record<number, RoundInfo> = {};
@@ -156,20 +118,22 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
             remaining = nextRoundPlayers / 2;
             round++;
         }
-        setRoundsInfo(rounds);
-    };
+        setRoundsInfo(rounds); 
+    }, [getRoundName]);
+
+    const fetchGameWeeks = useCallback(async () => {
+        const { data, error } = await supabase
+            .from('game_weeks')
+            .select('id, week_number')
+            .eq('season_id', seasonId)
+            .order('week_number');
     
+        if (!error && data) {
+            setGameWeeks(data);
+        }
+    }, [seasonId]);
 
-    const getRoundName = (round: number, totalPlayers: number) => {
-        const totalRounds = Math.ceil(Math.log2(totalPlayers));
-        
-        if (round === totalRounds) return 'Final';
-        if (round === totalRounds - 1) return 'Semi Finals';
-        if (round === totalRounds - 2) return 'Quarter Finals';
-        return `Round ${round}`;
-    };    
-
-    const fetchRoundWinners = async (roundNumber: number) => {
+    const fetchRoundWinners = useCallback(async (roundNumber: number) => {
         const { data: roundData, error: roundError } = await supabase
             .from('george_cup_rounds')
             .select('id')
@@ -221,55 +185,9 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                 }));
             }
         }
-    };
+    }, [seasonId, currentRound, initializeFixtures]);
 
-    const initializeFixtures = (numFixtures: number) => {
-        const fixtures = Array.from({ length: numFixtures }, (_, index) => ({
-            index,
-            player1: null,
-            player2: null
-        }));
-        setSetupFixtures(fixtures);
-        updateNextEmptySpot(fixtures);
-    };
-
-    const getProcessedFixtures = (): ProcessedFixture[] => {
-        const gameWeek = gameWeeks.find(gw => gw.id === selectedGameWeek);
-        
-        return setupFixtures.map((fixture, index) => ({
-            fixture_number: index + 1,
-            player1_name: fixture.player1?.username || 'Unknown',
-            player2_name: fixture.player2?.username || null,
-            game_week: gameWeek?.week_number || 0
-        }));
-    };
-
-    const totalRounds = Object.keys(roundsInfo).length;
-
-    const checkPreviousRoundStatus = async (roundNumber: number) => {
-        if (roundNumber === 1) return true;
-    
-        const { data: roundData, error: roundError } = await supabase
-            .from('george_cup_rounds')
-            .select('id')
-            .eq('round_number', roundNumber - 1)
-            .eq('season_id', seasonId)
-            .single();
-    
-        if (roundError || !roundData) return false;
-    
-        const { data, error } = await supabase
-            .from('george_cup_fixtures')
-            .select('winner_id')
-            .eq('round_id', roundData.id);
-    
-        if (!error && data) {
-            return data.length > 0 && data.every(fixture => fixture.winner_id);
-        }
-        return false;
-    };
-
-    const fetchRoundFixtures = async (roundNumber: number) => {
+    const fetchRoundFixtures = useCallback(async (roundNumber: number) => {
         const { data: roundData, error: roundError } = await supabase
             .from('george_cup_rounds')
             .select('id, game_week_id')
@@ -294,7 +212,7 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         if (!error && data) {
             const typedData = data as unknown as SupabaseFixtureResponse[];
             
-            const fixtures: SetupFixture[] = typedData.map(f => ({
+            const fixtures = typedData.map(f => ({
                 index: f.fixture_number - 1,
                 id: f.id,
                 player1: f.player1 ? { 
@@ -305,7 +223,7 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                     id: f.player2.id, 
                     username: f.player2.username 
                 } : null,
-                winner_id: f.winner_id || undefined
+                winner_id: f.winner_id
             }));
     
             setSetupFixtures(fixtures);
@@ -323,30 +241,105 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                 setSelectedGameWeek(roundData.game_week_id);
             }
     
-            const usedPlayerIds = fixtures.flatMap(f => [
-                f.player1?.id, 
-                f.player2?.id
-            ]).filter(Boolean);
-            
-            setAvailablePlayers(prev => 
-                prev.filter(p => !usedPlayerIds.includes(p.id))
-            );
-    
             return fixtures;
         }
     
         return null;
+    }, [seasonId]);
+
+    const fetchPlayers = useCallback(async () => {
+        if (currentRound === 1) {
+            const { data, error } = await supabase
+                .from('season_players')
+                .select(`
+                    profiles (
+                        id,
+                        username
+                    )
+                `)
+                .eq('season_id', seasonId);
+    
+            if (!error && data) {
+                const players = data.map((item: any) => ({
+                    id: item.profiles.id,
+                    username: item.profiles.username,
+                    number: undefined
+                }));
+    
+                setAvailablePlayers(players);
+                calculateRoundStructure(players.length); 
+                initializeFixtures(Math.ceil(players.length / 2));
+            }
+        } else {
+            await fetchRoundWinners(currentRound - 1);
+        }
+    }, [currentRound, seasonId, fetchRoundWinners, calculateRoundStructure, initializeFixtures]);
+
+
+    const checkPreviousRoundStatus = useCallback(async (roundNumber: number) => {
+        if (roundNumber === 1) return true;
+    
+        const { data: roundData, error: roundError } = await supabase
+            .from('george_cup_rounds')
+            .select('id')
+            .eq('round_number', roundNumber - 1)
+            .eq('season_id', seasonId)
+            .single();
+    
+        if (roundError || !roundData) return false;
+    
+        const { data, error } = await supabase
+            .from('george_cup_fixtures')
+            .select('winner_id')
+            .eq('round_id', roundData.id);
+    
+        if (!error && data) {
+            return data.length > 0 && data.every(fixture => fixture.winner_id);
+        }
+        return false;
+    }, [seasonId]);
+
+
+
+
+    useEffect(() => {
+        fetchGameWeeks();
+    }, [fetchGameWeeks]);
+    
+    useEffect(() => {
+        const loadRoundData = async () => {
+            setSetupFixtures([]); 
+            setAvailablePlayers([]); 
+            
+            const existingFixtures = await fetchRoundFixtures(currentRound);
+            
+            if (!existingFixtures) {
+                if (currentRound === 1) {
+                    await fetchPlayers();
+                } else {
+                    const previousRoundComplete = await checkPreviousRoundStatus(currentRound - 1);
+                    if (previousRoundComplete) {
+                        await fetchRoundWinners(currentRound - 1);
+                    }
+                }
+            }
+        };
+    
+        loadRoundData();
+    }, [currentRound, fetchRoundFixtures, fetchPlayers, checkPreviousRoundStatus, fetchRoundWinners]);
+ 
+    const getProcessedFixtures = (): ProcessedFixture[] => {
+        const gameWeek = gameWeeks.find(gw => gw.id === selectedGameWeek);
+        
+        return setupFixtures.map((fixture, index) => ({
+            fixture_number: index + 1,
+            player1_name: fixture.player1?.username || 'Unknown',
+            player2_name: fixture.player2?.username || null,
+            game_week: gameWeek?.week_number || 0
+        }));
     };
 
-    const updateNextEmptySpot = (fixtures: SetupFixture[]) => {
-        const nextSpot = fixtures.reduce<{fixtureIndex: number, isPlayer1: boolean} | null>((acc, fixture, index) => {
-            if (acc) return acc;
-            if (!fixture.player1) return { fixtureIndex: index, isPlayer1: true };
-            if (!fixture.player2) return { fixtureIndex: index, isPlayer1: false };
-            return null;
-        }, null);
-        setNextEmptySpot(nextSpot);
-    };
+    const totalRounds = Object.keys(roundsInfo).length;
 
     const isByeMatch = (fixture: SetupFixture) => fixture.player1 && !fixture.player2;
 
