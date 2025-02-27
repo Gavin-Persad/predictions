@@ -351,37 +351,47 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     };
 
     const handleConfirmFixtures = async () => {
+        if (!roundsInfo[currentRound]) {
+            return;
+        }
+    
+        if (!selectedGameWeek) {
+            return;
+        }
+    
         setIsSaving(true);
         try {
+            const roundToInsert = {
+                season_id: seasonId,
+                round_number: currentRound,
+                round_name: roundsInfo[currentRound].name,
+                total_fixtures: roundsInfo[currentRound].expectedFixtures,
+                is_available: true,
+                game_week_id: selectedGameWeek
+            };
+            
             const { data: roundData, error: roundError } = await supabase
                 .from('george_cup_rounds')
-                .insert({
-                    season_id: seasonId,
-                    round_number: currentRound,
-                    round_name: roundsInfo[currentRound].name,
-                    total_fixtures: roundsInfo[currentRound].expectedFixtures,
-                    is_available: true,
-                    game_week_id: selectedGameWeek
-                })
+                .insert(roundToInsert)
                 .select()
                 .single();
     
             if (roundError) throw roundError;
+            if (!roundData) throw new Error('No round data returned');
     
-            const fixtures = getProcessedFixtures().map((fixture, index) => ({
+            const fixturesToInsert = setupFixtures.map((fixture, index) => ({
                 round_id: roundData.id,
-                game_week_id: selectedGameWeek,
-                player1_id: setupFixtures[index].player1?.id,
-                player2_id: setupFixtures[index].player2?.id,
-                fixture_number: fixture.fixture_number,
+                player1_id: fixture.player1?.id,
+                player2_id: fixture.player2?.id,
+                fixture_number: index + 1,
                 created_at: new Date().toISOString()
             }));
     
-            const { error } = await supabase
+            const { error: fixturesError } = await supabase
                 .from('george_cup_fixtures')
-                .insert(fixtures);
+                .insert(fixturesToInsert);
     
-            if (error) throw error;
+            if (fixturesError) throw fixturesError;
     
             if (currentRound < totalRounds) {
                 setRoundsInfo(prev => ({
@@ -395,15 +405,11 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     
             setShowConfirmation(false);
             onClose();
-        } catch (error) {
-            console.error('Error saving fixtures:', error);
+    
+        } catch (error: any) {
+            alert(`Failed to save fixtures: ${error.message}`);
         } finally {
             setIsSaving(false);
-        }
-
-        if (!roundsInfo[currentRound]) {
-            console.error('Round info not found');
-            return;
         }
     };
 
