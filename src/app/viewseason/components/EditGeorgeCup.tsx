@@ -28,6 +28,7 @@ type RoundInfo = {
     name: string;
     expectedFixtures: number;
     isAvailable: boolean;
+    totalRounds?: number; 
 };
 
 type SupabaseWinnerResponse = {
@@ -38,7 +39,13 @@ type SupabaseWinnerResponse = {
     };
 };
 
-type SupabaseFixtureResponse = {
+type SupabaseRoundResponse = {
+    id: string;
+    game_week_id: string;
+    round_number: number;
+};
+
+type SupabaseFixtureWithPlayersResponse = {
     id: string;
     fixture_number: number;
     winner_id: string | null;
@@ -70,6 +77,9 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     const [roundFixtures, setRoundFixtures] = useState<{[key: number]: SetupFixture[]}>({});
     const [isRoundConfirmed, setIsRoundConfirmed] = useState<{[key: number]: boolean}>({});
     const [isEditing, setIsEditing] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [roundGameWeeks, setRoundGameWeeks] = useState<{[key: number]: string}>({});
+    const [totalRounds, setTotalRounds] = useState<number>(0);
 
     const updateNextEmptySpot = useCallback((fixtures: SetupFixture[]) => {
         const nextSpot = fixtures.reduce<{fixtureIndex: number, isPlayer1: boolean} | null>((acc, fixture, index) => {
@@ -104,21 +114,26 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         let remaining = playerCount;
         let round = 1;
         const rounds: Record<number, RoundInfo> = {};
-    
-        while (remaining > 1) {
+        
+        const calculatedTotalRounds = Math.ceil(Math.log2(playerCount));
+        
+        while (round <= calculatedTotalRounds) {
             const nextRoundPlayers = Math.pow(2, Math.floor(Math.log2(remaining)));
             const currentFixtures = Math.ceil(remaining / 2);
-    
+        
             rounds[round] = {
                 name: getRoundName(round, playerCount),
                 expectedFixtures: currentFixtures,
-                isAvailable: round === 1
+                isAvailable: round === 1,
+                totalRounds: calculatedTotalRounds
             };
-    
+        
             remaining = nextRoundPlayers / 2;
             round++;
         }
-        setRoundsInfo(rounds); 
+        
+        setTotalRounds(calculatedTotalRounds);
+        setRoundsInfo(rounds);
     }, [getRoundName]);
 
     const fetchGameWeeks = useCallback(async () => {
@@ -188,64 +203,72 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     }, [seasonId, currentRound, initializeFixtures]);
 
     const fetchRoundFixtures = useCallback(async (roundNumber: number) => {
-        const { data: roundData, error: roundError } = await supabase
-            .from('george_cup_rounds')
-            .select('id, game_week_id')
-            .eq('round_number', roundNumber)
-            .eq('season_id', seasonId)
-            .single();
+        try {
+            const { data: roundData, error: roundError } = await supabase
+                .from('george_cup_rounds')
+                .select('id, game_week_id, round_number')
+                .eq('round_number', roundNumber)
+                .eq('season_id', seasonId)
+                .single<SupabaseRoundResponse>();
     
-        if (roundError || !roundData) return null;
+            if (roundError || !roundData) return null;
     
-        const { data, error } = await supabase
-            .from('george_cup_fixtures')
-            .select(`
-                id,
-                fixture_number,
-                winner_id,
-                player1:profiles!player1_id(id, username),
-                player2:profiles!player2_id(id, username)
-            `)
-            .eq('round_id', roundData.id)
-            .order('fixture_number');
+            if (roundData.game_week_id) {
+                setRoundGameWeeks(prev => ({
+                    ...prev,
+                    [roundNumber]: roundData.game_week_id
+                }));
     
-        if (!error && data) {
-            const typedData = data as unknown as SupabaseFixtureResponse[];
-            
-            const fixtures = typedData.map(f => ({
+                if (roundNumber === currentRound) {
+                    setSelectedGameWeek(roundData.game_week_id);
+                }
+            }
+    
+            const { data: fixturesData, error: fixturesError } = await supabase
+                .from('george_cup_fixtures')
+                .select(`
+                    id,
+                    fixture_number,
+                    winner_id,
+                    player1:profiles!player1_id(id, username),
+                    player2:profiles!player2_id(id, username)
+                `)
+                .eq('round_id', roundData.id)
+                .order('fixture_number')
+                .returns<SupabaseFixtureWithPlayersResponse[]>();
+    
+            if (fixturesError || !fixturesData) return null;
+    
+            const fixtures = fixturesData.map(f => ({
                 index: f.fixture_number - 1,
                 id: f.id,
-                player1: f.player1 ? { 
-                    id: f.player1.id, 
-                    username: f.player1.username 
+                player1: f.player1 ? {
+                    id: f.player1.id,
+                    username: f.player1.username
                 } : null,
-                player2: f.player2 ? { 
-                    id: f.player2.id, 
-                    username: f.player2.username 
+                player2: f.player2 ? {
+                    id: f.player2.id,
+                    username: f.player2.username
                 } : null,
                 winner_id: f.winner_id
             }));
-    
+
             setSetupFixtures(fixtures);
             setRoundFixtures(prev => ({
                 ...prev,
                 [roundNumber]: fixtures
             }));
-            
             setIsRoundConfirmed(prev => ({
                 ...prev,
                 [roundNumber]: true
             }));
     
-            if (roundData.game_week_id) {
-                setSelectedGameWeek(roundData.game_week_id);
-            }
-    
             return fixtures;
+        } catch (error) {
+            console.error('Error fetching round fixtures:', error);
+            return null;
         }
-    
-        return null;
-    }, [seasonId]);
+    }, [seasonId, currentRound]);
 
     const fetchPlayers = useCallback(async () => {
         if (currentRound === 1) {
@@ -303,31 +326,41 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
 
 
     useEffect(() => {
-        fetchGameWeeks();
+        setIsLoading(true);
+        fetchGameWeeks().finally(() => setIsLoading(false));
     }, [fetchGameWeeks]);
     
     useEffect(() => {
+        let isMounted = true;
+        
         const loadRoundData = async () => {
-            setSetupFixtures([]); 
-            setAvailablePlayers([]); 
-            
-            const existingFixtures = await fetchRoundFixtures(currentRound);
-            
-            if (!existingFixtures) {
-                if (currentRound === 1) {
-                    await fetchPlayers();
-                } else {
-                    const previousRoundComplete = await checkPreviousRoundStatus(currentRound - 1);
-                    if (previousRoundComplete) {
-                        await fetchRoundWinners(currentRound - 1);
+            try {
+                const existingFixtures = await fetchRoundFixtures(currentRound);
+                
+                if (!isMounted) return;
+    
+                if (!existingFixtures) {
+                    if (currentRound === 1) {
+                        await fetchPlayers();
+                    } else {
+                        const previousRoundComplete = await checkPreviousRoundStatus(currentRound - 1);
+                        if (previousRoundComplete && isMounted) {
+                            await fetchRoundWinners(currentRound - 1);
+                        }
                     }
                 }
+            } catch (error) {
+                console.error('Error loading round data:', error);
             }
         };
     
         loadRoundData();
+    
+        return () => {
+            isMounted = false;
+        };
     }, [currentRound, fetchRoundFixtures, fetchPlayers, checkPreviousRoundStatus, fetchRoundWinners]);
- 
+    
     const getProcessedFixtures = (): ProcessedFixture[] => {
         const gameWeek = gameWeeks.find(gw => gw.id === selectedGameWeek);
         
@@ -339,8 +372,6 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         }));
     };
 
-    const totalRounds = Object.keys(roundsInfo).length;
-
     const isByeMatch = (fixture: SetupFixture) => fixture.player1 && !fixture.player2;
 
     const canEditFixtures = (roundNumber: number) => {
@@ -351,23 +382,21 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     };
 
     const handleConfirmFixtures = async () => {
-        if (!roundsInfo[currentRound]) {
-            return;
-        }
-    
-        if (!selectedGameWeek) {
+        if (!roundsInfo[currentRound] || !selectedGameWeek) {
             return;
         }
     
         setIsSaving(true);
         try {
+            const gameWeekToUse = selectedGameWeek;
+    
             const roundToInsert = {
                 season_id: seasonId,
                 round_number: currentRound,
                 round_name: roundsInfo[currentRound].name,
                 total_fixtures: roundsInfo[currentRound].expectedFixtures,
                 is_available: true,
-                game_week_id: selectedGameWeek
+                game_week_id: gameWeekToUse
             };
             
             const { data: roundData, error: roundError } = await supabase
@@ -381,6 +410,7 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     
             const fixturesToInsert = setupFixtures.map((fixture, index) => ({
                 round_id: roundData.id,
+                game_week_id: gameWeekToUse,
                 player1_id: fixture.player1?.id,
                 player2_id: fixture.player2?.id,
                 fixture_number: index + 1,
@@ -405,7 +435,7 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     
             setShowConfirmation(false);
             onClose();
-    
+            setSelectedGameWeek('');
         } catch (error: any) {
             alert(`Failed to save fixtures: ${error.message}`);
         } finally {
@@ -433,6 +463,16 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         } catch (error) {
             console.error('Error updating fixtures:', error);
         }
+    };
+
+    const handleGameWeekChange = (newGameWeek: string) => {
+        if (isRoundConfirmed[currentRound]) return;
+        
+        setSelectedGameWeek(newGameWeek);
+        setRoundGameWeeks(prev => ({
+            ...prev,
+            [currentRound]: newGameWeek
+        }));
     };
 
     const handlePlayerClick = (player: Player) => {
@@ -468,10 +508,28 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         }
     };
 
-    return (
-        <div className="flex flex-col h-full">
-            <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-4">
+return (
+    <div className="flex flex-col h-full">
+        {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+                <div className="text-gray-500">Loading...</div>
+                    </div>
+                ) : (
+                    <>
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={() => setCurrentRound(prev => prev - 1)}
+                                    disabled={currentRound === 1}
+                                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 
+                                            disabled:opacity-50 disabled:cursor-not-allowed
+                                            text-gray-700 dark:text-gray-300 cursor-pointer"
+                                >
+                                    ←
+                                </button>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    George Cup - {roundsInfo[currentRound]?.name || `Round ${currentRound}`}
+                </h2>
                 <button
                     onClick={() => setCurrentRound(prev => prev - 1)}
                     disabled={currentRound === 1}
@@ -482,11 +540,11 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                     ←
                 </button>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                    George Cup - {roundsInfo[currentRound]?.name || `Round ${currentRound}`}
+                    {roundsInfo[currentRound]?.name || `Round ${currentRound}`}
                 </h2>
                 <button
                     onClick={() => setCurrentRound(prev => prev + 1)}
-                    disabled={currentRound === totalRounds}
+                    disabled={currentRound === totalRounds} 
                     className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 
                             disabled:opacity-50 disabled:cursor-not-allowed
                             text-gray-700 dark:text-gray-300 cursor-pointer"
@@ -529,18 +587,20 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                 <div className="mb-6">
                     <label className="block text-sm font-medium mb-2 dark:text-white">Game Week</label>
                     <select
-                    value={selectedGameWeek}
-                    onChange={(e) => setSelectedGameWeek(e.target.value)}
-                    disabled={isRoundConfirmed[currentRound]}
-                    className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 
-                            dark:border-gray-600 dark:text-white
-                            disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <option value="">Select game week...</option>
-                    {gameWeeks.map(gw => (
-                        <option key={gw.id} value={gw.id}>Week {gw.week_number}</option>
-                    ))}
-                </select>
+                        value={isRoundConfirmed[currentRound] ? roundGameWeeks[currentRound] : selectedGameWeek}
+                        onChange={(e) => handleGameWeekChange(e.target.value)}
+                        disabled={isRoundConfirmed[currentRound]}
+                        className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 
+                                dark:border-gray-600 dark:text-white
+                                disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <option value="">Select game week...</option>
+                        {gameWeeks.map(gw => (
+                            <option key={gw.id} value={gw.id}>
+                                Week {gw.week_number}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 {/* Fixtures header with edit button */}
@@ -708,6 +768,8 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                         </div>
                     </div>
                 </div>
-            )}
-    </div>
-)};
+             )}
+             </>
+         )}
+     </div>
+ )};
