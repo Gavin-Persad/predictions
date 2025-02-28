@@ -12,7 +12,7 @@ import ViewGameWeeks from './components/ViewGameWeeks';
 import EditPlayers from './components/EditPlayers';
 import GameWeekOptions from './components/GameWeekOptions';
 import LeagueTable from './components/leagueTable';
-import EditGeorgeCup from './components/EditGeorgeCup';
+import EditGeorgeCup from './components/georgeCup/EditGeorgeCup';
 
 type Season = {
     id: string;

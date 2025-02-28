@@ -1,7 +1,8 @@
 //src/app/viewseason/components/EditGeorgeCup.tsx
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../../../supabaseClient';
+import { supabase } from '../../../../../supabaseClient';
+import { useWinnerDetermination } from './hooks/useWinnerDetermination';
 
 type Player = {
     id: string;
@@ -40,12 +41,6 @@ type SupabaseWinnerResponse = {
     };
 };
 
-type SupabaseRoundResponse = {
-    id: string;
-    game_week_id: string;
-    round_number: number;
-};
-
 type SupabaseFixtureWithPlayersResponse = {
     id: string;
     fixture_number: number;
@@ -59,6 +54,14 @@ type SupabaseFixtureWithPlayersResponse = {
         username: string;
     } | null;
 };
+
+interface RoundWithGameWeek {
+    id: string;
+    game_week_id: string;
+    game_weeks: {
+        live_end: string;
+    };
+}
 
 type Props = {
     seasonId: string;
@@ -81,6 +84,8 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     const [isLoading, setIsLoading] = useState(true);
     const [roundGameWeeks, setRoundGameWeeks] = useState<{[key: number]: string}>({});
     const [totalRounds, setTotalRounds] = useState<number>(0);
+
+    const { determineWinner } = useWinnerDetermination();
 
     const updateNextEmptySpot = useCallback((fixtures: SetupFixture[]) => {
         const nextSpot = fixtures.reduce<{fixtureIndex: number, isPlayer1: boolean} | null>((acc, fixture, index) => {
@@ -329,7 +334,65 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     }, [seasonId]);
 
 
+    const determineRoundWinners = useCallback(async (roundId: string, gameWeekId: string) => {
+        try {
+            const { data: fixtures } = await supabase
+                .from('george_cup_fixtures')
+                .select('*')
+                .eq('round_id', roundId)
+                .is('winner_id', null);
+    
+            if (!fixtures?.length) return;
+    
+            for (const fixture of fixtures) {
+                if (!fixture.player1_id || !fixture.player2_id) continue;
+    
+                const winnerId = await determineWinner(
+                    fixture.id,
+                    fixture.player1_id,
+                    fixture.player2_id,
+                    gameWeekId,
+                    seasonId
+                );
+    
+                if (winnerId) {
+                    await supabase
+                        .from('george_cup_fixtures')
+                        .update({ winner_id: winnerId })
+                        .eq('id', fixture.id);
+                }
+            }
+    
+            await fetchRoundFixtures(currentRound);
+        } catch (error) {
+            console.error('Error determining round winners:', error);
+        }
+    }, [determineWinner, seasonId, currentRound, fetchRoundFixtures]);
 
+    const handleGameWeekComplete = async (roundId: string, gameWeekId: string) => {
+        try {
+            const { data: fixtures } = await supabase
+                .from('george_cup_fixtures')
+                .select('*')
+                .eq('round_id', roundId);
+    
+            if (!fixtures?.length) return;
+    
+            for (const fixture of fixtures) {
+                if (!fixture.winner_id && fixture.player1_id && fixture.player2_id) {
+                    await determineWinner(
+                        fixture.id,
+                        fixture.player1_id,
+                        fixture.player2_id,
+                        gameWeekId,
+                        seasonId
+                    );
+                }
+            }
+        } catch (error) {
+            console.error('Error updating winners:', error);
+        }
+    };
 
     useEffect(() => {
         setIsLoading(true);
@@ -370,6 +433,85 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         };
     }, [currentRound, fetchRoundFixtures, fetchPlayers, checkPreviousRoundStatus, fetchRoundWinners]);
     
+    useEffect(() => {
+        const checkCompletedGameWeeks = async () => {
+            const now = new Date().toISOString();
+            
+            const { data: rounds } = await supabase
+                .from('george_cup_rounds')
+                .select('id, game_week_id')
+                .eq('season_id', seasonId);
+    
+            if (!rounds) return;
+    
+            for (const round of rounds) {
+                if (!round.game_week_id) continue;
+    
+                const { data: gameWeek } = await supabase
+                    .from('game_weeks')
+                    .select('*')
+                    .eq('id', round.game_week_id)
+                    .single();
+    
+                if (gameWeek && gameWeek.live_end && new Date(gameWeek.live_end) < new Date(now)) {
+                    await handleGameWeekComplete(round.id, round.game_week_id);
+                }
+            }
+        };
+    
+        checkCompletedGameWeeks();
+    }, [seasonId, handleGameWeekComplete]);
+
+    useEffect(() => {
+        const checkCompletedGameWeeks = async () => {
+            try {
+                // Get rounds with their game weeks
+                const { data: rounds } = await supabase
+                .from('george_cup_rounds')
+                .select(`
+                    id,
+                    game_week_id,
+                    game_weeks:game_weeks!inner (
+                        live_end
+                    )
+                `)
+                .eq('season_id', seasonId)
+                .is('is_complete', false)
+                .returns<RoundWithGameWeek[]>();
+            
+            if (!rounds) return;
+            
+            const now = new Date().toISOString();
+    
+                for (const round of rounds) {
+                    if (new Date(round.game_weeks.live_end) < new Date(now)) {
+                        const { data: fixtures } = await supabase
+                            .from('george_cup_fixtures')
+                            .select('*')
+                            .eq('round_id', round.id)
+                            .is('winner_id', null);
+    
+                        if (fixtures) {
+                            for (const fixture of fixtures) {
+                                await determineWinner(
+                                    fixture.id,
+                                    fixture.player1_id,
+                                    fixture.player2_id,
+                                    round.game_week_id,
+                                    seasonId
+                                );
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking completed game weeks:', error);
+            }
+        };
+    
+        checkCompletedGameWeeks();
+    }, [seasonId, determineWinner]);
+
     const getProcessedFixtures = (): ProcessedFixture[] => {
         const gameWeek = gameWeeks.find(gw => gw.id === selectedGameWeek);
         
@@ -637,11 +779,12 @@ return (
                     {setupFixtures.map((fixture, index) => (
                         <div key={index} 
                             className="p-4 border rounded-lg dark:border-gray-600 
-                                     bg-white dark:bg-gray-800">
+                                    bg-white dark:bg-gray-800">
                             <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                                 Fixture {index + 1}
                             </div>
                             <div className="grid grid-cols-3 gap-4 items-center">
+                                {/* Player 1 */}
                                 <div 
                                     onClick={() => {
                                         if (isEditing || !isRoundConfirmed[currentRound]) {
@@ -650,13 +793,17 @@ return (
                                     }}
                                     className={`p-3 rounded border ${
                                         isRoundConfirmed[currentRound] && !isEditing
-                                            ? 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed'
+                                            ? fixture.winner_id 
+                                                ? fixture.winner_id === fixture.player1?.id
+                                                    ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
+                                                    : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                                                : 'bg-gray-100 dark:bg-gray-700'
                                             : isByeMatch(fixture)
                                                 ? 'bg-gray-200 dark:bg-gray-600'
                                                 : nextEmptySpot?.fixtureIndex === index && nextEmptySpot?.isPlayer1
                                                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900'
                                                     : 'border-gray-200 bg-gray-50 dark:bg-gray-700'
-                                    } dark:border-gray-600 dark:text-white ${
+                                    } dark:border-gray-600 ${
                                         (isEditing || !isRoundConfirmed[currentRound]) && fixture.player1 
                                             ? 'cursor-pointer hover:bg-red-50 dark:hover:bg-red-900'
                                             : ''
@@ -664,7 +811,10 @@ return (
                                 >
                                     {fixture.player1?.username || 'Empty'}
                                 </div>
+                                
                                 <div className="text-center font-bold text-gray-400">VS</div>
+                                
+                                {/* Player 2 */}
                                 <div 
                                     onClick={() => {
                                         if (isEditing || !isRoundConfirmed[currentRound]) {
@@ -673,11 +823,15 @@ return (
                                     }}
                                     className={`p-3 rounded border ${
                                         isRoundConfirmed[currentRound] && !isEditing
-                                            ? 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed'
+                                            ? fixture.winner_id 
+                                                ? fixture.winner_id === fixture.player2?.id
+                                                    ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
+                                                    : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                                                : 'bg-gray-100 dark:bg-gray-700'
                                             : nextEmptySpot?.fixtureIndex === index && !nextEmptySpot?.isPlayer1
                                                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900'
                                                 : 'border-gray-200 bg-gray-50 dark:bg-gray-700'
-                                    } dark:border-gray-600 dark:text-white ${
+                                    } dark:border-gray-600 ${
                                         (isEditing || !isRoundConfirmed[currentRound]) && fixture.player2
                                             ? 'cursor-pointer hover:bg-red-50 dark:hover:bg-red-900'
                                             : ''

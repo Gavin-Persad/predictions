@@ -68,8 +68,8 @@
 - rounds not being counted and next round goes forever.\*\* now working when you arrive at the page, but not working when you have created fixtures, also further rounds still showing first rounds fixtures.✅
 - submit is not working when editing a cup round.✅
 - first round fixtures are showing in the right hand column in all rounds( when a new round has been selected by using the arrows on the header.)✅
-- ensure that ones fixtures have been selected that they are in place when returning to this screen.
-- Working on passing winners through to next round
+- ensure that once fixtures have been selected that they are in place when returning to this screen.✅
+- Working on passing winners through to next round⌛currently working on getting winner determination working
 
 - create view cup
 - tree format as the rounds are created, shows scores from that game week.
