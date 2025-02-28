@@ -333,64 +333,56 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         return false;
     }, [seasonId]);
 
-
-    const determineRoundWinners = useCallback(async (roundId: string, gameWeekId: string) => {
-        try {
-            const { data: fixtures } = await supabase
-                .from('george_cup_fixtures')
-                .select('*')
-                .eq('round_id', roundId)
-                .is('winner_id', null);
-    
-            if (!fixtures?.length) return;
-    
-            for (const fixture of fixtures) {
-                if (!fixture.player1_id || !fixture.player2_id) continue;
-    
-                const winnerId = await determineWinner(
-                    fixture.id,
-                    fixture.player1_id,
-                    fixture.player2_id,
-                    gameWeekId,
-                    seasonId
-                );
-    
-                if (winnerId) {
-                    await supabase
-                        .from('george_cup_fixtures')
-                        .update({ winner_id: winnerId })
-                        .eq('id', fixture.id);
-                }
-            }
-    
-            await fetchRoundFixtures(currentRound);
-        } catch (error) {
-            console.error('Error determining round winners:', error);
-        }
-    }, [determineWinner, seasonId, currentRound, fetchRoundFixtures]);
-
     const handleGameWeekComplete = async (roundId: string, gameWeekId: string) => {
         try {
-            const { data: fixtures } = await supabase
+            console.log('Handling game week completion for:', {
+                roundId,
+                gameWeekId
+            });
+    
+            const { data: fixtures, error: fixturesError } = await supabase
                 .from('george_cup_fixtures')
-                .select('*')
+                .select(`
+                    id,
+                    round_id,
+                    player1_id,
+                    player2_id,
+                    winner_id,
+                    game_week_id
+                `)
                 .eq('round_id', roundId);
     
-            if (!fixtures?.length) return;
+            console.log('Found fixtures:', fixtures);
+    
+            if (fixturesError) {
+                console.error('Error fetching fixtures:', fixturesError);
+                return;
+            }
+    
+            if (!fixtures?.length) {
+                console.log('No fixtures found for round:', roundId);
+                return;
+            }
     
             for (const fixture of fixtures) {
                 if (!fixture.winner_id && fixture.player1_id && fixture.player2_id) {
-                    await determineWinner(
-                        fixture.id,
-                        fixture.player1_id,
-                        fixture.player2_id,
-                        gameWeekId,
-                        seasonId
-                    );
+                    console.log('Processing fixture:', fixture);
+                    try {
+                        const winnerId = await determineWinner(
+                            fixture.id,
+                            fixture.player1_id,
+                            fixture.player2_id,
+                            gameWeekId,
+                            seasonId
+                        );
+                        console.log('Winner determined:', winnerId);
+                    } catch (err) {
+                        console.error('Error determining winner for fixture:', fixture.id, err);
+                    }
                 }
             }
         } catch (error) {
-            console.error('Error updating winners:', error);
+            console.error('Error in handleGameWeekComplete:', error);
         }
     };
 

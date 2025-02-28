@@ -18,76 +18,51 @@ export const useWinnerDetermination = () => {
         setError(null);
 
         try {
-            // 1. Check current game week scores
-            const { data: currentScores } = await supabase
+            // 1. Get current game week scores
+            const { data: scores } = await supabase
                 .from('game_week_scores')
                 .select('player_id, points, correct_scores')
                 .eq('game_week_id', gameWeekId)
                 .in('player_id', [player1Id, player2Id]);
 
-            if (!currentScores || currentScores.length < 2) {
-                throw new Error('Could not fetch current game week scores');
+
+            // Ensure we have scores for both players
+            if (!scores || scores.length < 2) {
+                console.log('Missing scores for one or both players');
+                return null;
             }
 
-            const player1Score = currentScores.find(s => s.player_id === player1Id);
-            const player2Score = currentScores.find(s => s.player_id === player2Id);
+            const player1Score = scores.find(s => s.player_id === player1Id);
+            const player2Score = scores.find(s => s.player_id === player2Id);
 
-            // Compare current game week scores
-            if (player1Score?.points !== player2Score?.points) {
-                const winnerId = player1Score!.points > player2Score!.points ? player1Id : player2Id;
+            // Ensure both scores exist
+            if (!player1Score || !player2Score) {
+                console.log('Missing score for player:', !player1Score ? player1Id : player2Id);
+                return null;
+            }
+
+            // Compare points first
+            if (player1Score.points !== player2Score.points) {
+                const winnerId = player1Score.points > player2Score.points ? player1Id : player2Id;
                 await updateWinner(fixtureId, winnerId);
                 return winnerId;
             }
 
-            if (player1Score?.correct_scores !== player2Score?.correct_scores) {
-                const winnerId = player1Score!.correct_scores > player2Score!.correct_scores ? player1Id : player2Id;
+            // If points are equal, compare correct scores
+            if (player1Score.correct_scores !== player2Score.correct_scores) {
+                const winnerId = player1Score.correct_scores > player2Score.correct_scores ? player1Id : player2Id;
                 await updateWinner(fixtureId, winnerId);
                 return winnerId;
             }
 
-            // 2. Check previous game weeks
-            const { data: prevGameWeeks } = await supabase
-                .from('game_weeks')
-                .select('id')
-                .eq('season_id', seasonId)
-                .lt('live_end', new Date().toISOString())
-                .order('live_end', { ascending: false });
-
-            for (const gw of (prevGameWeeks || [])) {
-                if (gw.id === gameWeekId) continue;
-
-                const { data: scores } = await supabase
-                    .from('game_week_scores')
-                    .select('player_id, points, correct_scores')
-                    .eq('game_week_id', gw.id)
-                    .in('player_id', [player1Id, player2Id]);
-
-                if (!scores || scores.length < 2) continue;
-
-                const p1Score = scores.find(s => s.player_id === player1Id);
-                const p2Score = scores.find(s => s.player_id === player2Id);
-
-                if (p1Score?.points !== p2Score?.points) {
-                    const winnerId = p1Score!.points > p2Score!.points ? player1Id : player2Id;
-                    await updateWinner(fixtureId, winnerId);
-                    return winnerId;
-                }
-
-                if (p1Score?.correct_scores !== p2Score?.correct_scores) {
-                    const winnerId = p1Score!.correct_scores > p2Score!.correct_scores ? player1Id : player2Id;
-                    await updateWinner(fixtureId, winnerId);
-                    return winnerId;
-                }
-            }
-
-            // 3. If still tied, random selection
+            // If still tied, random selection
             const winnerId = Math.random() < 0.5 ? player1Id : player2Id;
             await updateWinner(fixtureId, winnerId);
             return winnerId;
 
         } catch (err) {
+            console.error('Error determining winner:', err);
             setError('Error determining winner');
-            console.error(err);
             return null;
         } finally {
             setLoading(false);
