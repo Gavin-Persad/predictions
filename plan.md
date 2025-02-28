@@ -65,9 +65,11 @@
 - navigating rounds doesn't change the round view, still showing previous round fixtures. ✅\*\* now working but not showing blank fixtures.
 - edit rounds not working, could this be because the round has been completed. Need to test this by creating a new game week.\*\* now games confirmation is not working. Nothing being created on supabase.✅
 - game weeks can still be changed after confirmed, this needs to be locked in.✅
-- rounds not being counted and next round goes forever.\*\* now working when you arrive at the page, but not working when you have created fixtures, also further rounds still showing first rounds fixtures.
-- submit is not working when editing a cup round.
-- first round fixtures are showing in the right hand column in all rounds( when a new round has been selected by using the arrows on the header.)
+- rounds not being counted and next round goes forever.\*\* now working when you arrive at the page, but not working when you have created fixtures, also further rounds still showing first rounds fixtures.✅
+- submit is not working when editing a cup round.✅
+- first round fixtures are showing in the right hand column in all rounds( when a new round has been selected by using the arrows on the header.)✅
+- ensure that ones fixtures have been selected that they are in place when returning to this screen.
+- Working on passing winners through to next round
 
 - create view cup
 - tree format as the rounds are created, shows scores from that game week.
@@ -84,6 +86,7 @@
 - add functionality to dashboard
 - add message section to dashboard
 - add rules section and note from chris to dashboard.
+- history page, seasons winners cup winners etc. needs supabase table
 
 17. Test thoroughly with 1 player and 1 host
 

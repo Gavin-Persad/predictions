@@ -719,13 +719,17 @@ return (
                             </button>
                             <button
                                 onClick={() => setShowConfirmation(true)}
-                                disabled={!setupFixtures.every(f => f.player1) || !selectedGameWeek}
+                                disabled={
+                                    !setupFixtures.every(f => f.player1) || 
+                                    !selectedGameWeek || 
+                                    isRoundConfirmed[currentRound]
+                                }
                                 className="px-4 py-2 bg-blue-600 text-white rounded-md 
-                                         hover:bg-blue-700 disabled:bg-gray-300 
-                                         disabled:cursor-not-allowed"
+                                        hover:bg-blue-700 disabled:bg-gray-300 
+                                        disabled:cursor-not-allowed"
                             >
-                                Confirm Fixtures
-                            </button>
+                                {isRoundConfirmed[currentRound] ? 'Round Confirmed' : 'Confirm Fixtures'}
+                            </button>       
                         </>
                     )}
                 </div>
