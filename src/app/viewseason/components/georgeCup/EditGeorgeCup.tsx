@@ -333,7 +333,7 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         return false;
     }, [seasonId]);
 
-    const handleGameWeekComplete = async (roundId: string, gameWeekId: string) => {
+    const handleGameWeekComplete = useCallback(async (roundId: string, gameWeekId: string) => {
         try {
             console.log('Handling game week completion for:', {
                 roundId,
@@ -384,7 +384,7 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         } catch (error) {
             console.error('Error in handleGameWeekComplete:', error);
         }
-    };
+    }, [determineWinner, seasonId]);
 
     useEffect(() => {
         setIsLoading(true);
