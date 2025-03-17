@@ -95,3 +95,5 @@
 19. Update ReadMe and announce on LinkedIn
 
 20. Receive feedback and fix bugs/make improvements
+
+21. Make it so that scores do not show unitl the live fixtures start
