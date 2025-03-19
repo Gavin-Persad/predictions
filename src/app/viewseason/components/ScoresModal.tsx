@@ -38,6 +38,11 @@ type PlayerResponse = {
     };
 };
 
+interface GameWeekTimes {
+    predictions_close: string;
+    live_end: string;
+}
+
 export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresModalProps) {
     const [fixtures, setFixtures] = useState<Fixture[]>([]);
     const [players, setPlayers] = useState<Player[]>([]);
@@ -50,55 +55,80 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
         playerId: null,
         fixtureId: null
     });
+    const [canViewScores, setCanViewScores] = useState(false);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const { data: fixturesData, error: fixturesError } = await supabase
-                    .from('fixtures')
-                    .select('*')
-                    .eq('game_week_id', gameWeekId);
-    
-                if (fixturesError) throw fixturesError;
-    
-                const { data: playersData, error: playersError } = await supabase
-                    .from('season_players')
-                    .select(`
-                        profiles (
-                            id,
-                            username
-                        )
-                    `)
-                    .eq('season_id', seasonId);
-    
-                if (playersError) throw playersError;
-    
-                const formattedPlayers = (playersData as unknown as PlayerResponse[]).map(p => ({
-                    id: p.profiles.id,
-                    username: p.profiles.username
-                }));
-    
 
-            const { data: predictionsData, error: predictionsError } = await supabase
-            .from('predictions')
-                    .select('*')
-                    .in('fixture_id', fixturesData?.map(f => f.id) || []);
-    
-                if (predictionsError) throw predictionsError;
-    
-                setFixtures(fixturesData || []);
-                setPlayers(formattedPlayers);
-                setPredictions(predictionsData || []);
+useEffect(() => {
+    const fetchData = async () => {
+        try {
+            // First fetch game week data to check times
+            const { data: gameWeekData, error: gameWeekError } = await supabase
+                .from('game_weeks')
+                .select('predictions_close')
+                .eq('id', gameWeekId)
+                .single();
+
+            if (gameWeekError) throw gameWeekError;
+
+            const now = new Date();
+            const predictionsClose = new Date(gameWeekData.predictions_close);
+            
+            // Only allow viewing scores after predictions close
+            if (now <= predictionsClose) {
+                setMessage("Scores will be visible after predictions close");
                 setLoading(false);
-            } catch (error) {
-                console.error('Error:', error);
-                setMessage('Error fetching data');
-                setLoading(false);
+                return;
             }
-        };
 
-        fetchData();
-    }, [gameWeekId, seasonId]);  
+            setCanViewScores(true);
+
+            // Fetch fixtures data
+            const { data: fixturesData, error: fixturesError } = await supabase
+                .from('fixtures')
+                .select('*')
+                .eq('game_week_id', gameWeekId);
+
+            if (fixturesError) throw fixturesError;
+
+            // Fetch players data
+            const { data: playersData, error: playersError } = await supabase
+                .from('season_players')
+                .select(`
+                    profiles (
+                        id,
+                        username
+                    )
+                `)
+                .eq('season_id', seasonId);
+
+            if (playersError) throw playersError;
+
+            const formattedPlayers = (playersData as unknown as PlayerResponse[]).map(p => ({
+                id: p.profiles.id,
+                username: p.profiles.username
+            }));
+
+            // Fetch predictions data
+            const { data: predictionsData, error: predictionsError } = await supabase
+                .from('predictions')
+                .select('*')
+                .in('fixture_id', fixturesData?.map(f => f.id) || []);
+
+            if (predictionsError) throw predictionsError;
+
+            setFixtures(fixturesData || []);
+            setPlayers(formattedPlayers);
+            setPredictions(predictionsData || []);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error:', error);
+            setMessage('Error fetching data');
+            setLoading(false);
+        }
+    };
+
+    fetchData();
+}, [gameWeekId, seasonId]);
     
     const handlePlayerClick = (playerId: string) => {
         setSelectedPlayer(current => current === playerId ? null : playerId);
@@ -130,8 +160,8 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
                 <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Game Week Scores</h2>
                 
                 {loading ? (
-                    <p>Loading...</p>
-                ) : (
+                    <p className="text-gray-900 dark:text-gray-100">Loading...</p>
+                ) : canViewScores ? (
                     <div className="overflow-x-auto">
                         <table className="min-w-full border-collapse">
                             <thead>
@@ -188,36 +218,40 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
                                                 p => p.user_id === player.id && p.fixture_id === fixture.id
                                             );
                                             return (
-                                                    <td 
-                                                        key={fixture.id}
-                                                        onClick={() => prediction && handleCellClick(player.id, fixture.id)}
-                                                        className={`px-4 py-2 text-center border-b transition-colors
-                                                            ${(selectedPlayer === player.id || 
-                                                            selectedFixture === fixture.id ||
-                                                            (selectedCell.playerId === player.id && selectedCell.fixtureId === fixture.id)) 
-                                                            ? 'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' : 
-                                                            'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'}
-                                                            border-gray-700
-                                                            ${prediction ? 'cursor-pointer' : ''}`}
-                                                    >
-                                                        {prediction ? `${prediction.home_prediction}-${prediction.away_prediction}` : '-'}
-                                                    </td>
+                                                <td 
+                                                    key={fixture.id}
+                                                    onClick={() => prediction && handleCellClick(player.id, fixture.id)}
+                                                    className={`px-4 py-2 text-center border-b transition-colors
+                                                        ${(selectedPlayer === player.id || 
+                                                        selectedFixture === fixture.id ||
+                                                        (selectedCell.playerId === player.id && selectedCell.fixtureId === fixture.id)) 
+                                                        ? 'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' : 
+                                                        'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'}
+                                                        border-gray-700
+                                                        ${prediction ? 'cursor-pointer' : ''}`}
+                                                >
+                                                    {prediction ? `${prediction.home_prediction}-${prediction.away_prediction}` : '-'}
+                                                </td>
                                             );
                                         })}
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
-                    </div>
-                )}
+                            </table>
+                </div>
+            ) : (
+                <p className="text-center text-gray-900 dark:text-gray-100">
+                    Scores will be visible after predictions close
+                </p>
+            )}
 
-                <button
-                    onClick={onClose}
-                    className="mt-6 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-                >
-                    Close
-                </button>
-            </div>
+            <button
+                onClick={onClose}
+                className="mt-6 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+            >
+                Close
+            </button>
         </div>
-    );
+    </div>
+);
 }
