@@ -74,14 +74,16 @@
 - create view cup❌
 - tree format as the rounds are created, shows scores from that game week.❌
 
+15. Make it so that scores do not show unitl the live fixtures start✅
+
 - rebuild the cups from the start. We can now have fixtures picked by computer.
 
 - create lavery cup
 - view lavery cup
 
-15. Test cups and format
+16. Test cups and format
 
-16. Desired features
+17. Desired features
 
 - add colour coding to scores modal
 - correct all page titles and button titles and labels.
@@ -90,12 +92,10 @@
 - add rules section and note from chris to dashboard.
 - history page, seasons winners cup winners etc. needs supabase table
 
-17. Test thoroughly with 1 player and 1 host
+18. Test thoroughly with 1 player and 1 host
 
-18. Prepare for beta testing
+19. Prepare for beta testing
 
-19. Update ReadMe and announce on LinkedIn
+20. Update ReadMe and announce on LinkedIn
 
-20. Receive feedback and fix bugs/make improvements
-
-21. Make it so that scores do not show unitl the live fixtures start
+21. Receive feedback and fix bugs/make improvements
