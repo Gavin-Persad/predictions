@@ -61,21 +61,39 @@
 
 14. Add in cup competitions, rules and format
 
+- george cup
+- navigating rounds doesn't change the round view, still showing previous round fixtures. ✅\*\* now working but not showing blank fixtures.
+- edit rounds not working, could this be because the round has been completed. Need to test this by creating a new game week.\*\* now games confirmation is not working. Nothing being created on supabase.✅
+- game weeks can still be changed after confirmed, this needs to be locked in.✅
+- rounds not being counted and next round goes forever.\*\* now working when you arrive at the page, but not working when you have created fixtures, also further rounds still showing first rounds fixtures.✅
+- submit is not working when editing a cup round.✅
+- first round fixtures are showing in the right hand column in all rounds( when a new round has been selected by using the arrows on the header.)✅
+- ensure that once fixtures have been selected that they are in place when returning to this screen.✅
+- Working on passing winners through to next round⌛currently working on getting winner determination working
+
+- create view cup
+- tree format as the rounds are created, shows scores from that game week.
+
+- create lavery cup
+- view lavery cup
+
 15. Test cups and format
 
-16. add colour coding to scores modal
+16. Desired features
 
-- and score breakdown in closed enter scores weeks
+- add colour coding to scores modal
+- correct all page titles and button titles and labels.
+- add functionality to dashboard
+- add message section to dashboard
+- add rules section and note from chris to dashboard.
+- history page, seasons winners cup winners etc. needs supabase table
 
 17. Test thoroughly with 1 player and 1 host
 
 18. Prepare for beta testing
 
-- correct all page titles and button titles and labels.
-- add functionality to dashboard
-- add message section to dashboard
-- add rules section and note from chris to dashboard.
+19. Update ReadMe and announce on LinkedIn
 
-18. Update ReadMe and announce on LinkedIn
+20. Receive feedback and fix bugs/make improvements
 
-19. Receive feedback and fix bugs/make improvements
+21. Make it so that scores do not show unitl the live fixtures start
