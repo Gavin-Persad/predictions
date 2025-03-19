@@ -71,8 +71,10 @@
 - ensure that once fixtures have been selected that they are in place when returning to this screen.✅
 - Working on passing winners through to next round⌛currently working on getting winner determination working
 
-- create view cup
-- tree format as the rounds are created, shows scores from that game week.
+- create view cup❌
+- tree format as the rounds are created, shows scores from that game week.❌
+
+- rebuild the cups from the start. We can now have fixtures picked by computer.
 
 - create lavery cup
 - view lavery cup
