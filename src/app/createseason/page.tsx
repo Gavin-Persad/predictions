@@ -152,7 +152,7 @@ export default function CreateSeason() {
                                                 <div
                                                     key={player.id}
                                                     onClick={() => handlePlayerClick(player, false)}
-                                                    className="p-2 rounded cursor-pointer bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                                    className="p-2 rounded cursor-pointer bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 dark:text-gray-100"
                                                 >
                                                     {player.username}
                                                 </div>
@@ -167,7 +167,7 @@ export default function CreateSeason() {
                                             <div
                                                 key={player.id}
                                                 onClick={() => handlePlayerClick(player, true)}
-                                                className="p-2 rounded cursor-pointer bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800"
+                                                className="p-2 rounded cursor-pointer bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 "
                                             >
                                                 {player.username}
                                             </div>

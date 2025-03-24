@@ -38,11 +38,6 @@ type PlayerResponse = {
     };
 };
 
-interface GameWeekTimes {
-    predictions_close: string;
-    live_end: string;
-}
-
 export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresModalProps) {
     const [fixtures, setFixtures] = useState<Fixture[]>([]);
     const [players, setPlayers] = useState<Player[]>([]);
@@ -56,7 +51,72 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
         fixtureId: null
     });
     const [canViewScores, setCanViewScores] = useState(false);
+    const [showColorKey, setShowColorKey] = useState(false);
 
+    const ColorKeyModal = ({ isOpen }: { isOpen: boolean }) => {
+        if (!isOpen) return null;
+
+        return (
+<div className="fixed bottom-20 right-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xl z-50 w-64
+    transition-opacity duration-200 ease-in-out">
+                <h3 className="text-lg font-bold mb-3 text-gray-900 dark:text-gray-100">Score Colors</h3>
+                <div className="space-y-2">
+                    <div className="flex items-center">
+                        <div className="w-6 h-6 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded mr-2"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Incorrect Prediction</span>
+                    </div>
+                    <div className="flex items-center">
+                        <div className="w-6 h-6 bg-amber-200 dark:bg-amber-900 rounded mr-2"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Correct Result</span>
+                    </div>
+                    <div className="flex items-center">
+                    <div className="w-6 h-6 bg-yellow-100 dark:bg-yellow-700 rounded mr-2"></div>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Correct Score (0-3 goals)</span>
+                    </div>
+                    <div className="flex items-center">
+                        <div className="w-6 h-6 bg-green-100 dark:bg-green-900 rounded mr-2"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Correct Score (4 goals)</span>
+                    </div>
+                    <div className="flex items-center">
+                        <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded mr-2"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Correct Score (5 goals)</span>
+                    </div>
+                    <div className="flex items-center">
+                        <div className="w-6 h-6 bg-red-100 dark:bg-red-900 rounded mr-2"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Correct Score (6+ goals)</span>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const getPredictionColorClass = (prediction: Prediction, fixture: Fixture): string => {
+        if (!fixture.home_score || !fixture.away_score) return '';
+
+        // Calculate if prediction matches result
+    const actualResult = fixture.home_score > fixture.away_score ? 'H' : 
+        fixture.home_score < fixture.away_score ? 'A' : 'D';
+    const predictedResult = prediction.home_prediction > prediction.away_prediction ? 'H' :
+        prediction.home_prediction < prediction.away_prediction ? 'A' : 'D';
+
+    // Check for exact score match
+    if (prediction.home_prediction === fixture.home_score && 
+    prediction.away_prediction === fixture.away_score) {
+    const totalGoals = fixture.home_score + fixture.away_score;
+    if (totalGoals >= 6) return 'bg-red-100 dark:bg-red-900';
+    if (totalGoals === 5) return 'bg-purple-100 dark:bg-purple-900';
+    if (totalGoals === 4) return 'bg-green-100 dark:bg-green-900';
+    return 'bg-yellow-100 dark:bg-yellow-700';
+    }
+
+// Check for correct result but wrong score
+if (actualResult === predictedResult) {
+return 'bg-amber-200 dark:bg-amber-900';
+}
+
+// Incorrect prediction
+return '';
+};
 
 useEffect(() => {
     const fetchData = async () => {
@@ -221,13 +281,13 @@ useEffect(() => {
                                                 <td 
                                                     key={fixture.id}
                                                     onClick={() => prediction && handleCellClick(player.id, fixture.id)}
-                                                    className={`px-4 py-2 text-center border-b transition-colors
+                                                    className={`px-4 py-2 text-center border-b transition-colors border-gray-700
                                                         ${(selectedPlayer === player.id || 
                                                         selectedFixture === fixture.id ||
                                                         (selectedCell.playerId === player.id && selectedCell.fixtureId === fixture.id)) 
-                                                        ? 'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' : 
-                                                        'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'}
-                                                        border-gray-700
+                                                        ? 'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' 
+                                                        : `${prediction ? getPredictionColorClass(prediction, fixture) : ''} 
+                                                        dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700`}
                                                         ${prediction ? 'cursor-pointer' : ''}`}
                                                 >
                                                     {prediction ? `${prediction.home_prediction}-${prediction.away_prediction}` : '-'}
@@ -244,6 +304,15 @@ useEffect(() => {
                     Scores will be visible after predictions close
                 </p>
             )}
+            <button
+                onClick={() => setShowColorKey(!showColorKey)}
+                className="fixed bottom-4 right-4 p-3 bg-gray-800 text-white rounded-full hover:bg-gray-700 shadow-lg"
+                title="Toggle color key"
+            >
+                🎨
+            </button>
+
+            <ColorKeyModal isOpen={showColorKey} />
 
             <button
                 onClick={onClose}

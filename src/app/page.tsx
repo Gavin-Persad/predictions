@@ -53,7 +53,7 @@ export default function Home() {
           setMessageType('success');
           setTimeout(() => {
             router.push('/dashboard');
-          }, 2500);
+          }, 1500);
         }
       }
     } else {
