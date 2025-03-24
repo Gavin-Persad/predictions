@@ -85,7 +85,7 @@
 
 17. Desired features
 
-- add colour coding to scores modal
+- add colour coding to scores modal✅
 - correct all page titles and button titles and labels.
 - add functionality to dashboard
 - add message section to dashboard
