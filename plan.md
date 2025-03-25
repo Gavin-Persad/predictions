@@ -86,11 +86,11 @@
 17. Desired features
 
 - add colour coding to scores modal✅
-- correct all page titles and button titles and labels.
+- correct all page titles and button titles and labels.✅
 - my predictions, needs better titles, (game week, live start, predictions open and close)✅
 - view game week, change to (title: game week, sub: as is live open to close )✅
 - edit game week, change to (title: game week, sub: as is live open to close )✅
-- enter scores, change to (title: game week, sub: as is live open to close )
+- enter scores, change to (title: game week, sub: as is live open to close )✅
 - add functionality to dashboard
 - add message section to dashboard
 - add rules section and note from chris to dashboard.
