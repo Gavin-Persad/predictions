@@ -17,6 +17,9 @@ type GameWeek = {
     predictions_close: string;
     live_start: string;
     live_end: string;
+    seasons: {
+        name: string;
+    };
 };
 
 type Fixture = {
@@ -58,12 +61,18 @@ export default function PredictionsPage() {
                 router.push('/');
                 return;
             }
-
+    
+            // Updated query to include season name
             const { data, error } = await supabase
                 .from('game_weeks')
-                .select('*')
+                .select(`
+                    *,
+                    seasons (
+                        name
+                    )
+                `)
                 .order('week_number', { ascending: false });
-
+    
             if (error) {
                 console.error('Error:', error);
             } else {
@@ -71,7 +80,7 @@ export default function PredictionsPage() {
             }
             setLoading(false);
         };
-
+    
         checkAuthAndFetchData();
     }, [router]);
 
@@ -189,7 +198,14 @@ export default function PredictionsPage() {
                                             className={`w-full p-4 rounded-lg shadow transition-colors duration-200 ${getStatusStyle(status)}`}
                                         >
                                             <div className="flex justify-between items-center">
-                                                <span className="font-medium">Game Week {gameWeek.week_number}</span>
+                                                <div className="text-left">
+                                                    <div className="font-medium">
+                                                        Game Week {gameWeek.week_number}, {gameWeek.seasons.name}
+                                                    </div>
+                                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                        {new Date(gameWeek.live_start).toLocaleDateString()} - {new Date(gameWeek.live_end).toLocaleDateString()}
+                                                    </div>
+                                                </div>
                                                 <span className="text-sm">
                                                     {status === 'predictions' && 'Open for Predictions'}
                                                     {status === 'live' && 'Live'}
