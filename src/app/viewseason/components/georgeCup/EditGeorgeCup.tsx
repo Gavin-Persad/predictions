@@ -105,11 +105,15 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     const [showDrawModal, setShowDrawModal] = useState(false);
     const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
     const [selectedGameWeekId, setSelectedGameWeekId] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
 
 
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
+                setLoading(true);
+                try {
+                // Fetch players
                 const { data: playersData, error: playersError } = await supabase
                     .from('season_players')
                     .select(`
@@ -121,41 +125,70 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                     .eq('season_id', seasonId);
                 
                 if (playersError) throw playersError;
-    
-
+        
+                // Fetch game weeks
                 const { data: gameWeeksData, error: gameWeeksError } = await supabase
                     .from('game_weeks')
                     .select('*')
                     .eq('season_id', seasonId)
                     .order('live_start', { ascending: true });
-    
+        
                 if (gameWeeksError) throw gameWeeksError;
-    
-
-                const { data: roundsData, error: roundsError } = await supabase
-                    .from('george_cup_rounds')
-                    .select(`
-                        *,
-                        george_cup_fixtures (*)
-                    `)
-                    .eq('season_id', seasonId)
-                    .order('round_number', { ascending: true });
-    
+        
+                // Calculate required rounds if none exist
+                const requiredRounds = calculateRequiredRounds(playersData.length);
+                
+                // Fetch existing rounds or create new ones
+                const { data: existingRounds, error: roundsError } = await supabase
+                .from('george_cup_rounds')
+                .select(`
+                    *,
+                    george_cup_fixtures!george_cup_fixtures_round_id_fkey (*)
+                `)
+                .eq('season_id', seasonId)
+                .order('round_number', { ascending: true });
+        
                 if (roundsError) throw roundsError;
-    
+        
+                if (!existingRounds || existingRounds.length === 0) {
+                    // Create initial rounds
+                    const initialRounds = Array.from({ length: requiredRounds }, (_, i) => ({
+                        season_id: seasonId,
+                        round_number: i + 1,
+                        round_name: i === requiredRounds - 1 ? 'Final' :
+                                   i === requiredRounds - 2 ? 'Semi Finals' :
+                                   i === requiredRounds - 3 ? 'Quarter Finals' :
+                                   `Round ${i + 1}`,
+                        game_week_id: null,
+                        is_complete: false
+                    }));
+        
+                    const { data: createdRounds, error: createError } = await supabase
+                        .from('george_cup_rounds')
+                        .insert(initialRounds)
+                        .select('*, george_cup_fixtures(*)');
+        
+                    if (createError) throw createError;
+                    setRounds(createdRounds || []);
+                } else {
+                    setRounds(existingRounds);
+                }
+        
+                // Set state
                 setPlayers((playersData as unknown as PlayerResponse[]).map(p => ({
                     id: p.profiles.id,
                     username: p.profiles.username
                 })));
-
                 setGameWeeks(gameWeeksData);
-                setRounds(roundsData || []);
-    
+        
             } catch (error) {
                 console.error('Error fetching data:', error);
+            }    } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                setLoading(false);
             }
         };
-    
         fetchInitialData();
     }, [seasonId]);
 
@@ -281,13 +314,85 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         } catch (error) {
             console.error('Error performing draw:', error);
         }
-    };;
+    };
+
+    const checkGameWeekScores = async (roundId: string) => {
+    try {
+        const round = rounds.find(r => r.id === roundId);
+        if (!round?.game_week_id) return;
+
+        // Fetch scores for the game week
+        const { data: scores, error: scoresError } = await supabase
+            .from('game_week_scores')
+            .select('*')
+            .eq('game_week_id', round.game_week_id);
+
+        if (scoresError) throw scoresError;
+
+        // Update fixtures with winners based on scores
+        const updatedFixtures = await Promise.all(round.fixtures.map(async fixture => {
+            if (fixture.winner_id) return fixture; // Skip if winner already determined
+
+            const player1Score = scores?.find(s => s.player_id === fixture.player1_id)?.points ?? 0;
+            const player2Score = scores?.find(s => s.player_id === fixture.player2_id)?.points ?? 0;
+
+            // Handle BYE cases
+            if (!fixture.player1_id) return { ...fixture, winner_id: fixture.player2_id };
+            if (!fixture.player2_id) return { ...fixture, winner_id: fixture.player1_id };
+
+            // Determine winner based on points
+            const winnerId = player1Score > player2Score ? fixture.player1_id :
+                           player2Score > player1Score ? fixture.player2_id :
+                           // Random winner for ties
+                           Math.random() < 0.5 ? fixture.player1_id : fixture.player2_id;
+
+            // Update fixture in database
+            const { error: updateError } = await supabase
+                .from('george_cup_fixtures')
+                .update({ 
+                    winner_id: winnerId,
+                    player1_score: player1Score,
+                    player2_score: player2Score
+                })
+                .eq('id', fixture.id);
+
+            if (updateError) throw updateError;
+
+            return {
+                ...fixture,
+                winner_id: winnerId,
+                player1_score: player1Score,
+                player2_score: player2Score
+            };
+        }));
+
+        // Check if all fixtures have winners
+        const allFixturesComplete = updatedFixtures.every(f => f.winner_id);
+        if (allFixturesComplete) {
+            // Mark round as complete
+            await supabase
+                .from('george_cup_rounds')
+                .update({ is_complete: true })
+                .eq('id', roundId);
+        }
+
+        // Update local state
+        setRounds(rounds.map(r => 
+            r.id === roundId 
+                ? { ...r, fixtures: updatedFixtures, is_complete: allFixturesComplete }
+                : r
+        ));
+
+    } catch (error) {
+        console.error('Error checking scores:', error);
+    }
+};
 
 
     return (
         <div className="flex flex-col h-full">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                     George Cup
                 </h2>
                 <button
@@ -297,23 +402,30 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                     Back
                 </button>
             </div>
-    
-            <div className={Layout.container}>
-                {/* Players Column */}
-                <div className={Layout.column}>
-                    <h3 className={Layout.roundTitle}>Players</h3>
-                    <div className="space-y-2">
-                        {players.map(player => (
-                            <div key={player.id} className={Layout.playerBox.base}>
-                                {player.username}
-                            </div>
-                        ))}
-                    </div>
+
+            {loading ? (
+                <div className="flex justify-center items-center">
+                    <p className="text-gray-900 dark:text-gray-100">Loading...</p>
                 </div>
+            ) : (
+                <div className={Layout.container}>
+                    {/* Players Column - existing code */}
+                    <div className={Layout.column}>
+                        <h3 className={Layout.roundTitle}>Players</h3>
+                        <div className="space-y-2">
+                            {players.map(player => (
+                                <div key={player.id} className={Layout.playerBox.base}>
+                                    {player.username}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
     
                 {/* Round Columns */}
                 {rounds.map(round => (
-                    <div key={round.id} className={Layout.column}>
+                    <div key={round.id} className={`${Layout.column} ${
+                        round.is_complete ? Layout.pastRound : Layout.activeRound
+                    }`}>
                         <h3 className={Layout.roundTitle}>{round.round_name}</h3>
                         <select 
                             className={Layout.gameWeekSelect}
@@ -328,22 +440,61 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                                 </option>
                             ))}
                         </select>
-                        {/* Fixtures will go here */}
+                        
+                        {/* Fixtures */}
+                        <div className="space-y-2">
+                            {round.fixtures?.map(fixture => (
+                                <div key={fixture.id} className={Layout.fixtureBox}>
+                                    <div className={`${Layout.playerBox.base} ${
+                                        fixture.winner_id === fixture.player1_id ? Layout.playerBox.winner :
+                                        fixture.winner_id && fixture.player1_id ? Layout.playerBox.loser :
+                                        fixture.player1_id ? '' : Layout.playerBox.bye
+                                    }`}>
+                                        {fixture.player1_id ? 
+                                            players.find(p => p.id === fixture.player1_id)?.username : 
+                                            'BYE'
+                                        }
+                                        {fixture.player1_score !== undefined && 
+                                            <span className="ml-2">{fixture.player1_score}</span>
+                                        }
+                                    </div>
+                                    
+                                    <div className="text-center text-sm text-gray-500 dark:text-gray-400 my-1">vs</div>
+                                    
+                                    <div className={`${Layout.playerBox.base} ${
+                                        fixture.winner_id === fixture.player2_id ? Layout.playerBox.winner :
+                                        fixture.winner_id && fixture.player2_id ? Layout.playerBox.loser :
+                                        fixture.player2_id ? '' : Layout.playerBox.bye
+                                    }`}>
+                                        {fixture.player2_id ? 
+                                            players.find(p => p.id === fixture.player2_id)?.username : 
+                                            'BYE'
+                                        }
+                                        {fixture.player2_score !== undefined && 
+                                            <span className="ml-2">{fixture.player2_score}</span>
+                                        }
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                ))}
+            ))}
             </div>
-                {showDrawModal && selectedRoundId && selectedGameWeekId && (
-                <DrawConfirmationModal
-                    roundName={rounds.find(r => r.id === selectedRoundId)?.round_name || ''}
-                    gameWeekNumber={gameWeeks.find(gw => gw.id === selectedGameWeekId)?.week_number || 0}
-                    onConfirm={handleConfirmDraw}
-                    onCancel={() => {
-                        setShowDrawModal(false);
-                        setSelectedRoundId(null);
-                        setSelectedGameWeekId(null);
-                    }}
-                />
-            )}
-        </div>
-    );
+        )}
+
+        {/* Draw Confirmation Modal - existing code */}
+        {showDrawModal && selectedRoundId && selectedGameWeekId && (
+            <DrawConfirmationModal
+                roundName={rounds.find(r => r.id === selectedRoundId)?.round_name || ''}
+                gameWeekNumber={gameWeeks.find(gw => gw.id === selectedGameWeekId)?.week_number || 0}
+                onConfirm={handleConfirmDraw}
+                onCancel={() => {
+                    setShowDrawModal(false);
+                    setSelectedRoundId(null);
+                    setSelectedGameWeekId(null);
+                }}
+            />
+        )}
+    </div>
+);
 }
