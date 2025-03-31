@@ -78,6 +78,12 @@
 
 - rebuild the cups from the start. We can now have fixtures picked by computer.
 
+- build edit george cup page
+- get players and rounds showing
+- get fixture selection working
+- get score and winners working
+- check progression to final and overall winner.
+
 - create lavery cup
 - view lavery cup
 
