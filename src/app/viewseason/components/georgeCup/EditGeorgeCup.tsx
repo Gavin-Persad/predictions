@@ -2,23 +2,11 @@
 
 "use client";
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "../../../../../supabaseClient";
+import { Player } from '../../../../types/players';
+import { GameWeek } from '../../../../types/gameWeek';
 
-const Layout = {
-    container: "flex flex-row space-x-4 overflow-x-auto p-4",
-    column: "min-w-[250px] flex-shrink-0",
-    roundTitle: "text-lg font-bold mb-2 text-gray-900 dark:text-gray-100",
-    gameWeekSelect: "w-full mb-4",
-    fixtureBox: "border rounded p-3 mb-2",
-    pastRound: "bg-gray-100 dark:bg-gray-700/50",
-    activeRound: "bg-white dark:bg-gray-800",
-    playerBox: {
-        base: "flex justify-between items-center p-2 rounded",
-        winner: "bg-green-100 dark:bg-green-900",
-        loser: "bg-red-100 dark:bg-red-900",
-        bye: "bg-gray-50 dark:bg-gray-800/50 italic"
-    }
-};
 
 interface Props {
     seasonId: string;
@@ -43,12 +31,133 @@ type FixtureState = {
     player2_score?: number;
 };
 
+type PlayerResponse = {
+    profiles: {
+        id: string;
+        username: string;
+    };
+};
+
+type DrawConfirmationModalProps = {
+    onConfirm: () => void;
+    onCancel: () => void;
+    roundName: string;
+    gameWeekNumber: number;
+};
+
+const isPlayer = (slot: Player | 'BYE'): slot is Player => {
+    return slot !== 'BYE';
+};
+
+const DrawConfirmationModal = ({ onConfirm, onCancel, roundName, gameWeekNumber }: DrawConfirmationModalProps) => {
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full">
+                <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+                    Confirm Draw
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300 mb-6">
+                    Are you sure you want to draw fixtures for {roundName} using Game Week {gameWeekNumber}? 
+                    This action cannot be undone.
+                </p>
+                <div className="flex justify-end space-x-4">
+                    <button
+                        onClick={onCancel}
+                        className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    >
+                        Draw Fixtures
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+const Layout = {
+    container: "flex flex-row space-x-4 overflow-x-auto p-4",
+    column: "min-w-[250px] flex-shrink-0",
+    roundTitle: "text-lg font-bold mb-2 text-gray-900 dark:text-gray-100",
+    gameWeekSelect: "w-full mb-4",
+    fixtureBox: "border rounded p-3 mb-2",
+    pastRound: "bg-gray-100 dark:bg-gray-700/50",
+    activeRound: "bg-white dark:bg-gray-800",
+    playerBox: {
+        base: "flex justify-between items-center p-2 rounded",
+        winner: "bg-green-100 dark:bg-green-900",
+        loser: "bg-red-100 dark:bg-red-900",
+        bye: "bg-gray-50 dark:bg-gray-800/50 italic"
+    }
+};
+
+
 
 export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     const [rounds, setRounds] = useState<RoundState[]>([]);
     const [players, setPlayers] = useState<Player[]>([]);
     const [gameWeeks, setGameWeeks] = useState<GameWeek[]>([]);
     const [showDrawModal, setShowDrawModal] = useState(false);
+    const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
+    const [selectedGameWeekId, setSelectedGameWeekId] = useState<string | null>(null);
+
+
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            try {
+                const { data: playersData, error: playersError } = await supabase
+                    .from('season_players')
+                    .select(`
+                        profiles (
+                            id,
+                            username
+                        )
+                    `)
+                    .eq('season_id', seasonId);
+                
+                if (playersError) throw playersError;
+    
+
+                const { data: gameWeeksData, error: gameWeeksError } = await supabase
+                    .from('game_weeks')
+                    .select('*')
+                    .eq('season_id', seasonId)
+                    .order('live_start', { ascending: true });
+    
+                if (gameWeeksError) throw gameWeeksError;
+    
+
+                const { data: roundsData, error: roundsError } = await supabase
+                    .from('george_cup_rounds')
+                    .select(`
+                        *,
+                        george_cup_fixtures (*)
+                    `)
+                    .eq('season_id', seasonId)
+                    .order('round_number', { ascending: true });
+    
+                if (roundsError) throw roundsError;
+    
+                setPlayers((playersData as unknown as PlayerResponse[]).map(p => ({
+                    id: p.profiles.id,
+                    username: p.profiles.username
+                })));
+
+                setGameWeeks(gameWeeksData);
+                setRounds(roundsData || []);
+    
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+    
+        fetchInitialData();
+    }, [seasonId]);
 
 
     const calculateRequiredRounds = (playerCount: number) => {
@@ -61,16 +170,118 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     };
     
     const distributeByes = (players: Player[], byesNeeded: number) => {
-        // Logic to distribute byes across early rounds
+        const totalPlayers = players.length;
+        const requiredPlayers = Math.pow(2, Math.ceil(Math.log2(totalPlayers)));
+        const firstRoundFixtures = requiredPlayers / 2;
+        const firstRoundPlayers = firstRoundFixtures * 2;
+        
+        // Create array of all player slots
+        let slots: (Player | 'BYE')[] = [...players];
+        
+        // Add BYE slots
+        for (let i = 0; i < byesNeeded; i++) {
+            slots.push('BYE');
+        }
+        
+        // Shuffle array to randomize BYE positions
+        for (let i = slots.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [slots[i], slots[j]] = [slots[j], slots[i]];
+        }
+        
+        return slots;
     };
     
     const handleGameWeekSelect = (roundId: string, gameWeekId: string) => {
-        // Show draw confirmation modal
+        setSelectedRoundId(roundId);
+        setSelectedGameWeekId(gameWeekId);
+        setShowDrawModal(true);
     };
     
-    const performDraw = (roundId: string) => {
-        // Perform random draw and lock in fixtures
+    const handleConfirmDraw = async () => {
+        if (!selectedRoundId || !selectedGameWeekId) return;
+        
+        await performDraw(selectedRoundId);
+        setShowDrawModal(false);
+        setSelectedRoundId(null);
+        setSelectedGameWeekId(null);
     };
+
+    const performDraw = async (roundId: string) => {
+        try {
+            const round = rounds.find(r => r.id === roundId);
+            if (!round || !selectedGameWeekId) return;
+
+            // For first round, pair up players and BYEs
+            if (round.round_number === 1) {
+                const byesNeeded = calculateByesNeeded(players.length);
+                const slots = distributeByes(players, byesNeeded);
+
+                // Create fixtures from slots with type checking
+                const fixtures = [];
+                for (let i = 0; i < slots.length; i += 2) {
+                    const player1 = slots[i];
+                    const player2 = slots[i + 1];
+                    
+                    fixtures.push({
+                        round_id: roundId,
+                        player1_id: isPlayer(player1) ? player1.id : null,
+                        player2_id: isPlayer(player2) ? player2.id : null
+                    });
+                }
+    
+                // Insert fixtures into database
+                const { error: fixturesError } = await supabase
+                    .from('george_cup_fixtures')
+                    .insert(fixtures);
+    
+                if (fixturesError) throw fixturesError;
+            } else {
+                // For subsequent rounds, create empty fixtures
+                const previousRound = rounds.find(r => r.round_number === round.round_number - 1);
+                if (!previousRound) throw new Error('Previous round not found');
+    
+                const numFixtures = Math.ceil(previousRound.fixtures.length / 2);
+                const emptyFixtures = Array(numFixtures).fill(null).map(() => ({
+                    round_id: roundId,
+                    player1_id: null,
+                    player2_id: null,
+                    winner_id: null
+                }));
+    
+                const { error: fixturesError } = await supabase
+                    .from('george_cup_fixtures')
+                    .insert(emptyFixtures);
+    
+                if (fixturesError) throw fixturesError;
+            }
+    
+            // Update round with selected game week
+            const { error: updateError } = await supabase
+                .from('george_cup_rounds')
+                .update({ 
+                    game_week_id: selectedGameWeekId,
+                    is_complete: false 
+                })
+                .eq('id', roundId);
+    
+            if (updateError) throw updateError;
+    
+            // Refresh data
+            const { data: updatedRound, error: fetchError } = await supabase
+                .from('george_cup_rounds')
+                .select('*, george_cup_fixtures(*)')
+                .eq('id', roundId)
+                .single();
+    
+            if (fetchError) throw fetchError;
+    
+            setRounds(rounds.map(r => r.id === roundId ? updatedRound : r));
+    
+        } catch (error) {
+            console.error('Error performing draw:', error);
+        }
+    };;
 
 
     return (
@@ -86,6 +297,53 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                     Back
                 </button>
             </div>
+    
+            <div className={Layout.container}>
+                {/* Players Column */}
+                <div className={Layout.column}>
+                    <h3 className={Layout.roundTitle}>Players</h3>
+                    <div className="space-y-2">
+                        {players.map(player => (
+                            <div key={player.id} className={Layout.playerBox.base}>
+                                {player.username}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+    
+                {/* Round Columns */}
+                {rounds.map(round => (
+                    <div key={round.id} className={Layout.column}>
+                        <h3 className={Layout.roundTitle}>{round.round_name}</h3>
+                        <select 
+                            className={Layout.gameWeekSelect}
+                            value={round.game_week_id || ''}
+                            onChange={(e) => handleGameWeekSelect(round.id, e.target.value)}
+                            disabled={round.is_complete}
+                        >
+                            <option value="">Select Game Week</option>
+                            {gameWeeks.map(gw => (
+                                <option key={gw.id} value={gw.id}>
+                                    Game Week {gw.week_number}
+                                </option>
+                            ))}
+                        </select>
+                        {/* Fixtures will go here */}
+                    </div>
+                ))}
+            </div>
+                {showDrawModal && selectedRoundId && selectedGameWeekId && (
+                <DrawConfirmationModal
+                    roundName={rounds.find(r => r.id === selectedRoundId)?.round_name || ''}
+                    gameWeekNumber={gameWeeks.find(gw => gw.id === selectedGameWeekId)?.week_number || 0}
+                    onConfirm={handleConfirmDraw}
+                    onCancel={() => {
+                        setShowDrawModal(false);
+                        setSelectedRoundId(null);
+                        setSelectedGameWeekId(null);
+                    }}
+                />
+            )}
         </div>
     );
 }
