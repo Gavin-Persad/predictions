@@ -109,10 +109,10 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
 
 
     useEffect(() => {
+        
         const fetchInitialData = async () => {
             try {
                 setLoading(true);
-                try {
                 // Fetch players
                 const { data: playersData, error: playersError } = await supabase
                     .from('season_players')
@@ -123,8 +123,14 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                         )
                     `)
                     .eq('season_id', seasonId);
-                
+        
                 if (playersError) throw playersError;
+        
+                // Set players state
+                setPlayers((playersData as unknown as PlayerResponse[]).map(p => ({
+                    id: p.profiles.id,
+                    username: p.profiles.username
+                })));
         
                 // Fetch game weeks
                 const { data: gameWeeksData, error: gameWeeksError } = await supabase
@@ -135,18 +141,26 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         
                 if (gameWeeksError) throw gameWeeksError;
         
-                // Calculate required rounds if none exist
+                // Set game weeks state
+                setGameWeeks(gameWeeksData || []);
+        
+                // Calculate required rounds and create if none exist
                 const requiredRounds = calculateRequiredRounds(playersData.length);
-                
-                // Fetch existing rounds or create new ones
+        
                 const { data: existingRounds, error: roundsError } = await supabase
-                .from('george_cup_rounds')
-                .select(`
-                    *,
-                    george_cup_fixtures!george_cup_fixtures_round_id_fkey (*)
-                `)
-                .eq('season_id', seasonId)
-                .order('round_number', { ascending: true });
+                    .from('george_cup_rounds')
+                    .select(`
+                        *,
+                        george_cup_fixtures!george_cup_fixtures_round_id_fkey (
+                            id,
+                            round_id,
+                            player1_id,
+                            player2_id,
+                            winner_id
+                        )
+                    `)
+                    .eq('season_id', seasonId)
+                    .order('round_number', { ascending: true });
         
                 if (roundsError) throw roundsError;
         
@@ -160,31 +174,21 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                                    i === requiredRounds - 3 ? 'Quarter Finals' :
                                    `Round ${i + 1}`,
                         game_week_id: null,
-                        is_complete: false
+                        is_complete: false,
+                        fixtures: []
                     }));
         
-                    const { data: createdRounds, error: createError } = await supabase
+                    const { data: createdRounds } = await supabase
                         .from('george_cup_rounds')
                         .insert(initialRounds)
-                        .select('*, george_cup_fixtures(*)');
+                        .select('*, george_cup_fixtures!george_cup_fixtures_round_id_fkey(*)');
         
-                    if (createError) throw createError;
                     setRounds(createdRounds || []);
                 } else {
                     setRounds(existingRounds);
                 }
-        
-                // Set state
-                setPlayers((playersData as unknown as PlayerResponse[]).map(p => ({
-                    id: p.profiles.id,
-                    username: p.profiles.username
-                })));
-                setGameWeeks(gameWeeksData);
-        
             } catch (error) {
-                console.error('Error fetching data:', error);
-            }    } catch (error) {
-                console.error('Error:', error);
+                console.error('Error in fetchInitialData:', error);
             } finally {
                 setLoading(false);
             }
