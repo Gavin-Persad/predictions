@@ -81,7 +81,7 @@
 17. build edit george cup page
 
 - get players and rounds showing✅
-- get fixture selection working
+- get fixture selection working✅
 - get score and winners working
 - check progression to final and overall winner.
 

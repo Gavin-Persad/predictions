@@ -203,7 +203,7 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                 setLoading(false);
             }
         };
-        
+
         fetchInitialData();
     }, [seasonId]);
 
@@ -476,19 +476,19 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                         round.is_complete ? Layout.pastRound : Layout.activeRound
                     }`}>
                         <h3 className={Layout.roundTitle}>{round.round_name}</h3>
-                        <select 
-                            className={Layout.gameWeekSelect}
-                            value={round.game_week_id || ''}
-                            onChange={(e) => handleGameWeekSelect(round.id, e.target.value)}
-                            disabled={round.is_complete}
-                        >
-                            <option value="">Select Game Week</option>
-                            {gameWeeks.map(gw => (
-                                <option key={gw.id} value={gw.id}>
-                                    Game Week {gw.week_number}
-                                </option>
-                            ))}
-                        </select>
+                    <select 
+                        className={Layout.gameWeekSelect}
+                        value={round.game_week_id || ''}
+                        onChange={(e) => handleGameWeekSelect(round.id, e.target.value)}
+                        disabled={round.is_complete || round.fixtures?.length > 0}
+                    >
+                        <option value="">Select Game Week</option>
+                        {gameWeeks.map(gw => (
+                            <option key={gw.id} value={gw.id}>
+                                Game Week {gw.week_number}
+                            </option>
+                        ))}
+                    </select>
                         
                         {/* Fixtures */}
                         <div className="space-y-2">
