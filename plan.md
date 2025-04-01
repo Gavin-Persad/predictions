@@ -76,10 +76,11 @@
 
 15. Make it so that scores do not show unitl the live fixtures start✅
 
-- rebuild the cups from the start. We can now have fixtures picked by computer.
+16. rebuild the cups from the start. We can now have fixtures picked by computer.
 
-- build edit george cup page
-- get players and rounds showing
+17. build edit george cup page
+
+- get players and rounds showing✅
 - get fixture selection working
 - get score and winners working
 - check progression to final and overall winner.
@@ -87,9 +88,9 @@
 - create lavery cup
 - view lavery cup
 
-16. Test cups and format
+18. Test cups and format
 
-17. Desired features
+19. Desired features
 
 - add colour coding to scores modal✅
 - correct all page titles and button titles and labels.✅
@@ -102,10 +103,14 @@
 - add rules section and note from chris to dashboard.
 - history page, seasons winners cup winners etc. needs supabase table
 
-18. Test thoroughly with 1 player and 1 host
+20. Bugs
 
-19. Prepare for beta testing
+- add loading... to view seasons page when fetching seasons.
 
-20. Update ReadMe and announce on LinkedIn
+21. Test thoroughly with 1 player and 1 host
 
-21. Receive feedback and fix bugs/make improvements
+22. Prepare for beta testing
+
+23. Update ReadMe and announce on LinkedIn
+
+24. Receive feedback and fix bugs/make improvements

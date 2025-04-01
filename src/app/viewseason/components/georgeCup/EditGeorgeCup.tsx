@@ -274,12 +274,12 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         try {
             const round = rounds.find(r => r.id === roundId);
             if (!round || !selectedGameWeekId) return;
-
+    
             // For first round, pair up players and BYEs
             if (round.round_number === 1) {
                 const byesNeeded = calculateByesNeeded(players.length);
                 const slots = distributeByes(players, byesNeeded);
-
+    
                 // Create fixtures from slots with type checking
                 const fixtures = [];
                 for (let i = 0; i < slots.length; i += 2) {
@@ -288,25 +288,32 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                     
                     fixtures.push({
                         round_id: roundId,
+                        fixture_number: (i / 2) + 1,
                         player1_id: isPlayer(player1) ? player1.id : null,
-                        player2_id: isPlayer(player2) ? player2.id : null
+                        player2_id: isPlayer(player2) ? player2.id : null,
+                        winner_id: null
                     });
                 }
     
                 // Insert fixtures into database
                 const { error: fixturesError } = await supabase
                     .from('george_cup_fixtures')
-                    .insert(fixtures);
+                    .insert(fixtures)
+                    .select(); // Add select to get the created fixtures
     
-                if (fixturesError) throw fixturesError;
+                if (fixturesError) {
+                    console.error('Fixtures Error:', fixturesError);
+                    throw fixturesError;
+                }
             } else {
                 // For subsequent rounds, create empty fixtures
                 const previousRound = rounds.find(r => r.round_number === round.round_number - 1);
                 if (!previousRound) throw new Error('Previous round not found');
     
                 const numFixtures = Math.ceil(previousRound.fixtures.length / 2);
-                const emptyFixtures = Array(numFixtures).fill(null).map(() => ({
+                const emptyFixtures = Array(numFixtures).fill(null).map((_, index) => ({
                     round_id: roundId,
+                    fixture_number: index + 1,
                     player1_id: null,
                     player2_id: null,
                     winner_id: null
@@ -314,9 +321,13 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     
                 const { error: fixturesError } = await supabase
                     .from('george_cup_fixtures')
-                    .insert(emptyFixtures);
+                    .insert(emptyFixtures)
+                    .select();
     
-                if (fixturesError) throw fixturesError;
+                if (fixturesError) {
+                    console.error('Fixtures Error:', fixturesError);
+                    throw fixturesError;
+                }
             }
     
             // Update round with selected game week
@@ -328,17 +339,34 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                 })
                 .eq('id', roundId);
     
-            if (updateError) throw updateError;
+            if (updateError) {
+                console.error('Update Error:', updateError);
+                throw updateError;
+            }
     
             // Refresh data
             const { data: updatedRound, error: fetchError } = await supabase
                 .from('george_cup_rounds')
-                .select('*, george_cup_fixtures(*)')
+                .select(`
+                    *,
+                    george_cup_fixtures!george_cup_fixtures_round_id_fkey (
+                        id,
+                        round_id,
+                        fixture_number,
+                        player1_id,
+                        player2_id,
+                        winner_id
+                    )
+                `)
                 .eq('id', roundId)
                 .single();
     
-            if (fetchError) throw fetchError;
+            if (fetchError) {
+                console.error('Fetch Error:', fetchError);
+                throw fetchError;
+            }
     
+            // Update rounds state
             setRounds(rounds.map(r => r.id === roundId ? updatedRound : r));
     
         } catch (error) {
