@@ -19,6 +19,7 @@ type RoundState = {
     round_name: string;
     game_week_id: string | null;
     is_complete: boolean;
+    total_fixtures: number;
     fixtures: FixtureState[];
 };
 
@@ -166,25 +167,40 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         
                 if (!existingRounds || existingRounds.length === 0) {
                     // Create initial rounds
-                    const initialRounds = Array.from({ length: requiredRounds }, (_, i) => ({
-                        season_id: seasonId,
-                        round_number: i + 1,
-                        round_name: i === requiredRounds - 1 ? 'Final' :
-                                   i === requiredRounds - 2 ? 'Semi Finals' :
-                                   i === requiredRounds - 3 ? 'Quarter Finals' :
-                                   `Round ${i + 1}`,
-                        game_week_id: null,
-                        is_complete: false,
-                        fixtures: []
-                    }));
+                    const initialRounds = Array.from({ length: requiredRounds }, (_, i) => {
+                        const roundNumber = i + 1;
+                        const totalFixtures = Math.pow(2, requiredRounds - roundNumber);
+                        
+                        return {
+                            season_id: seasonId,
+                            round_number: roundNumber,
+                            round_name: i === requiredRounds - 1 ? 'Final' :
+                                       i === requiredRounds - 2 ? 'Semi Finals' :
+                                       i === requiredRounds - 3 ? 'Quarter Finals' :
+                                       `Round ${roundNumber}`,
+                            game_week_id: null,
+                            is_complete: false,
+                            total_fixtures: totalFixtures
+                        };
+                    });
         
-                    const { data: createdRounds } = await supabase
-                        .from('george_cup_rounds')
-                        .insert(initialRounds)
-                        .select('*, george_cup_fixtures!george_cup_fixtures_round_id_fkey(*)');
-        
-                    setRounds(createdRounds || []);
-                } else {
+                    const { data: createdRounds, error: createError } = await supabase
+                    .from('george_cup_rounds')
+                    .insert(initialRounds)
+                    .select(`
+                        *,
+                        george_cup_fixtures!george_cup_fixtures_round_id_fkey (
+                            id,
+                            round_id,
+                            player1_id,
+                            player2_id,
+                            winner_id
+                        )
+                    `);
+            
+                if (createError) throw createError;
+                setRounds(createdRounds || []);
+            } else {
                     setRounds(existingRounds);
                 }
             } catch (error) {
