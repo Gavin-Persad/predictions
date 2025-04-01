@@ -86,14 +86,14 @@ const Layout = {
     column: "min-w-[250px] flex-shrink-0",
     roundTitle: "text-lg font-bold mb-2 text-gray-900 dark:text-gray-100",
     gameWeekSelect: "w-full mb-4",
-    fixtureBox: "border rounded p-3 mb-2",
+    fixtureBox: "border rounded p-3 mb-2 bg-gray-200 dark:bg-gray-700",
     pastRound: "bg-gray-100 dark:bg-gray-700/50",
     activeRound: "bg-white dark:bg-gray-800",
     playerBox: {
-        base: "flex justify-between items-center p-2 rounded text-gray-900 dark:text-gray-100", // Added dark mode text color
+        base: "flex justify-between items-center p-2 rounded text-gray-900 dark:text-gray-100",
         winner: "bg-green-100 dark:bg-green-900",
         loser: "bg-red-100 dark:bg-red-900",
-        bye: "bg-gray-50 dark:bg-gray-800/50 italic"
+        bye: "bg-gray-200 dark:bg-gray-600 italic"
     }
 };
 
@@ -171,6 +171,15 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                         const roundNumber = i + 1;
                         const totalFixtures = Math.pow(2, requiredRounds - roundNumber);
                         
+                        // Create empty fixtures array for each round
+                        const emptyFixtures = Array(totalFixtures).fill(null).map((_, fixtureIndex) => ({
+                            id: `temp-${roundNumber}-${fixtureIndex}`, // Temporary ID for rendering
+                            round_id: null, // Will be set after round creation
+                            player1_id: null,
+                            player2_id: null,
+                            winner_id: null
+                        }));
+                    
                         return {
                             season_id: seasonId,
                             round_number: roundNumber,
@@ -180,7 +189,8 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                                        `Round ${roundNumber}`,
                             game_week_id: null,
                             is_complete: false,
-                            total_fixtures: totalFixtures
+                            total_fixtures: totalFixtures,
+                            fixtures: emptyFixtures
                         };
                     });
         
@@ -463,39 +473,48 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                         
                         {/* Fixtures */}
                         <div className="space-y-2">
-                            {round.fixtures?.map(fixture => (
-                                <div key={fixture.id} className={Layout.fixtureBox}>
-                                    <div className={`${Layout.playerBox.base} ${
-                                        fixture.winner_id === fixture.player1_id ? Layout.playerBox.winner :
-                                        fixture.winner_id && fixture.player1_id ? Layout.playerBox.loser :
-                                        fixture.player1_id ? '' : Layout.playerBox.bye
-                                    }`}>
-                                        {fixture.player1_id ? 
-                                            players.find(p => p.id === fixture.player1_id)?.username : 
-                                            'BYE'
-                                        }
-                                        {fixture.player1_score !== undefined && 
-                                            <span className="ml-2">{fixture.player1_score}</span>
-                                        }
+                            {round.fixtures?.length > 0 ? (
+                                round.fixtures.map(fixture => (
+                                    <div key={fixture.id} className={Layout.fixtureBox}>
+                                        <div className={`${Layout.playerBox.base} ${
+                                            fixture.winner_id === fixture.player1_id ? Layout.playerBox.winner :
+                                            fixture.winner_id && fixture.player1_id ? Layout.playerBox.loser :
+                                            !fixture.player1_id ? Layout.playerBox.bye : ''
+                                        }`}>
+                                            {fixture.player1_id ? 
+                                                players.find(p => p.id === fixture.player1_id)?.username : 
+                                                'Undecided'
+                                            }
+                                        </div>
+                                        
+                                        <div className="text-center text-sm text-gray-500 dark:text-gray-400 my-1">vs</div>
+                                        
+                                        <div className={`${Layout.playerBox.base} ${
+                                            fixture.winner_id === fixture.player2_id ? Layout.playerBox.winner :
+                                            fixture.winner_id && fixture.player2_id ? Layout.playerBox.loser :
+                                            !fixture.player2_id ? Layout.playerBox.bye : ''
+                                        }`}>
+                                            {fixture.player2_id ? 
+                                                players.find(p => p.id === fixture.player2_id)?.username : 
+                                                'Undecided'
+                                            }
+                                        </div>
                                     </div>
-                                    
-                                    <div className="text-center text-sm text-gray-500 dark:text-gray-400 my-1">vs</div>
-                                    
-                                    <div className={`${Layout.playerBox.base} ${
-                                        fixture.winner_id === fixture.player2_id ? Layout.playerBox.winner :
-                                        fixture.winner_id && fixture.player2_id ? Layout.playerBox.loser :
-                                        fixture.player2_id ? '' : Layout.playerBox.bye
-                                    }`}>
-                                        {fixture.player2_id ? 
-                                            players.find(p => p.id === fixture.player2_id)?.username : 
-                                            'BYE'
-                                        }
-                                        {fixture.player2_score !== undefined && 
-                                            <span className="ml-2">{fixture.player2_score}</span>
-                                        }
+                                ))
+                            ) : (
+                                // Show placeholder boxes when no fixtures exist
+                                Array(round.total_fixtures).fill(null).map((_, index) => (
+                                    <div key={`empty-${round.id}-${index}`} className={Layout.fixtureBox}>
+                                        <div className={`${Layout.playerBox.base} ${Layout.playerBox.bye}`}>
+                                            Undecided
+                                        </div>
+                                        <div className="text-center text-sm text-gray-500 dark:text-gray-400 my-1">vs</div>
+                                        <div className={`${Layout.playerBox.base} ${Layout.playerBox.bye}`}>
+                                            Undecided
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
             ))}
