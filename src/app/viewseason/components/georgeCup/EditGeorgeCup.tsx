@@ -90,7 +90,7 @@ const Layout = {
     pastRound: "bg-gray-100 dark:bg-gray-700/50",
     activeRound: "bg-white dark:bg-gray-800",
     playerBox: {
-        base: "flex justify-between items-center p-2 rounded",
+        base: "flex justify-between items-center p-2 rounded text-gray-900 dark:text-gray-100", // Added dark mode text color
         winner: "bg-green-100 dark:bg-green-900",
         loser: "bg-red-100 dark:bg-red-900",
         bye: "bg-gray-50 dark:bg-gray-800/50 italic"
