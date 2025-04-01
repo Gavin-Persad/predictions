@@ -84,6 +84,8 @@
 - get fixture selection working✅
 - get score and winners working
 - check progression to final and overall winner.
+- add winner column
+- add styles where needed
 
 - create lavery cup
 - view lavery cup
