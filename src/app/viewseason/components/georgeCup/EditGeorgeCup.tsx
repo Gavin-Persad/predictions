@@ -109,14 +109,25 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     const [selectedGameWeekId, setSelectedGameWeekId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
+    const initializationRef = React.useRef<{initialized: boolean; cleanup: boolean}>({
+        initialized: false,
+        cleanup: false
+    });
+
 
     useEffect(() => {
+        // If already initialized or cleanup in progress, skip
+        if (initializationRef.current.initialized || initializationRef.current.cleanup) {
+            return;
+        }
+        
+        initializationRef.current.initialized = true;
         
         const fetchInitialData = async () => {
             try {
                 setLoading(true);
                 
-                // First fetch players
+                // Always fetch players first
                 const { data: playersData, error: playersError } = await supabase
                     .from('season_players')
                     .select(`
@@ -135,8 +146,8 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                 }));
                 setPlayers(mappedPlayers);
         
-                // Then fetch existing rounds
-                const { data: existingRounds, error: roundsError } = await supabase
+                // Check for existing rounds
+                const { data: existingRounds, error: checkError } = await supabase
                     .from('george_cup_rounds')
                     .select(`
                         *,
@@ -152,10 +163,10 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                     .eq('season_id', seasonId)
                     .order('round_number', { ascending: true });
         
-                if (roundsError) throw roundsError;
+                if (checkError) throw checkError;
         
-                // Only create new rounds if none exist
                 if (!existingRounds || existingRounds.length === 0) {
+                    // Create initial rounds using already fetched players
                     const requiredRounds = calculateRequiredRounds(mappedPlayers.length);
                     const initialRounds = Array.from({ length: requiredRounds }, (_, i) => ({
                         season_id: seasonId,
@@ -169,19 +180,13 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                         total_fixtures: Math.pow(2, requiredRounds - (i + 1))
                     }));
         
-                    // Create rounds in a single transaction
                     const { data: createdRounds, error: createError } = await supabase
                         .from('george_cup_rounds')
                         .insert(initialRounds)
-                        .select()
-                        .order('round_number', { ascending: true });
+                        .select();
         
                     if (createError) throw createError;
-                    
-                    setRounds(createdRounds.map(round => ({
-                        ...round,
-                        fixtures: []
-                    })));
+                    setRounds(createdRounds.map(round => ({ ...round, fixtures: [] })));
                 } else {
                     setRounds(existingRounds.map(round => ({
                         ...round,
@@ -205,10 +210,13 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                 setLoading(false);
             }
         };
-
+    
         fetchInitialData();
+    
+        return () => {
+            initializationRef.current.cleanup = true;
+        };
     }, [seasonId]);
-
     useEffect(() => {
         const checkGameWeekScores = async (roundId: string) => {
             try {
@@ -288,7 +296,7 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                 console.error('Error checking game week scores:', error);
             }
         };
-    }, [rounds]);
+    }, []);
 
     useEffect(() => {
         const updateRoundScores = async () => {
@@ -355,15 +363,27 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     };
     
     const handleGameWeekSelect = (roundId: string, gameWeekId: string) => {
+        if (!gameWeekId) return;
+
         setSelectedRoundId(roundId);
         setSelectedGameWeekId(gameWeekId);
-        setShowDrawModal(true);
+        setTimeout(() => setShowDrawModal(true), 0);
     };
     
     const handleConfirmDraw = async () => {
-        if (!selectedRoundId || !selectedGameWeekId) return;
-        
-        await performDraw(selectedRoundId);
+        try {
+            if (!selectedRoundId || !selectedGameWeekId) return;
+            
+            await performDraw(selectedRoundId);
+            setShowDrawModal(false);
+            setSelectedRoundId(null);
+            setSelectedGameWeekId(null);
+        } catch (error) {
+            console.error('Error in handleConfirmDraw:', error);
+        }
+    };
+
+    const handleCancelDraw = () => {
         setShowDrawModal(false);
         setSelectedRoundId(null);
         setSelectedGameWeekId(null);
@@ -666,17 +686,13 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
 
         {/* Draw Confirmation Modal - existing code */}
         {showDrawModal && selectedRoundId && selectedGameWeekId && (
-            <DrawConfirmationModal
-                roundName={rounds.find(r => r.id === selectedRoundId)?.round_name || ''}
-                gameWeekNumber={gameWeeks.find(gw => gw.id === selectedGameWeekId)?.week_number || 0}
-                onConfirm={handleConfirmDraw}
-                onCancel={() => {
-                    setShowDrawModal(false);
-                    setSelectedRoundId(null);
-                    setSelectedGameWeekId(null);
-                }}
-            />
-        )}
+    <DrawConfirmationModal
+        roundName={rounds.find(r => r.id === selectedRoundId)?.round_name || ''}
+        gameWeekNumber={gameWeeks.find(gw => gw.id === selectedGameWeekId)?.week_number || 0}
+        onConfirm={handleConfirmDraw}
+        onCancel={handleCancelDraw}
+    />
+)}
     </div>
 );
 }
