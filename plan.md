@@ -84,8 +84,9 @@
 - get fixture selection working✅
 - get score and winners working
 - check progression to final and overall winner.
+- lock drop down menu on future rounds until players have been decided for this round
 - add winner column
-- add styles where needed
+- add styles where needed ( each column is individually scroll able when population flows over screen, players names have a line through them when knocked out in the players column)
 
 - create lavery cup
 - view lavery cup

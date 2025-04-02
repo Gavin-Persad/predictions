@@ -29,6 +29,8 @@ type FixtureState = {
     player2_id: string | null;
     winner_id: string | null;
     fixture_number: number;
+    player1_score?: number;
+    player2_score?: number;
 };
 
 type PlayerResponse = {
@@ -207,6 +209,118 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         fetchInitialData();
     }, [seasonId]);
 
+    useEffect(() => {
+        const checkGameWeekScores = async (roundId: string) => {
+            try {
+                const round = rounds.find(r => r.id === roundId);
+                if (!round || !round.game_week_id) return;
+        
+                // Get scores for the game week
+                const { data: scores } = await supabase
+                    .from('game_week_scores')
+                    .select('player_id, points')
+                    .eq('game_week_id', round.game_week_id);
+        
+                if (!scores) return;
+        
+                // Update fixtures with winners based on scores
+                const updatedFixtures = await Promise.all(round.fixtures.map(async fixture => {
+                    // Skip if no players or already has winner
+                    if (!fixture.player1_id || fixture.winner_id) return fixture;
+        
+                    const player1Score = scores.find(s => s.player_id === fixture.player1_id)?.points ?? 0;
+                    const player2Score = scores.find(s => s.player_id === fixture.player2_id)?.points ?? 0;
+        
+                    // Determine winner
+                    let winnerId = null;
+                    if (player1Score > player2Score) {
+                        winnerId = fixture.player1_id;
+                    } else if (player2Score > player1Score) {
+                        winnerId = fixture.player2_id;
+                    } else if (player1Score === player2Score && fixture.player2_id === null) {
+                        // In case of BYE, player1 wins
+                        winnerId = fixture.player1_id;
+                    }
+        
+                    if (winnerId) {
+                        // Update fixture in database
+                        const { error: updateError } = await supabase
+                            .from('george_cup_fixtures')
+                            .update({ winner_id: winnerId })
+                            .eq('id', fixture.id);
+        
+                        if (updateError) throw updateError;
+        
+                        return { ...fixture, winner_id: winnerId };
+                    }
+        
+                    return fixture;
+                }));
+        
+                // Check if all fixtures have winners
+                const allFixturesComplete = updatedFixtures.every(f => 
+                    f.winner_id || (!f.player1_id && !f.player2_id)
+                );
+        
+                if (allFixturesComplete) {
+                    // Mark round as complete
+                    await supabase
+                        .from('george_cup_rounds')
+                        .update({ is_complete: true })
+                        .eq('id', roundId);
+        
+                    // Progress winners to next round
+                    await progressWinnersToNextRound({
+                        ...round,
+                        fixtures: updatedFixtures,
+                        is_complete: true
+                    });
+                }
+        
+                // Update local state
+                setRounds(rounds.map(r => 
+                    r.id === roundId 
+                        ? { ...r, fixtures: updatedFixtures, is_complete: allFixturesComplete }
+                        : r
+                ));
+        
+            } catch (error) {
+                console.error('Error checking game week scores:', error);
+            }
+        };
+    }, [rounds]);
+
+    useEffect(() => {
+        const updateRoundScores = async () => {
+            const updatedRounds = await Promise.all(rounds.map(async (round) => {
+                if (!round.game_week_id) return round;
+    
+                const { data: scores } = await supabase
+                    .from('game_week_scores')
+                    .select('player_id, points')
+                    .eq('game_week_id', round.game_week_id);
+    
+                if (!scores) return round;
+    
+                const updatedFixtures = round.fixtures.map(fixture => ({
+                    ...fixture,
+                    player1_score: scores.find(s => s.player_id === fixture.player1_id)?.points ?? null,
+                    player2_score: scores.find(s => s.player_id === fixture.player2_id)?.points ?? null
+                }));
+    
+                return {
+                    ...round,
+                    fixtures: updatedFixtures
+                };
+            }));
+    
+            setRounds(updatedRounds);
+        };
+    
+        if (rounds.length > 0) {
+            updateRoundScores();
+        }
+    }, [rounds]);
 
     const calculateRequiredRounds = (playerCount: number) => {
         return Math.ceil(Math.log2(playerCount));
@@ -369,73 +483,73 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         }
     };
 
-    const checkGameWeekScores = async (roundId: string) => {
-    try {
-        const round = rounds.find(r => r.id === roundId);
-        if (!round?.game_week_id) return;
-
-        // Fetch scores for the game week
-        const { data: scores, error: scoresError } = await supabase
+    const getFixtureScores = async (fixture: FixtureState, gameWeekId: string) => {
+        if (!gameWeekId) return null;
+    
+        const { data: scores } = await supabase
             .from('game_week_scores')
-            .select('*')
-            .eq('game_week_id', round.game_week_id);
-
-        if (scoresError) throw scoresError;
-
-        // Update fixtures with winners based on scores
-        const updatedFixtures = await Promise.all(round.fixtures.map(async fixture => {
-            if (fixture.winner_id) return fixture; // Skip if winner already determined
-
-            const player1Score = scores?.find(s => s.player_id === fixture.player1_id)?.points ?? 0;
-            const player2Score = scores?.find(s => s.player_id === fixture.player2_id)?.points ?? 0;
-
-            // Handle BYE cases
-            if (!fixture.player1_id) return { ...fixture, winner_id: fixture.player2_id };
-            if (!fixture.player2_id) return { ...fixture, winner_id: fixture.player1_id };
-
-            // Determine winner based on points
-            const winnerId = player1Score > player2Score ? fixture.player1_id :
-                           player2Score > player1Score ? fixture.player2_id :
-                           // Random winner for ties
-                           Math.random() < 0.5 ? fixture.player1_id : fixture.player2_id;
-
-            // Update fixture in database
-            const { error: updateError } = await supabase
-            .from('george_cup_fixtures')
-            .update({ 
-                winner_id: winnerId
-            })
-            .eq('id', fixture.id);
-        
-        if (updateError) throw updateError;
-        
+            .select('player_id, points')
+            .eq('game_week_id', gameWeekId)
+            .in('player_id', [fixture.player1_id, fixture.player2_id].filter(Boolean));
+    
+        if (!scores || scores.length === 0) return 'waiting';
+    
         return {
-            ...fixture,
-            winner_id: winnerId
+            player1Score: scores.find(s => s.player_id === fixture.player1_id)?.points,
+            player2Score: scores.find(s => s.player_id === fixture.player2_id)?.points
         };
-        }));
+    };
 
-        // Check if all fixtures have winners
-        const allFixturesComplete = updatedFixtures.every(f => f.winner_id);
-        if (allFixturesComplete) {
-            // Mark round as complete
-            await supabase
+    const progressWinnersToNextRound = async (currentRound: RoundState) => {
+        try {
+            const nextRound = rounds.find(r => r.round_number === currentRound.round_number + 1);
+            if (!nextRound) return;
+    
+            const winners = currentRound.fixtures
+                .filter(f => f.winner_id)
+                .map(f => f.winner_id)
+                .filter((id): id is string => id !== null);
+    
+            // Update next round's fixtures with winners
+            for (let i = 0; i < winners.length; i += 2) {
+                await supabase
+                    .from('george_cup_fixtures')
+                    .update({
+                        player1_id: winners[i],
+                        player2_id: winners[i + 1] || null
+                    })
+                    .eq('round_id', nextRound.id)
+                    .eq('fixture_number', Math.floor(i/2) + 1);
+            }
+    
+            // Refresh the rounds data
+            const { data: updatedRound } = await supabase
                 .from('george_cup_rounds')
-                .update({ is_complete: true })
-                .eq('id', roundId);
+                .select(`
+                    *,
+                    george_cup_fixtures!george_cup_fixtures_round_id_fkey (
+                        id,
+                        round_id,
+                        fixture_number,
+                        player1_id,
+                        player2_id,
+                        winner_id
+                    )
+                `)
+                .eq('id', nextRound.id)
+                .single();
+    
+            if (updatedRound) {
+                setRounds(rounds.map(r => 
+                    r.id === nextRound.id 
+                        ? { ...updatedRound, fixtures: updatedRound.george_cup_fixtures || [] }
+                        : r
+                ));
+            }
+        } catch (error) {
+            console.error('Error progressing winners:', error);
         }
-
-        // Update local state
-        setRounds(rounds.map(r => 
-            r.id === roundId 
-                ? { ...r, fixtures: updatedFixtures, is_complete: allFixturesComplete }
-                : r
-        ));
-
-    } catch (error) {
-        console.error('Error checking scores:', error);
-    }
-};
+    };
 
 
     return (
@@ -500,23 +614,33 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                                             fixture.winner_id && fixture.player1_id ? Layout.playerBox.loser :
                                             !fixture.player1_id ? Layout.playerBox.bye : ''
                                         }`}>
-                                            {fixture.player1_id ? 
-                                                players.find(p => p.id === fixture.player1_id)?.username : 
-                                                'Undecided'
-                                            }
+                                            <span>
+                                                {fixture.player1_id ? 
+                                                    players.find(p => p.id === fixture.player1_id)?.username : 
+                                                    'Undecided'
+                                                }
+                                            </span>
+                                            <span className="font-bold">
+                                                {fixture.player1_score !== undefined ? fixture.player1_score : ''}
+                                            </span>
                                         </div>
-                                        
+
                                         <div className="text-center text-sm text-gray-500 dark:text-gray-400 my-1">vs</div>
-                                        
+
                                         <div className={`${Layout.playerBox.base} ${
                                             fixture.winner_id === fixture.player2_id ? Layout.playerBox.winner :
                                             fixture.winner_id && fixture.player2_id ? Layout.playerBox.loser :
                                             !fixture.player2_id ? Layout.playerBox.bye : ''
                                         }`}>
-                                            {fixture.player2_id ? 
-                                                players.find(p => p.id === fixture.player2_id)?.username : 
-                                                'Undecided'
-                                            }
+                                            <span>
+                                                {fixture.player2_id ? 
+                                                    players.find(p => p.id === fixture.player2_id)?.username : 
+                                                    'Undecided'
+                                                }
+                                            </span>
+                                            <span className="font-bold">
+                                                {fixture.player2_score !== undefined ? fixture.player2_score : ''}
+                                            </span>
                                         </div>
                                     </div>
                                 ))
