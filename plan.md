@@ -82,7 +82,12 @@
 
 - get players and rounds showing✅
 - get fixture selection working✅
-- get score and winners working
+- No duplicate rows in george_cup_rounds table✅
+- Players persist after page refresh✅
+- Draw functionality creates fixtures✅
+- Players names and scores display correctly✅
+- Fix winner/loser color highlighting, Debug winner/loser class application in fixture display, Verify winner_id is being set correctly
+- Implement round progression, Create function to check for round winners on page load, Add logic to progress winners to next round when all fixtures complete, Update database and UI to reflect progressed players
 - check progression to final and overall winner.
 - lock drop down menu on future rounds until players have been decided for this round
 - add winner column
