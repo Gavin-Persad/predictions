@@ -361,33 +361,6 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         
         return slots;
     };
-    
-    const handleGameWeekSelect = (roundId: string, gameWeekId: string) => {
-        if (!gameWeekId) return;
-
-        setSelectedRoundId(roundId);
-        setSelectedGameWeekId(gameWeekId);
-        setTimeout(() => setShowDrawModal(true), 0);
-    };
-    
-    const handleConfirmDraw = async () => {
-        try {
-            if (!selectedRoundId || !selectedGameWeekId) return;
-            
-            await performDraw(selectedRoundId);
-            setShowDrawModal(false);
-            setSelectedRoundId(null);
-            setSelectedGameWeekId(null);
-        } catch (error) {
-            console.error('Error in handleConfirmDraw:', error);
-        }
-    };
-
-    const handleCancelDraw = () => {
-        setShowDrawModal(false);
-        setSelectedRoundId(null);
-        setSelectedGameWeekId(null);
-    };
 
     const performDraw = async (roundId: string) => {
         try {
@@ -571,6 +544,42 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         }
     };
 
+    const handleGameWeekSelect = React.useCallback((roundId: string, gameWeekId: string) => {
+        if (!gameWeekId) return;
+        
+        // Update state in one batch
+        requestAnimationFrame(() => {
+            setSelectedRoundId(roundId);
+            setSelectedGameWeekId(gameWeekId);
+            setShowDrawModal(true);
+        });
+    }, []);
+    
+    const handleConfirmDraw = React.useCallback(async () => {
+        try {
+            if (!selectedRoundId || !selectedGameWeekId) return;
+            
+            await performDraw(selectedRoundId);
+            
+            // Reset state in one batch
+            requestAnimationFrame(() => {
+                setShowDrawModal(false);
+                setSelectedRoundId(null);
+                setSelectedGameWeekId(null);
+            });
+        } catch (error) {
+            console.error('Error in handleConfirmDraw:', error);
+        }
+    }, [selectedRoundId, selectedGameWeekId, performDraw]);
+    
+    const handleCancelDraw = React.useCallback(() => {
+        // Reset state in one batch
+        requestAnimationFrame(() => {
+            setShowDrawModal(false);
+            setSelectedRoundId(null);
+            setSelectedGameWeekId(null);
+        });
+    }, []);
 
     return (
         <div className="flex flex-col h-full">
