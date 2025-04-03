@@ -93,7 +93,8 @@ const Layout = {
         base: "flex justify-between items-center p-2 rounded text-gray-900 dark:text-gray-100",
         winner: "bg-green-100 dark:bg-green-900",
         loser: "bg-red-100 dark:bg-red-900",
-        bye: "bg-gray-200 dark:bg-gray-600 italic"
+        bye: "bg-gray-200 dark:bg-gray-600 italic",
+        score: "ml-2 font-bold"
     }
 };
 
@@ -107,6 +108,10 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
     const [selectedGameWeekId, setSelectedGameWeekId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [fixtureScores, setFixtureScores] = useState<Record<string, { 
+        player1_score?: number, 
+        player2_score?: number 
+    }>>({});
 
     const initializationRef = React.useRef<{initialized: boolean; cleanup: boolean}>({
         initialized: false,
@@ -289,6 +294,18 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
             const round = rounds.find(r => r.id === roundId);
             if (!round || !selectedGameWeekId) return;
     
+            // Check for existing fixtures first
+            const { data: existingFixtures } = await supabase
+                .from('george_cup_fixtures')
+                .select('*')
+                .eq('round_id', roundId);
+    
+            // If fixtures already exist, don't create new ones
+            if (existingFixtures && existingFixtures.length > 0) {
+                console.error('Fixtures already exist for this round');
+                return;
+            }
+
             // For first round, pair up players and BYEs
             if (round.round_number === 1) {
                 const byesNeeded = calculateByesNeeded(players.length);
@@ -358,8 +375,8 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                 throw updateError;
             }
     
-            // Refresh data
-            const { data: updatedRound, error: fetchError } = await supabase
+        // After successful draw, fetch ALL rounds to ensure consistency
+        const { data: updatedRounds, error: fetchError } = await supabase
             .from('george_cup_rounds')
             .select(`
                 *,
@@ -372,31 +389,24 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                     winner_id
                 )
             `)
-            .eq('id', roundId)
-            .single();
-        
+            .eq('season_id', seasonId)
+            .order('round_number', { ascending: true });
+
         if (fetchError) {
             console.error('Fetch Error:', fetchError);
             throw fetchError;
         }
-        
-        // Update local state with the new data
-        const updatedRounds = rounds.map(r => {
-            if (r.id === roundId) {
-                return {
-                    ...updatedRound,
-                    fixtures: updatedRound.george_cup_fixtures || []
-                };
-            }
-            return r;
-        });
-        
-        setRounds(updatedRounds);
-    
+
+        // Update all rounds at once to prevent flickering
+        setRounds(updatedRounds.map(round => ({
+            ...round,
+            fixtures: round.george_cup_fixtures || []
+        })));
+
     } catch (error) {
         console.error('Error in performDraw:', error);
     }
-}, [rounds, selectedGameWeekId, players]);
+}, [rounds, selectedGameWeekId, seasonId]);
 
     const getFixtureScores = async (fixture: FixtureState, gameWeekId: string) => {
         if (!gameWeekId) return null;
@@ -564,6 +574,45 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
             }
         });
     }, [rounds, progressWinnersToNextRound]);
+
+    useEffect(() => {
+        const fetchScores = async () => {
+            if (!rounds.length) return;
+            
+            const scores: Record<string, { player1_score?: number, player2_score?: number }> = {};
+            
+            const roundsWithGameWeeks = rounds.filter(round => round.game_week_id);
+            if (!roundsWithGameWeeks.length) return;
+    
+            try {
+                // Fetch all scores in one query
+                const { data: allGameWeekScores } = await supabase
+                    .from('game_week_scores')
+                    .select('game_week_id, player_id, points')
+                    .in('game_week_id', roundsWithGameWeeks.map(r => r.game_week_id));
+    
+                if (!allGameWeekScores) return;
+    
+                // Process scores for each round
+                roundsWithGameWeeks.forEach(round => {
+                    const gameWeekScores = allGameWeekScores.filter(s => s.game_week_id === round.game_week_id);
+                    
+                    round.fixtures.forEach(fixture => {
+                        scores[fixture.id] = {
+                            player1_score: gameWeekScores.find(s => s.player_id === fixture.player1_id)?.points,
+                            player2_score: gameWeekScores.find(s => s.player_id === fixture.player2_id)?.points
+                        };
+                    });
+                });
+                
+                setFixtureScores(scores);
+            } catch (error) {
+                console.error('Error fetching scores:', error);
+            }
+        };
+    
+        fetchScores();
+    }, [rounds]);
     
     const handleConfirmDraw = useCallback(async () => {
         try {
@@ -651,15 +700,17 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                                             fixture.winner_id && fixture.player1_id ? Layout.playerBox.loser :
                                             !fixture.player1_id ? Layout.playerBox.bye : ''
                                         }`}>
-                                            <span>
-                                                {fixture.player1_id ? 
-                                                    players.find(p => p.id === fixture.player1_id)?.username : 
-                                                    'Undecided'
-                                                }
-                                            </span>
-                                            <span className="font-bold">
-                                                {fixture.player1_score !== undefined ? fixture.player1_score : ''}
-                                            </span>
+                                            <div className={Layout.playerBox.base}>
+                                                <span>
+                                                    {fixture.player1_id ? 
+                                                        players.find(p => p.id === fixture.player1_id)?.username : 
+                                                        'Undecided'
+                                                    }
+                                                </span>
+                                                <span className={Layout.playerBox.score}>
+                                                    {fixtureScores[fixture.id]?.player1_score}
+                                                </span>
+                                            </div>
                                         </div>
 
                                         <div className="text-center text-sm text-gray-500 dark:text-gray-400 my-1">vs</div>
@@ -669,15 +720,17 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                                             fixture.winner_id && fixture.player2_id ? Layout.playerBox.loser :
                                             !fixture.player2_id ? Layout.playerBox.bye : ''
                                         }`}>
-                                            <span>
-                                                {fixture.player2_id ? 
-                                                    players.find(p => p.id === fixture.player2_id)?.username : 
-                                                    'Undecided'
-                                                }
-                                            </span>
-                                            <span className="font-bold">
-                                                {fixture.player2_score !== undefined ? fixture.player2_score : ''}
-                                            </span>
+                                            <div className={Layout.playerBox.base}>
+                                                <span>
+                                                    {fixture.player2_id ? 
+                                                        players.find(p => p.id === fixture.player2_id)?.username : 
+                                                        'Undecided'
+                                                    }
+                                                </span>
+                                                <span className={Layout.playerBox.score}>
+                                                    {fixtureScores[fixture.id]?.player2_score}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 ))

@@ -75,12 +75,6 @@ export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterSc
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [predictions, setPredictions] = useState<Array<{
-        user_id: string;
-        fixture_id: string;
-        home_prediction: number;
-        away_prediction: number;
-    }>>([]);
 
     useEffect(() => {
         const fetchFixtures = async () => {
@@ -193,7 +187,7 @@ export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterSc
         const playerScores: Record<string, { correct_scores: number, points: number }> = {};
 
         // First pass - calculate base points and track correct scores
-        allPredictions.forEach(prediction => { // Changed from predictions to allPredictions
+        allPredictions.forEach(prediction => {
             const fixture = fixtures.find(f => f.id === prediction.fixture_id);
             if (!fixture || fixture.home_score === null || fixture.away_score === null) return;
 
