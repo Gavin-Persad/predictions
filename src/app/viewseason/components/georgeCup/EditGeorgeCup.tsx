@@ -50,29 +50,19 @@ type DrawConfirmationModalProps = {
     gameWeekNumber: number;
 };
 
+type CoinFlipCache = {
+    player1Id: string;
+    player2Id: string;
+    winnerId: string;
+};
+
+
+
+
 const isPlayer = (slot: Player | 'BYE'): slot is Player => {
     return slot !== 'BYE';
 };
 
-const determineWinner = (
-    player1: { id: string; score: number; correctScores: number } | null,
-    player2: { id: string; score: number; correctScores: number } | null
-): string | null => {
-    // Handle BYE cases
-    if (!player2?.id) return player1?.id || null;
-    if (!player1?.id) return player2?.id || null;
-
-    // Compare scores
-    if (player1.score > player2.score) return player1.id;
-    if (player2.score > player1.score) return player2.id;
-
-    // If scores are equal, compare correct scores
-    if (player1.correctScores > player2.correctScores) return player1.id;
-    if (player2.correctScores > player1.correctScores) return player2.id;
-
-    // If everything is equal, random selection (coin flip)
-    return Math.random() < 0.5 ? player1.id : player2.id;
-}
 
 const DrawConfirmationModal = ({ onConfirm, onCancel, roundName, gameWeekNumber }: DrawConfirmationModalProps) => {
     return (
@@ -113,12 +103,55 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
     const [selectedGameWeekId, setSelectedGameWeekId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-const [fixtureScores, setFixtureScores] = useState<Record<string, { 
-    player1_score?: number,
-    player1_correct_scores?: number,
-    player2_score?: number,
-    player2_correct_scores?: number
-}>>({});
+    const [coinFlipResults, setCoinFlipResults] = useState<CoinFlipCache[]>([]);
+    const [fixtureScores, setFixtureScores] = useState<Record<string, { 
+        player1_score?: number,
+        player1_correct_scores?: number,
+        player2_score?: number,
+        player2_correct_scores?: number
+    }>>({});
+
+    const determineWinner = useCallback((
+        player1: { id: string; score: number; correctScores: number } | null,
+        player2: { id: string; score: number; correctScores: number } | null
+    ): string | null => {
+        // Handle BYE cases
+        if (!player2?.id) return player1?.id || null;
+        if (!player1?.id) return player2?.id || null;
+    
+        // Compare scores
+        if (player1.score > player2.score) return player1.id;
+        if (player2.score > player1.score) return player2.id;
+    
+        // If scores are equal, compare correct scores
+        if (player1.correctScores > player2.correctScores) return player1.id;
+        if (player2.correctScores > player2.correctScores) return player2.id;
+    
+        // If everything is equal, check for existing coin flip result
+        const existingFlip = coinFlipResults.find(
+            flip => (
+                flip.player1Id === player1.id && flip.player2Id === player2.id
+            ) || (
+                flip.player1Id === player2.id && flip.player2Id === player1.id
+            )
+        );
+    
+        if (existingFlip) {
+            return existingFlip.winnerId;
+        }
+    
+        // If no existing result, generate new one and store it
+        const seed = player1.id.charCodeAt(0);
+        const newWinnerId = (seed % 2 === 0) ? player1.id : player2.id;
+        
+        setCoinFlipResults(prev => [...prev, {
+            player1Id: player1.id,
+            player2Id: player2.id,
+            winnerId: newWinnerId
+        }]);
+    
+        return newWinnerId;
+    }, [coinFlipResults]);
 
     const initializationRef = React.useRef<{initialized: boolean; cleanup: boolean}>({
         initialized: false,
@@ -410,10 +443,10 @@ const [fixtureScores, setFixtureScores] = useState<Record<string, {
             fixtures: round.george_cup_fixtures || []
         })));
 
-    } catch (error) {
-        console.error('Error in performDraw:', error);
-    }
-}, [rounds, selectedGameWeekId, seasonId, players]);
+        } catch (error) {
+            console.error('Error in performDraw:', error);
+        }
+    }, [rounds, selectedGameWeekId, seasonId, players]);
 
     const progressWinnersToNextRound = useCallback(async (currentRound: RoundState) => {
         try {
@@ -483,46 +516,43 @@ const [fixtureScores, setFixtureScores] = useState<Record<string, {
                 const round = rounds.find(r => r.id === roundId);
                 if (!round || !round.game_week_id) return;
         
-                // Update the query to include correct_scores
                 const { data: scores } = await supabase
                     .from('game_week_scores')
-                    .select('player_id, points, correct_scores') // Added correct_scores
+                    .select('player_id, points, correct_scores')
                     .eq('game_week_id', round.game_week_id);
         
                 if (!scores) return;
-
+        
                 const updatedFixtures = await Promise.all(round.fixtures.map(async fixture => {
                     if (!fixture.player1_id || fixture.winner_id) return fixture;
-                
+        
                     const player1Score = scores.find(s => s.player_id === fixture.player1_id);
                     const player2Score = scores.find(s => s.player_id === fixture.player2_id);
-                
-                    // Add type checking before calling determineWinner
+        
                     const player1Data = player1Score && fixture.player1_id ? {
                         id: fixture.player1_id,
                         score: player1Score.points || 0,
                         correctScores: player1Score.correct_scores || 0
                     } : null;
-                
+        
                     const player2Data = player2Score && fixture.player2_id ? {
                         id: fixture.player2_id,
                         score: player2Score.points || 0,
                         correctScores: player2Score.correct_scores || 0
                     } : null;
-                
+        
                     const winnerId = determineWinner(player1Data, player2Data);
-                
+        
                     if (winnerId) {
-                        // Update fixture in database
                         const { error: updateError } = await supabase
                             .from('george_cup_fixtures')
                             .update({ winner_id: winnerId })
                             .eq('id', fixture.id);
-                
+        
                         if (updateError) throw updateError;
                         return { ...fixture, winner_id: winnerId };
                     }
-                
+        
                     return fixture;
                 }));
         
@@ -564,7 +594,7 @@ const [fixtureScores, setFixtureScores] = useState<Record<string, {
                 checkGameWeekScores(round.id);
             }
         });
-    }, [rounds, progressWinnersToNextRound]);
+    }, [rounds, progressWinnersToNextRound, determineWinner]);
 
     useEffect(() => {
         const fetchScores = async () => {

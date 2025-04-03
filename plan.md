@@ -121,6 +121,7 @@
 20. Bugs
 
 - add loading... to view seasons page when fetching seasons.
+- check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
 
 21. Test thoroughly with 1 player and 1 host
 
