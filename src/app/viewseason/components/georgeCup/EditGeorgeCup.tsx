@@ -5,6 +5,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../../../../supabaseClient";
 import { Player } from '../../../../types/players';
 import { GameWeek } from '../../../../types/gameWeek';
+import { Layout } from "./layout";
 
 
 interface Props {
@@ -30,7 +31,10 @@ type FixtureState = {
     fixture_number: number;
     player1_score?: number;
     player2_score?: number;
+    winner_method?: WinnerMethod | null;
 };
+
+type WinnerMethod = 'points' | 'correct_scores' | 'coin_flip';
 
 type PlayerResponse = {
     profiles: {
@@ -49,6 +53,26 @@ type DrawConfirmationModalProps = {
 const isPlayer = (slot: Player | 'BYE'): slot is Player => {
     return slot !== 'BYE';
 };
+
+const determineWinner = (
+    player1: { id: string; score: number; correctScores: number } | null,
+    player2: { id: string; score: number; correctScores: number } | null
+): string | null => {
+    // Handle BYE cases
+    if (!player2?.id) return player1?.id || null;
+    if (!player1?.id) return player2?.id || null;
+
+    // Compare scores
+    if (player1.score > player2.score) return player1.id;
+    if (player2.score > player1.score) return player2.id;
+
+    // If scores are equal, compare correct scores
+    if (player1.correctScores > player2.correctScores) return player1.id;
+    if (player2.correctScores > player1.correctScores) return player2.id;
+
+    // If everything is equal, random selection (coin flip)
+    return Math.random() < 0.5 ? player1.id : player2.id;
+}
 
 const DrawConfirmationModal = ({ onConfirm, onCancel, roundName, gameWeekNumber }: DrawConfirmationModalProps) => {
     return (
@@ -79,25 +103,6 @@ const DrawConfirmationModal = ({ onConfirm, onCancel, roundName, gameWeekNumber 
         </div>
     );
 };
-
-
-const Layout = {
-    container: "flex flex-row space-x-4 overflow-x-auto p-4",
-    column: "min-w-[250px] flex-shrink-0",
-    roundTitle: "text-lg font-bold mb-2 text-gray-900 dark:text-gray-100",
-    gameWeekSelect: "w-full mb-4",
-    fixtureBox: "border rounded p-3 mb-2 bg-gray-200 dark:bg-gray-700",
-    pastRound: "bg-gray-100 dark:bg-gray-700/50",
-    activeRound: "bg-white dark:bg-gray-800",
-    playerBox: {
-        base: "flex justify-between items-center p-2 rounded text-gray-900 dark:text-gray-100",
-        winner: "bg-green-100 dark:bg-green-900",
-        loser: "bg-red-100 dark:bg-red-900",
-        bye: "bg-gray-200 dark:bg-gray-600 italic",
-        score: "ml-2 font-bold"
-    }
-};
-
 
 
 export default function EditGeorgeCup({ seasonId, onClose }: Props) {
@@ -408,24 +413,7 @@ const [fixtureScores, setFixtureScores] = useState<Record<string, {
     } catch (error) {
         console.error('Error in performDraw:', error);
     }
-}, [rounds, selectedGameWeekId, seasonId]);
-
-    const getFixtureScores = async (fixture: FixtureState, gameWeekId: string) => {
-        if (!gameWeekId) return null;
-    
-        const { data: scores } = await supabase
-            .from('game_week_scores')
-            .select('player_id, points')
-            .eq('game_week_id', gameWeekId)
-            .in('player_id', [fixture.player1_id, fixture.player2_id].filter(Boolean));
-    
-        if (!scores || scores.length === 0) return 'waiting';
-    
-        return {
-            player1Score: scores.find(s => s.player_id === fixture.player1_id)?.points,
-            player2Score: scores.find(s => s.player_id === fixture.player2_id)?.points
-        };
-    };
+}, [rounds, selectedGameWeekId, seasonId, players]);
 
     const progressWinnersToNextRound = useCallback(async (currentRound: RoundState) => {
         try {
@@ -495,45 +483,46 @@ const [fixtureScores, setFixtureScores] = useState<Record<string, {
                 const round = rounds.find(r => r.id === roundId);
                 if (!round || !round.game_week_id) return;
         
-                // Get scores for the game week
+                // Update the query to include correct_scores
                 const { data: scores } = await supabase
                     .from('game_week_scores')
-                    .select('player_id, points')
+                    .select('player_id, points, correct_scores') // Added correct_scores
                     .eq('game_week_id', round.game_week_id);
         
                 if (!scores) return;
-        
-                // Update fixtures with winners based on scores
+
                 const updatedFixtures = await Promise.all(round.fixtures.map(async fixture => {
-                    // Skip if no players or already has winner
                     if (!fixture.player1_id || fixture.winner_id) return fixture;
-        
-                    const player1Score = scores.find(s => s.player_id === fixture.player1_id)?.points ?? 0;
-                    const player2Score = scores.find(s => s.player_id === fixture.player2_id)?.points ?? 0;
-        
-                    // Determine winner
-                    let winnerId = null;
-                    if (player1Score > player2Score) {
-                        winnerId = fixture.player1_id;
-                    } else if (player2Score > player1Score) {
-                        winnerId = fixture.player2_id;
-                    } else if (player1Score === player2Score && fixture.player2_id === null) {
-                        // In case of BYE, player1 wins
-                        winnerId = fixture.player1_id;
-                    }
-        
+                
+                    const player1Score = scores.find(s => s.player_id === fixture.player1_id);
+                    const player2Score = scores.find(s => s.player_id === fixture.player2_id);
+                
+                    // Add type checking before calling determineWinner
+                    const player1Data = player1Score && fixture.player1_id ? {
+                        id: fixture.player1_id,
+                        score: player1Score.points || 0,
+                        correctScores: player1Score.correct_scores || 0
+                    } : null;
+                
+                    const player2Data = player2Score && fixture.player2_id ? {
+                        id: fixture.player2_id,
+                        score: player2Score.points || 0,
+                        correctScores: player2Score.correct_scores || 0
+                    } : null;
+                
+                    const winnerId = determineWinner(player1Data, player2Data);
+                
                     if (winnerId) {
                         // Update fixture in database
                         const { error: updateError } = await supabase
                             .from('george_cup_fixtures')
                             .update({ winner_id: winnerId })
                             .eq('id', fixture.id);
-        
+                
                         if (updateError) throw updateError;
-        
                         return { ...fixture, winner_id: winnerId };
                     }
-        
+                
                     return fixture;
                 }));
         
@@ -619,7 +608,7 @@ const [fixtureScores, setFixtureScores] = useState<Record<string, {
                 
                 setFixtureScores(scores);
             } catch (error) {
-                console.error('Error fetching scores:', error);
+                console.error('Error checking game week scores:', error);
             }
         };
     
@@ -670,7 +659,7 @@ const [fixtureScores, setFixtureScores] = useState<Record<string, {
                 </div>
             ) : (
                 <div className={Layout.container}>
-                    {/* Players Column - existing code */}
+                    {/* Players Column */}
                     <div className={Layout.column}>
                         <h3 className={Layout.roundTitle}>Players</h3>
                         <div className="space-y-2">
@@ -776,7 +765,7 @@ const [fixtureScores, setFixtureScores] = useState<Record<string, {
             </div>
         )}
 
-        {/* Draw Confirmation Modal - existing code */}
+        {/* Draw Confirmation Modal */}
         {showDrawModal && selectedRoundId && selectedGameWeekId && (
     <DrawConfirmationModal
         roundName={rounds.find(r => r.id === selectedRoundId)?.round_name || ''}
