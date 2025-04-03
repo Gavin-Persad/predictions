@@ -108,10 +108,12 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
     const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
     const [selectedGameWeekId, setSelectedGameWeekId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const [fixtureScores, setFixtureScores] = useState<Record<string, { 
-        player1_score?: number, 
-        player2_score?: number 
-    }>>({});
+const [fixtureScores, setFixtureScores] = useState<Record<string, { 
+    player1_score?: number,
+    player1_correct_scores?: number,
+    player2_score?: number,
+    player2_correct_scores?: number
+}>>({});
 
     const initializationRef = React.useRef<{initialized: boolean; cleanup: boolean}>({
         initialized: false,
@@ -579,7 +581,12 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         const fetchScores = async () => {
             if (!rounds.length) return;
             
-            const scores: Record<string, { player1_score?: number, player2_score?: number }> = {};
+            const scores: Record<string, { 
+                player1_score?: number,
+                player1_correct_scores?: number,
+                player2_score?: number,
+                player2_correct_scores?: number 
+            }> = {};
             
             const roundsWithGameWeeks = rounds.filter(round => round.game_week_id);
             if (!roundsWithGameWeeks.length) return;
@@ -588,7 +595,7 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                 // Fetch all scores in one query
                 const { data: allGameWeekScores } = await supabase
                     .from('game_week_scores')
-                    .select('game_week_id, player_id, points')
+                    .select('game_week_id, player_id, points, correct_scores')
                     .in('game_week_id', roundsWithGameWeeks.map(r => r.game_week_id));
     
                 if (!allGameWeekScores) return;
@@ -598,9 +605,14 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                     const gameWeekScores = allGameWeekScores.filter(s => s.game_week_id === round.game_week_id);
                     
                     round.fixtures.forEach(fixture => {
+                        const player1Score = gameWeekScores.find(s => s.player_id === fixture.player1_id);
+                        const player2Score = gameWeekScores.find(s => s.player_id === fixture.player2_id);
+                        
                         scores[fixture.id] = {
-                            player1_score: gameWeekScores.find(s => s.player_id === fixture.player1_id)?.points,
-                            player2_score: gameWeekScores.find(s => s.player_id === fixture.player2_id)?.points
+                            player1_score: player1Score?.points,
+                            player1_correct_scores: player1Score?.correct_scores,
+                            player2_score: player2Score?.points,
+                            player2_correct_scores: player2Score?.correct_scores
                         };
                     });
                 });
@@ -708,7 +720,12 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                                                     }
                                                 </span>
                                                 <span className={Layout.playerBox.score}>
-                                                    {fixtureScores[fixture.id]?.player1_score}
+                                                    <span className="text-lg font-bold">{fixtureScores[fixture.id]?.player1_score}</span>
+                                                    {fixtureScores[fixture.id]?.player1_correct_scores !== undefined && (
+                                                        <span className="text-sm ml-1 text-gray-600 dark:text-gray-400">
+                                                            ({fixtureScores[fixture.id]?.player1_correct_scores})
+                                                        </span>
+                                                    )}
                                                 </span>
                                             </div>
                                         </div>
@@ -728,7 +745,12 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                                                     }
                                                 </span>
                                                 <span className={Layout.playerBox.score}>
-                                                    {fixtureScores[fixture.id]?.player2_score}
+                                                <span className="text-lg font-bold">{fixtureScores[fixture.id]?.player2_score}</span>
+                                                {fixtureScores[fixture.id]?.player2_correct_scores !== undefined && (
+                                                    <span className="text-sm ml-1 text-gray-600 dark:text-gray-400">
+                                                        ({fixtureScores[fixture.id]?.player2_correct_scores})
+                                                    </span>
+                                                )}
                                                 </span>
                                             </div>
                                         </div>
