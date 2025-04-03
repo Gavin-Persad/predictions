@@ -88,6 +88,8 @@
 - Players names and scores display correctly✅
   \*\*game week id is blank on george_cup_fixtures table once game week has been selected. this isn't needed as the game week is logged on the george_cup_rounds table as well.
 - Fix winner/loser color highlighting, Debug winner/loser class application in fixture display, Verify winner_id is being set correctly✅
+- get players to start with 0-0 predictions until they have changed predictions.
+- lock new rounds drop down menu until required amount of players are ready.
 - Implement round progression, Create function to check for round winners on page load, Add logic to progress winners to next round when all fixtures complete, Update database and UI to reflect progressed players
 - check progression to final and overall winner.
 - lock drop down menu on future rounds until players have been decided for this round

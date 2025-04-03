@@ -75,6 +75,12 @@ export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterSc
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [predictions, setPredictions] = useState<Array<{
+        user_id: string;
+        fixture_id: string;
+        home_prediction: number;
+        away_prediction: number;
+    }>>([]);
 
     useEffect(() => {
         const fetchFixtures = async () => {
@@ -99,67 +105,125 @@ export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterSc
     const handleSaveScores = async () => {
         setLoading(true);
         try {
-            // 1. Get season_id for this game week
+            // 1. Get the season_id first, then use it to fetch players
             const { data: gameWeekData, error: gameWeekError } = await supabase
                 .from('game_weeks')
                 .select('season_id')
                 .eq('id', gameWeekId)
                 .single();
-
-            if (gameWeekError || !gameWeekData?.season_id) {
+    
+            if (gameWeekError || !gameWeekData) {
                 throw new Error('Failed to fetch game week data');
             }
-
+    
+            // Now use the correct season_id to fetch players
+            const { data: playersData, error: playersError } = await supabase
+                .from('season_players')
+                .select(`
+                    profiles (
+                        id,
+                        username
+                    )
+                `)
+                .eq('season_id', gameWeekData.season_id);
+    
+            if (playersError) {
+                throw new Error('Failed to fetch players');
+            }
+    
+            // Get all player IDs once
+            const allPlayers = (playersData as any[]).map(p => p.profiles.id);
+    
             // 2. Update fixtures
             const { error: fixturesError } = await supabase
                 .from('fixtures')
                 .upsert(fixtures);
-
+    
             if (fixturesError) throw fixturesError;
-
-            // 3. Get predictions
-            const { data: predictions, error: predictionsError } = await supabase
+    
+            // 3. Get existing predictions
+            const { data: existingPredictions, error: predictionsError } = await supabase
                 .from('predictions')
                 .select('*')
                 .in('fixture_id', fixtures.map(f => f.id));
+    
+            if (predictionsError) throw predictionsError;
+    
+            // 4. Create 0-0 predictions for missing players
+            const defaultPredictions = [];
+    
+            for (const fixture of fixtures) {
+                const playersWithPredictions = existingPredictions
+                    ?.filter(p => p.fixture_id === fixture.id)
+                    .map(p => p.user_id) || [];
+                
+                const playersWithoutPredictions = allPlayers
+                    .filter(id => !playersWithPredictions.includes(id));
+    
+                defaultPredictions.push(...playersWithoutPredictions.map(playerId => ({
+                    user_id: playerId,
+                    fixture_id: fixture.id,
+                    home_prediction: 0,
+                    away_prediction: 0,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                })));
+            }
+    
+            if (defaultPredictions.length > 0) {
+                const { error: insertError } = await supabase
+                    .from('predictions')
+                    .insert(defaultPredictions);
+    
+                if (insertError) throw insertError;
+            }
+    
+            // Combine existing and default predictions
+            const allPredictions = [...(existingPredictions || []), ...defaultPredictions];
+    
+            // 5. Delete existing scores for this game week to prevent double counting
+            const { error: deleteError } = await supabase
+                .from('game_week_scores')
+                .delete()
+                .eq('game_week_id', gameWeekId);
+    
+            if (deleteError) throw deleteError;
 
-            if (predictionsError || !predictions) throw predictionsError;
+        // 6. Calculate scores with bonuses
+        const playerScores: Record<string, { correct_scores: number, points: number }> = {};
 
-            // 4. Calculate scores with bonuses
-            const playerScores: Record<string, { correct_scores: number, points: number }> = {};
+        // First pass - calculate base points and track correct scores
+        allPredictions.forEach(prediction => { // Changed from predictions to allPredictions
+            const fixture = fixtures.find(f => f.id === prediction.fixture_id);
+            if (!fixture || fixture.home_score === null || fixture.away_score === null) return;
 
-            // First pass - calculate base points and track correct scores
-            predictions.forEach(prediction => {
-                const fixture = fixtures.find(f => f.id === prediction.fixture_id);
-                if (!fixture || fixture.home_score === null || fixture.away_score === null) return;
+            // Initialize player scores
+            if (!playerScores[prediction.user_id]) {
+                playerScores[prediction.user_id] = { correct_scores: 0, points: 0 };
+            }
 
-                // Initialize player scores
-                if (!playerScores[prediction.user_id]) {
-                    playerScores[prediction.user_id] = { correct_scores: 0, points: 0 };
+            // Calculate base points
+            const basePoints = calculatePoints(
+                { 
+                    home_prediction: prediction.home_prediction, 
+                    away_prediction: prediction.away_prediction 
+                },
+                { 
+                    home_score: fixture.home_score, 
+                    away_score: fixture.away_score 
                 }
+            );
 
-                // Calculate base points
-                const basePoints = calculatePoints(
-                    { 
-                        home_prediction: prediction.home_prediction, 
-                        away_prediction: prediction.away_prediction 
-                    },
-                    { 
-                        home_score: fixture.home_score, 
-                        away_score: fixture.away_score 
-                    }
-                );
-
-                // Calculate unique score bonus
-                const uniqueBonus = calculateUniqueScoreBonus(
-                    prediction,
-                    {
-                        id: fixture.id,
-                        home_score: fixture.home_score,
-                        away_score: fixture.away_score
-                    },
-                    predictions
-                );
+            // Calculate unique score bonus
+            const uniqueBonus = calculateUniqueScoreBonus(
+                prediction,
+                {
+                    id: fixture.id,
+                    home_score: fixture.home_score,
+                    away_score: fixture.away_score
+                },
+                allPredictions // Changed from predictions to allPredictions
+            );
 
                 // Update points and correct scores
                 playerScores[prediction.user_id].points += basePoints + uniqueBonus;
@@ -174,50 +238,50 @@ export default function EnterScoresForm({ gameWeekId, onClose, onSave }: EnterSc
                 score.points += weeklyBonus;
             });
 
-            // 5. Update game week scores
-            const gameWeekScores = Object.entries(playerScores).map(([player_id, scores]) => ({
-                game_week_id: gameWeekId,
-                player_id,
-                correct_scores: scores.correct_scores,
-                points: scores.points
-            }));
+        // 7. Update game week scores
+        const gameWeekScores = Object.entries(playerScores).map(([player_id, scores]) => ({
+            game_week_id: gameWeekId,
+            player_id,
+            correct_scores: scores.correct_scores,
+            points: scores.points
+        }));
 
-            const { error: gameWeekScoresError } = await supabase
-                .from('game_week_scores')
-                .upsert(gameWeekScores, {
-                    onConflict: 'game_week_id,player_id',
-                    ignoreDuplicates: false
-                });
+        const { error: gameWeekScoresError } = await supabase
+            .from('game_week_scores')
+            .upsert(gameWeekScores, {
+                onConflict: 'game_week_id,player_id',
+                ignoreDuplicates: false
+            });
 
-            if (gameWeekScoresError) throw gameWeekScoresError;
+        if (gameWeekScoresError) throw gameWeekScoresError;
 
-            // 6. Update season scores
-            const seasonScores = Object.entries(playerScores).map(([player_id, scores]) => ({
-                season_id: gameWeekData.season_id,
-                player_id,
-                correct_scores: scores.correct_scores,
-                points: scores.points
-            }));
+        // 8. Update season scores
+        const seasonScores = Object.entries(playerScores).map(([player_id, scores]) => ({
+            season_id: gameWeekData.season_id,
+            player_id,
+            correct_scores: scores.correct_scores,
+            points: scores.points
+        }));
+        
+        const { error: seasonUpdateError } = await supabase
+            .from('season_scores')
+            .upsert(seasonScores, {
+                onConflict: 'season_id,player_id',
+                ignoreDuplicates: false
+            });
 
-            const { error: seasonUpdateError } = await supabase
-                .from('season_scores')
-                .upsert(seasonScores, {
-                    onConflict: 'season_id,player_id',
-                    ignoreDuplicates: false
-                });
+        if (seasonUpdateError) throw seasonUpdateError;
 
-            if (seasonUpdateError) throw seasonUpdateError;
-
-            setMessage('Scores updated successfully');
-            setShowConfirmModal(false);
-            onSave();
-        } catch (error) {
-            console.error('Error:', error);
-            setMessage('Error updating scores');
-        } finally {
-            setLoading(false);
-        }
-    };
+        setMessage('Scores updated successfully');
+        setShowConfirmModal(false);
+        onSave();
+    } catch (error) {
+        console.error('Error:', error);
+        setMessage('Error updating scores');
+    } finally {
+        setLoading(false);
+    }
+};
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
