@@ -92,7 +92,8 @@
 - get players to start with 0-0 predictions until they have changed predictions.✅
 - round progression working just needs display fix
 - lock new rounds drop down menu until required amount of players are ready.
-- update logic to handle drawing scenarios
+- update logic to handle drawing scenarios✅ This has caused flickering on a coin toss, need to fix
+  Suggested fix: 1. Generate the random selection once 2. Store that result 3. Use that same result consistently
 - Implement round progression, Create function to check for round winners on page load, Add logic to progress winners to next round when all fixtures complete, Update database and UI to reflect progressed players
 - check progression to final and overall winner.
 - lock drop down menu on future rounds until players have been decided for this round
