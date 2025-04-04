@@ -94,10 +94,9 @@
 - lock new rounds drop down menu until required amount of players are ready.
 - update logic to handle drawing scenarios✅ This has caused flickering on a coin toss, need to fix
   Suggested fix: 1. Generate the random selection once 2. Store that result 3. Use that same result consistently✅
-- Implement round progression, Create function to check for round winners on page load, Add logic to progress winners to next round when all fixtures complete, Update database and UI to reflect progressed players✅ This is working, but there is an issue with the new fixture flickering until there has been a refresh.
-- check progression to final and overall winner.
+- Implement round progression, Create function to check for round winners on page load, Add logic to progress winners to next round when all fixtures complete, Update database and UI to reflect progressed players✅ This is working, but there is an issue with the new fixture flickering until there has been a refresh. ⌛
+- check progression to final and overall winner.✅
 - lock drop down menu on future rounds until players have been decided for this round
-- add winner column
 - add styles where needed ( each column is individually scroll able when population flows over screen, players names have a line through them when knocked out in the players column)
 
 - create lavery cup
@@ -120,6 +119,7 @@
 
 20. Bugs
 
+- page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.
 - add loading... to view seasons page when fetching seasons.
 - check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
 

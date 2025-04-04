@@ -329,6 +329,18 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         return slots;
     };
 
+    const canSelectGameWeek = (round: RoundState, rounds: RoundState[]) => {
+        // First round can always be selected if not already complete
+        if (round.round_number === 1) return true;
+    
+        // Get previous round
+        const previousRound = rounds.find(r => r.round_number === round.round_number - 1);
+        
+        // Can only select if previous round exists and is complete
+        return previousRound?.is_complete ?? false;
+    };
+    
+
     const performDraw = useCallback(async (roundId: string) => {
         try {
             const round = rounds.find(r => r.id === roundId);
@@ -707,19 +719,28 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                         round.is_complete ? Layout.pastRound : Layout.activeRound
                     }`}>
                         <h3 className={Layout.roundTitle}>{round.round_name}</h3>
-                    <select 
-                        className={Layout.gameWeekSelect}
-                        value={round.game_week_id || ''}
-                        onChange={(e) => handleGameWeekSelect(round.id, e.target.value)}
-                        disabled={round.is_complete || round.fixtures?.length > 0}
-                    >
-                        <option value="">Select Game Week</option>
-                        {gameWeeks.map(gw => (
-                            <option key={gw.id} value={gw.id}>
-                                Game Week {gw.week_number}
+                        <select 
+                            className={Layout.gameWeekSelect}
+                            value={round.game_week_id || ''}
+                            onChange={(e) => handleGameWeekSelect(round.id, e.target.value)}
+                            disabled={
+                                round.is_complete || 
+                                round.fixtures?.length > 0 || 
+                                !canSelectGameWeek(round, rounds)
+                            }
+                        >
+                            <option value="">
+                                {!canSelectGameWeek(round, rounds) 
+                                    ? "Complete previous round first" 
+                                    : "Select Game Week"
+                                }
                             </option>
-                        ))}
-                    </select>
+                            {gameWeeks.map(gw => (
+                                <option key={gw.id} value={gw.id}>
+                                    Game Week {gw.week_number}
+                                </option>
+                            ))}
+                        </select>
                         
                         {/* Fixtures */}
                         <div className="space-y-2">
