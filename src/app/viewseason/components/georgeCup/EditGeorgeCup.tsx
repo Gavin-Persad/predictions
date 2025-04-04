@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../../../../supabaseClient";
 import { Player } from '../../../../types/players';
 import { GameWeek } from '../../../../types/gameWeek';
-import { Layout } from "./layout";
+import { Layout } from "./editGeorgeCupLayout";
 
 
 interface Props {
@@ -704,23 +704,35 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                     {/* Players Column */}
                     <div className={Layout.column}>
                         <h3 className={Layout.roundTitle}>Players</h3>
-                        <div className="space-y-2">
-                            {players.map(player => (
-                                <div key={player.id} className={Layout.playerBox.base}>
-                                    {player.username}
-                                </div>
-                            ))}
+                        <div className={Layout.scrollContainer}>
+                            {players.map(player => {
+                                const isEliminated = rounds.some(round => 
+                                    round.fixtures.some(fixture => 
+                                        (fixture.player1_id === player.id || fixture.player2_id === player.id) &&
+                                        fixture.winner_id && fixture.winner_id !== player.id
+                                    )
+                                );
+                                
+                                return (
+                                    <div 
+                                        key={player.id} 
+                                        className={`${Layout.playerBox.base} ${isEliminated ? Layout.playerBox.eliminated : ''}`}
+                                    >
+                                        {player.username}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
-    
-                {/* Round Columns */}
-                {rounds.map(round => (
-                    <div key={round.id} className={`${Layout.column} ${
-                        round.is_complete ? Layout.pastRound : Layout.activeRound
-                    }`}>
-                        <h3 className={Layout.roundTitle}>{round.round_name}</h3>
-                        <select 
-                            className={Layout.gameWeekSelect}
+
+                    {/* Round Columns */}
+                    {rounds.map(round => (
+                        <div key={round.id} className={`${Layout.column} ${
+                            round.is_complete ? Layout.pastRound : Layout.activeRound
+                        }`}>
+                            <h3 className={Layout.roundTitle}>{round.round_name}</h3>
+                            <select 
+                                className={Layout.gameWeekSelect}
                             value={round.game_week_id || ''}
                             onChange={(e) => handleGameWeekSelect(round.id, e.target.value)}
                             disabled={
@@ -743,6 +755,7 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                         </select>
                         
                         {/* Fixtures */}
+                    <div className={Layout.scrollContainer}>
                         <div className="space-y-2">
                             {round.fixtures?.length > 0 ? (
                                 round.fixtures.map(fixture => (
@@ -812,19 +825,20 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                             )}
                         </div>
                     </div>
-            ))}
+                </div>
+                ))}
             </div>
-        )}
-
-        {/* Draw Confirmation Modal */}
-        {showDrawModal && selectedRoundId && selectedGameWeekId && (
-    <DrawConfirmationModal
-        roundName={rounds.find(r => r.id === selectedRoundId)?.round_name || ''}
-        gameWeekNumber={gameWeeks.find(gw => gw.id === selectedGameWeekId)?.week_number || 0}
-        onConfirm={handleConfirmDraw}
-        onCancel={handleCancelDraw}
-    />
-)}
-    </div>
-);
+            )}       
+    
+            {/* Draw Confirmation Modal */}
+            {showDrawModal && selectedRoundId && selectedGameWeekId && (
+                <DrawConfirmationModal
+                    roundName={rounds.find(r => r.id === selectedRoundId)?.round_name || ''}
+                    gameWeekNumber={gameWeeks.find(gw => gw.id === selectedGameWeekId)?.week_number || 0}
+                    onConfirm={handleConfirmDraw}
+                    onCancel={handleCancelDraw}
+                />
+            )}
+        </div>
+    );
 }
