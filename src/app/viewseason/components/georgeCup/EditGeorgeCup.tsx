@@ -29,12 +29,7 @@ type FixtureState = {
     player2_id: string | null;
     winner_id: string | null;
     fixture_number: number;
-    player1_score?: number;
-    player2_score?: number;
-    winner_method?: WinnerMethod | null;
 };
-
-type WinnerMethod = 'points' | 'correct_scores' | 'coin_flip';
 
 type PlayerResponse = {
     profiles: {
@@ -95,7 +90,7 @@ const DrawConfirmationModal = ({ onConfirm, onCancel, roundName, gameWeekNumber 
 };
 
 
-export default function EditGeorgeCup({ seasonId, onClose }: Props) {
+export default function EditGeorgeCup({ seasonId, onClose }: Props): JSX.Element {
     const [rounds, setRounds] = useState<RoundState[]>([]);
     const [players, setPlayers] = useState<Player[]>([]);
     const [gameWeeks, setGameWeeks] = useState<GameWeek[]>([]);
@@ -794,9 +789,9 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                                         }`}>
                                             <div className={Layout.playerBox.base}>
                                                 <span>
-                                                    {fixture.player1_id ? 
+                                                {fixture.player1_id ? 
                                                         players.find(p => p.id === fixture.player1_id)?.username : 
-                                                        'Undecided'
+                                                        (!fixture.player1_id && !fixture.player2_id) ? 'Undecided' : 'BYE'
                                                     }
                                                 </span>
                                                 <span className={Layout.playerBox.score}>
@@ -818,12 +813,12 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                                             !fixture.player2_id ? Layout.playerBox.bye : ''
                                         }`}>
                                             <div className={Layout.playerBox.base}>
-                                                <span>
-                                                    {fixture.player2_id ? 
-                                                        players.find(p => p.id === fixture.player2_id)?.username : 
-                                                        'Undecided'
-                                                    }
-                                                </span>
+                                            <span>
+                                                {fixture.player2_id ? 
+                                                    players.find(p => p.id === fixture.player2_id)?.username : 
+                                                    (!fixture.player1_id && !fixture.player2_id) ? 'Undecided' : 'BYE'
+                                                }
+                                            </span>
                                                 <span className={Layout.playerBox.score}>
                                                 <span className="text-lg font-bold">{fixtureScores[fixture.id]?.player2_score}</span>
                                                 {fixtureScores[fixture.id]?.player2_correct_scores !== undefined && (
