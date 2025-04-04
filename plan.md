@@ -59,9 +59,9 @@
 
 13. Test scoring and table works✅
 
-14. Add in cup competitions, rules and format
+14. Add in cup competitions, rules and format✅
 
-- george cup
+- george cup✅
 - navigating rounds doesn't change the round view, still showing previous round fixtures. ✅\*\* now working but not showing blank fixtures.
 - edit rounds not working, could this be because the round has been completed. Need to test this by creating a new game week.\*\* now games confirmation is not working. Nothing being created on supabase.✅
 - game weeks can still be changed after confirmed, this needs to be locked in.✅
@@ -69,21 +69,47 @@
 - submit is not working when editing a cup round.✅
 - first round fixtures are showing in the right hand column in all rounds( when a new round has been selected by using the arrows on the header.)✅
 - ensure that once fixtures have been selected that they are in place when returning to this screen.✅
-- Working on passing winners through to next round⌛currently working on getting winner determination working
+- Working on passing winners through to next round⌛currently working on getting winner determination working✅
 
 - create view cup❌
 - tree format as the rounds are created, shows scores from that game week.❌
 
 15. Make it so that scores do not show unitl the live fixtures start✅
 
-- rebuild the cups from the start. We can now have fixtures picked by computer.
+16. rebuild the cups from the start. We can now have fixtures picked by computer.✅
 
-- create lavery cup
-- view lavery cup
+17. build edit george cup page✅
 
-16. Test cups and format
+- get players and rounds showing✅
+- get fixture selection working✅
+- No duplicate rows in george_cup_rounds table✅
+- Players persist after page refresh✅
+- Draw functionality creates fixtures✅
+- Players names and scores display correctly✅
+  \*\*game week id is blank on george_cup_fixtures table once game week has been selected. this isn't needed as the game week is logged on the george_cup_rounds table as well.✅
+- Fix winner/loser color highlighting, Debug winner/loser class ✅
+- application in fixture display, Verify winner_id is being set correctly✅
+- get players to start with 0-0 predictions until they have changed predictions.✅
+- round progression working just needs display fix
+- lock new rounds drop down menu until required amount of players are ready.
+- update logic to handle drawing scenarios✅ This has caused flickering on a coin toss, need to fix
+  Suggested fix: 1. Generate the random selection once 2. Store that result 3. Use that same result consistently✅
+- Implement round progression, Create function to check for round winners on page load, Add logic to progress winners to next round when all fixtures complete, Update database and UI to reflect progressed players✅ This is working, but there is an issue with the new fixture flickering until there has been a refresh. ⌛
+- check progression to final and overall winner.✅
+- lock drop down menu on future rounds until players have been decided for this round✅
+- add styles where needed ( each column is individually scroll able when population flows over screen, players names have a line through them when knocked out in the players column)✅
 
-17. Desired features
+18. Create view george cup component
+
+19. create lavery cup
+
+20. view lavery cup
+
+21. Test cups and format
+
+22. Make Dashboard
+
+23. Desired features
 
 - add colour coding to scores modal✅
 - correct all page titles and button titles and labels.✅
@@ -96,10 +122,16 @@
 - add rules section and note from chris to dashboard.
 - history page, seasons winners cup winners etc. needs supabase table
 
-18. Test thoroughly with 1 player and 1 host
+23. Bugs
 
-19. Prepare for beta testing
+- page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.
+- add loading... to view seasons page when fetching seasons.
+- check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
 
-20. Update ReadMe and announce on LinkedIn
+24. Test thoroughly with 1 player and 1 host
 
-21. Receive feedback and fix bugs/make improvements
+25. Prepare for beta testing
+
+26. Update ReadMe and announce on LinkedIn
+
+27. Receive feedback and fix bugs/make improvements
