@@ -115,17 +115,19 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
         player1: { id: string; score: number; correctScores: number } | null,
         player2: { id: string; score: number; correctScores: number } | null
     ): string | null => {
-        // Handle BYE cases
-        if (!player2?.id) return player1?.id || null;
-        if (!player1?.id) return player2?.id || null;
+
+        // BYE cases - Player always wins against BYE, regardless of position
+        if (!player1 && player2) return player2.id;
+        if (!player2 && player1) return player1.id; 
+        if (!player1 || !player2) return null;
     
-        // Compare scores
+        // Handle normal cases where both players exist
         if (player1.score > player2.score) return player1.id;
         if (player2.score > player1.score) return player2.id;
     
         // If scores are equal, compare correct scores
         if (player1.correctScores > player2.correctScores) return player1.id;
-        if (player2.correctScores > player2.correctScores) return player2.id;
+        if (player2.correctScores > player1.correctScores) return player2.id;
     
         // If everything is equal, check for existing coin flip result
         const existingFlip = coinFlipResults.find(
@@ -382,7 +384,7 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                 const { error: fixturesError } = await supabase
                     .from('george_cup_fixtures')
                     .insert(fixtures)
-                    .select(); // Add select to get the created fixtures
+                    .select();
     
                 if (fixturesError) {
                     console.error('Fixtures Error:', fixturesError);
@@ -536,26 +538,51 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props) {
                 if (!scores) return;
         
                 const updatedFixtures = await Promise.all(round.fixtures.map(async fixture => {
-                    if (!fixture.player1_id || fixture.winner_id) return fixture;
+                    // Don't skip if there's a winner - we might need to handle BYEs
+                    if (!fixture.player1_id && !fixture.player2_id) return fixture;
+    
+                    // Handle BYE cases first
+                    if (!fixture.player1_id && fixture.player2_id) {
+                        // Player 2 wins against BYE
+                        const { error: updateError } = await supabase
+                            .from('george_cup_fixtures')
+                            .update({ winner_id: fixture.player2_id })
+                            .eq('id', fixture.id);
+                        
+                        if (updateError) throw updateError;
+                        return { ...fixture, winner_id: fixture.player2_id };
+                    }
+    
+                    if (fixture.player1_id && !fixture.player2_id) {
+                        // Player 1 wins against BYE
+                        const { error: updateError } = await supabase
+                            .from('george_cup_fixtures')
+                            .update({ winner_id: fixture.player1_id })
+                            .eq('id', fixture.id);
+                        
+                        if (updateError) throw updateError;
+                        return { ...fixture, winner_id: fixture.player1_id };
+                    }
         
+                    // Handle normal player vs player case
                     const player1Score = scores.find(s => s.player_id === fixture.player1_id);
                     const player2Score = scores.find(s => s.player_id === fixture.player2_id);
         
-                    const player1Data = player1Score && fixture.player1_id ? {
-                        id: fixture.player1_id,
+                    const player1Data = player1Score ? {
+                        id: fixture.player1_id!,
                         score: player1Score.points || 0,
                         correctScores: player1Score.correct_scores || 0
                     } : null;
         
-                    const player2Data = player2Score && fixture.player2_id ? {
-                        id: fixture.player2_id,
+                    const player2Data = player2Score ? {
+                        id: fixture.player2_id!,
                         score: player2Score.points || 0,
                         correctScores: player2Score.correct_scores || 0
                     } : null;
         
                     const winnerId = determineWinner(player1Data, player2Data);
         
-                    if (winnerId) {
+                    if (winnerId && !fixture.winner_id) {
                         const { error: updateError } = await supabase
                             .from('george_cup_fixtures')
                             .update({ winner_id: winnerId })
