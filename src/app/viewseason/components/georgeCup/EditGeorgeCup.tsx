@@ -1,6 +1,7 @@
 //src/app/viewseason/components/GeorgeCup/EditGeorgeCup.tsx
 
 "use client";
+
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../../../../supabaseClient";
 import { Player } from '../../../../types/players';
