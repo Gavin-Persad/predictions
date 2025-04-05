@@ -12,6 +12,7 @@ import ViewGameWeeks from './components/ViewGameWeeks';
 import EditPlayers from './components/EditPlayers';
 import GameWeekOptions from './components/GameWeekOptions';
 import LeagueTable from './components/leagueTable';
+import ViewGeorgeCup from './components/georgeCup/viewGeorgeCup';
 import EditGeorgeCup from './components/georgeCup/EditGeorgeCup';
 
 type Season = {
@@ -289,6 +290,11 @@ export default function ViewSeason() {
                         <ViewGameWeeks
                             seasonId={selectedSeason.id}
                             onClose={() => setViewGameWeek(false)}
+                        />
+                    ) : showGeorgeCup ? (
+                        <ViewGeorgeCup
+                            seasonId={selectedSeason.id}
+                            onClose={() => setShowGeorgeCup(false)}
                         />
                     ) : editGeorgeCup ? (
                         <EditGeorgeCup
