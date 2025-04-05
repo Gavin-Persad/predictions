@@ -1,10 +1,11 @@
-//src/app/viewseason/components/georgeCup/viewGeorgeCup.tsx
+// src/app/viewseason/components/georgeCup/viewGeorgeCup.tsx
 
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../../../../supabaseClient";
 import { Layout } from "./viewGeorgeCupLayout";
+import { format } from 'date-fns';
 
 interface Props {
     seasonId: string;
@@ -16,6 +17,7 @@ type RoundState = {
     round_number: number;
     round_name: string;
     game_week_id: string | null;
+    game_week_start_date?: string;
     is_complete: boolean;
     total_fixtures: number;
     fixtures: FixtureState[];
@@ -34,17 +36,73 @@ type Player = {
     username: string;
 };
 
+// Type for fixture scores
+type FixtureScores = Record<string, { 
+    player1_score?: number;
+    player1_correct_scores?: number;
+    player2_score?: number;
+    player2_correct_scores?: number;
+}>;
+
 export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element {
     const [rounds, setRounds] = useState<RoundState[]>([]);
     const [players, setPlayers] = useState<Player[]>([]);
     const [loading, setLoading] = useState(true);
+    const [fixtureScores, setFixtureScores] = useState<FixtureScores>({});
+
+    // Helper function to fetch scores for fixtures
+    const fetchFixtureScores = async (rounds: RoundState[]): Promise<void> => {
+        const scores: FixtureScores = {};
+        
+        const roundsWithGameWeeks = rounds.filter(round => round.game_week_id);
+        if (!roundsWithGameWeeks.length) return;
+        
+        try {
+            for (const round of roundsWithGameWeeks) {
+                // Skip if no game week assigned or no fixtures
+                if (!round.game_week_id || !round.fixtures.length) continue;
+                
+                // Get all scores for this game week
+                const { data: gameWeekScores } = await supabase
+                    .from('game_week_scores')
+                    .select('player_id, points, correct_scores')
+                    .eq('game_week_id', round.game_week_id);
+                
+                if (!gameWeekScores) continue;
+                
+                // Process each fixture
+                round.fixtures.forEach(fixture => {
+                    if (!fixture.player1_id && !fixture.player2_id) return;
+                    
+                    // Find scores for each player
+                    const player1Score = gameWeekScores.find(
+                        s => s.player_id === fixture.player1_id
+                    );
+                    const player2Score = gameWeekScores.find(
+                        s => s.player_id === fixture.player2_id
+                    );
+                    
+                    scores[fixture.id] = {
+                        player1_score: player1Score?.points,
+                        player1_correct_scores: player1Score?.correct_scores,
+                        player2_score: player2Score?.points,
+                        player2_correct_scores: player2Score?.correct_scores
+                    };
+                });
+            }
+            
+            setFixtureScores(scores);
+        } catch (error) {
+            console.error('Error checking game week scores:', error);
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
                 
-                // Fetch players
+                // 1. Fetch players
                 const { data: playersData, error: playersError } = await supabase
                     .from('season_players')
                     .select(`
@@ -63,7 +121,7 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
                 }));
                 setPlayers(mappedPlayers);
                 
-                // Fetch rounds and fixtures
+                // 2. Fetch rounds with fixtures
                 const { data: roundsData, error: roundsError } = await supabase
                     .from('george_cup_rounds')
                     .select(`
@@ -82,10 +140,41 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
         
                 if (roundsError) throw roundsError;
                 
-                setRounds(roundsData.map(round => ({
+                // 3. Fetch game weeks for dates
+                const gameWeekIds = roundsData
+                    .map(round => round.game_week_id)
+                    .filter(id => id !== null);
+                
+                // Create lookup object for game weeks
+                let gameWeeks: Record<string, any> = {};
+                
+                if (gameWeekIds.length > 0) {
+                    const { data: gameWeeksData, error: gameWeeksError } = await supabase
+                        .from('game_weeks')
+                        .select('id, live_start')
+                        .in('id', gameWeekIds);
+                        
+                    if (gameWeeksError) throw gameWeeksError;
+                    
+                    // Create lookup object
+                    gameWeeks = (gameWeeksData || []).reduce((acc, gw) => {
+                        acc[gw.id] = gw;
+                        return acc;
+                    }, {} as Record<string, any>);
+                }
+                
+                // Process rounds with game week dates
+                const processedRounds = roundsData.map(round => ({
                     ...round,
+                    game_week_start_date: round.game_week_id && gameWeeks[round.game_week_id] ? 
+                                          gameWeeks[round.game_week_id].live_start : null,
                     fixtures: round.george_cup_fixtures || []
-                })));
+                }));
+                
+                setRounds(processedRounds);
+                
+                // Fetch scores for fixtures
+                await fetchFixtureScores(processedRounds);
                 
             } catch (error) {
                 console.error('Error fetching George Cup data:', error);
@@ -96,6 +185,16 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
         
         fetchData();
     }, [seasonId]);
+
+    // Format date function
+    const formatDate = (dateString?: string | null) => {
+        if (!dateString) return '';
+        try {
+            return format(new Date(dateString), 'dd/MM/yy');
+        } catch (e) {
+            return '';
+        }
+    };
 
     return (
         <div className="flex flex-col h-full">
@@ -146,7 +245,14 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
                         <div key={round.id} className={`${Layout.column} ${
                             round.is_complete ? Layout.pastRound : Layout.activeRound
                         }`}>
-                            <h3 className={Layout.roundTitle}>{round.round_name}</h3>
+                            <h3 className={Layout.roundTitle}>
+                                {round.round_name}
+                                {round.game_week_start_date && (
+                                    <div className="text-sm font-normal text-gray-600 dark:text-gray-400">
+                                        Game Week Start: {formatDate(round.game_week_start_date)}
+                                    </div>
+                                )}
+                            </h3>
                             
                             {/* Fixtures */}
                             <div className={Layout.scrollContainer}>
@@ -159,12 +265,26 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
                                                 fixture.winner_id && fixture.player1_id ? Layout.playerBox.loser :
                                                 !fixture.player1_id ? Layout.playerBox.bye : ''
                                             }`}>
-                                                <span>
-                                                    {fixture.player1_id ? 
-                                                        players.find(p => p.id === fixture.player1_id)?.username : 
-                                                        (!fixture.player1_id && !fixture.player2_id) ? 'Undecided' : 'BYE'
-                                                    }
-                                                </span>
+                                                <div className="flex justify-between w-full">
+                                                    <span>
+                                                        {fixture.player1_id ? 
+                                                            players.find(p => p.id === fixture.player1_id)?.username : 
+                                                            (!fixture.player1_id && !fixture.player2_id) ? 'Undecided' : 'BYE'
+                                                        }
+                                                    </span>
+                                                    {fixtureScores[fixture.id]?.player1_score !== undefined && (
+                                                        <span className={Layout.playerBox.score}>
+                                                            <span className="text-lg font-bold">
+                                                                {fixtureScores[fixture.id]?.player1_score}
+                                                            </span>
+                                                            {fixtureScores[fixture.id]?.player1_correct_scores !== undefined && (
+                                                                <span className="text-sm ml-1 text-gray-600 dark:text-gray-400">
+                                                                    ({fixtureScores[fixture.id]?.player1_correct_scores})
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
 
                                             <div className="text-center text-sm text-gray-500 dark:text-gray-400 my-1">vs</div>
@@ -175,12 +295,26 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
                                                 fixture.winner_id && fixture.player2_id ? Layout.playerBox.loser :
                                                 !fixture.player2_id ? Layout.playerBox.bye : ''
                                             }`}>
-                                                <span>
-                                                    {fixture.player2_id ? 
-                                                        players.find(p => p.id === fixture.player2_id)?.username : 
-                                                        (!fixture.player1_id && !fixture.player2_id) ? 'Undecided' : 'BYE'
-                                                    }
-                                                </span>
+                                                <div className="flex justify-between w-full">
+                                                    <span>
+                                                        {fixture.player2_id ? 
+                                                            players.find(p => p.id === fixture.player2_id)?.username : 
+                                                            (!fixture.player1_id && !fixture.player2_id) ? 'Undecided' : 'BYE'
+                                                        }
+                                                    </span>
+                                                    {fixtureScores[fixture.id]?.player2_score !== undefined && (
+                                                        <span className={Layout.playerBox.score}>
+                                                            <span className="text-lg font-bold">
+                                                                {fixtureScores[fixture.id]?.player2_score}
+                                                            </span>
+                                                            {fixtureScores[fixture.id]?.player2_correct_scores !== undefined && (
+                                                                <span className="text-sm ml-1 text-gray-600 dark:text-gray-400">
+                                                                    ({fixtureScores[fixture.id]?.player2_correct_scores})
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     ))}

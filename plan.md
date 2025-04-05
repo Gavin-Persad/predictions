@@ -99,7 +99,7 @@
 - lock drop down menu on future rounds until players have been decided for this round✅
 - add styles where needed ( each column is individually scroll able when population flows over screen, players names have a line through them when knocked out in the players column)✅
 
-18. Create view george cup component
+18. Create view george cup component✅
 
 19. create lavery cup
 

@@ -1,11 +1,11 @@
 //src/app/viewseason/components/georgeCup/viewGeorgeCup.tsx
 
-
 type PlayerBoxStyles = {
     base: string;
     winner: string;
     loser: string;
     bye: string;
+    score: string;
     eliminated: string;
 }
 
@@ -32,6 +32,7 @@ export const Layout: LayoutStyles = {
         winner: "bg-green-100 dark:bg-green-900",
         loser: "bg-red-100 dark:bg-red-900",
         bye: "bg-gray-200 dark:bg-gray-600 italic",
+        score: "ml-2 font-bold",
         eliminated: "line-through opacity-60"
     },
     scrollContainer: "overflow-y-auto flex-grow"
