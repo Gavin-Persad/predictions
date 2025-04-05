@@ -706,16 +706,18 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props): JSX.Element
 
     return (
         <div className="flex flex-col h-full">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="flex flex-col mb-6">
+                <div className="mb-2">
+                    <button
+                        onClick={onClose}
+                        className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                    >
+                        Back
+                    </button>
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 text-center">
                     George Cup
                 </h2>
-                <button
-                    onClick={onClose}
-                    className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-                >
-                    Back
-                </button>
             </div>
 
             {loading ? (

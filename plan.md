@@ -99,7 +99,11 @@
 - lock drop down menu on future rounds until players have been decided for this round✅
 - add styles where needed ( each column is individually scroll able when population flows over screen, players names have a line through them when knocked out in the players column)✅
 
-18. Create view george cup component
+18. Create view george cup component✅
+
+- winners column✅
+- highlight me✅
+- moved the back button on editGeorgeCup as well✅
 
 19. create lavery cup
 
@@ -109,6 +113,10 @@
 
 22. Make Dashboard
 
+- add functionality to dashboard
+- add message section to dashboard
+- add rules section and note from chris to dashboard.
+
 23. Desired features
 
 - add colour coding to scores modal✅
@@ -117,14 +125,12 @@
 - view game week, change to (title: game week, sub: as is live open to close )✅
 - edit game week, change to (title: game week, sub: as is live open to close )✅
 - enter scores, change to (title: game week, sub: as is live open to close )✅
-- add functionality to dashboard
-- add message section to dashboard
-- add rules section and note from chris to dashboard.
 - history page, seasons winners cup winners etc. needs supabase table
+- add season name as title to view seasons page
 
 23. Bugs
 
-- page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.
+- page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.
 - add loading... to view seasons page when fetching seasons.
 - check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
 
