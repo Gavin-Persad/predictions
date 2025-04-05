@@ -101,7 +101,7 @@
 
 18. Create view george cup component✅
 
-- winners column
+- winners column✅
 - highlight me
 - moved the back button on editGeorgeCup as well
 
@@ -128,7 +128,7 @@
 
 23. Bugs
 
-- page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.
+- page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.
 - add loading... to view seasons page when fetching seasons.
 - check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
 

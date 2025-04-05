@@ -36,7 +36,6 @@ type Player = {
     username: string;
 };
 
-// Type for fixture scores
 type FixtureScores = Record<string, { 
     player1_score?: number;
     player1_correct_scores?: number;
@@ -50,6 +49,16 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
     const [loading, setLoading] = useState(true);
     const [fixtureScores, setFixtureScores] = useState<FixtureScores>({});
     const [seasonName, setSeasonName] = useState<string>("");
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const getCurrentUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) setCurrentUserId(user.id);
+        };
+        
+        getCurrentUser();
+    }, []);
 
 
     const fetchFixtureScores = useCallback(async (rounds: RoundState[]): Promise<void> => {
@@ -190,7 +199,7 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
         };
         
         fetchData();
-        
+
     }, [seasonId, fetchFixtureScores]);
 
     // Format date function
@@ -238,7 +247,9 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
                                 return (
                                     <div 
                                         key={player.id} 
-                                        className={`${Layout.playerBox.base} ${isEliminated ? Layout.playerBox.eliminated : ''}`}
+                                        className={`${Layout.playerBox.base} 
+                                            ${isEliminated ? Layout.playerBox.eliminated : ''}
+                                            ${player.id === currentUserId ? Layout.playerBox.currentUser : ''}`}
                                     >
                                         {player.username}
                                     </div>
@@ -271,7 +282,7 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
                                                 fixture.winner_id === fixture.player1_id ? Layout.playerBox.winner :
                                                 fixture.winner_id && fixture.player1_id ? Layout.playerBox.loser :
                                                 !fixture.player1_id ? Layout.playerBox.bye : ''
-                                            }`}>
+                                                } ${fixture.player1_id === currentUserId ? Layout.playerBox.currentUser : ''}`}>
                                                 <div className="flex justify-between w-full">
                                                     <span>
                                                         {fixture.player1_id ? 
@@ -301,7 +312,7 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
                                                 fixture.winner_id === fixture.player2_id ? Layout.playerBox.winner :
                                                 fixture.winner_id && fixture.player2_id ? Layout.playerBox.loser :
                                                 !fixture.player2_id ? Layout.playerBox.bye : ''
-                                            }`}>
+                                                } ${fixture.player2_id === currentUserId ? Layout.playerBox.currentUser : ''}`}>
                                                 <div className="flex justify-between w-full">
                                                     <span>
                                                         {fixture.player2_id ? 

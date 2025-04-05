@@ -7,6 +7,7 @@ type PlayerBoxStyles = {
     bye: string;
     score: string;
     eliminated: string;
+    currentUser: string;
 }
 
 type LayoutStyles = {
@@ -34,7 +35,8 @@ export const Layout: LayoutStyles = {
         loser: "bg-red-100 dark:bg-red-900",
         bye: "bg-gray-200 dark:bg-gray-600 italic",
         score: "ml-2 font-bold",
-        eliminated: "line-through opacity-60"
+        eliminated: "line-through opacity-60",
+        currentUser: "border-2 border-blue-500"
     },
     scrollContainer: "overflow-y-auto flex-grow",
     winnerColumn: "bg-gray-50 dark:bg-gray-800/80 border-l border-gray-200 dark:border-gray-700"
