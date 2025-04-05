@@ -101,6 +101,10 @@
 
 18. Create view george cup component✅
 
+- winners column
+- highlight me
+- moved the back button on editGeorgeCup as well
+
 19. create lavery cup
 
 20. view lavery cup

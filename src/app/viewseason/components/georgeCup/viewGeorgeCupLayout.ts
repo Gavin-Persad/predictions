@@ -18,6 +18,7 @@ type LayoutStyles = {
     activeRound: string;
     playerBox: PlayerBoxStyles;
     scrollContainer: string;
+    winnerColumn: string;
 }
 
 export const Layout: LayoutStyles = {
@@ -35,5 +36,6 @@ export const Layout: LayoutStyles = {
         score: "ml-2 font-bold",
         eliminated: "line-through opacity-60"
     },
-    scrollContainer: "overflow-y-auto flex-grow"
+    scrollContainer: "overflow-y-auto flex-grow",
+    winnerColumn: "bg-gray-50 dark:bg-gray-800/80 border-l border-gray-200 dark:border-gray-700"
 };

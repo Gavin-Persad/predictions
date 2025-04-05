@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react"; 
 import { supabase } from "../../../../../supabaseClient";
 import { Layout } from "./viewGeorgeCupLayout";
 import { format } from 'date-fns';
@@ -49,20 +49,31 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
     const [players, setPlayers] = useState<Player[]>([]);
     const [loading, setLoading] = useState(true);
     const [fixtureScores, setFixtureScores] = useState<FixtureScores>({});
+    const [seasonName, setSeasonName] = useState<string>("");
 
-    // Helper function to fetch scores for fixtures
-    const fetchFixtureScores = async (rounds: RoundState[]): Promise<void> => {
+
+    const fetchFixtureScores = useCallback(async (rounds: RoundState[]): Promise<void> => {
         const scores: FixtureScores = {};
         
         const roundsWithGameWeeks = rounds.filter(round => round.game_week_id);
         if (!roundsWithGameWeeks.length) return;
-        
+
         try {
+            // Get season name
+            const { data: seasonData, error: seasonError } = await supabase
+                .from('seasons')
+                .select('name')
+                .eq('id', seasonId)
+                .single();
+    
+            if (seasonError) throw seasonError;
+            setSeasonName(seasonData.name);
+            
+            // Process each round with a game week
             for (const round of roundsWithGameWeeks) {
-                // Skip if no game week assigned or no fixtures
                 if (!round.game_week_id || !round.fixtures.length) continue;
                 
-                // Get all scores for this game week
+                // Get scores for this game week
                 const { data: gameWeekScores } = await supabase
                     .from('game_week_scores')
                     .select('player_id, points, correct_scores')
@@ -70,33 +81,28 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
                 
                 if (!gameWeekScores) continue;
                 
-                // Process each fixture
+                // Process scores for each fixture
                 round.fixtures.forEach(fixture => {
                     if (!fixture.player1_id && !fixture.player2_id) return;
                     
-                    // Find scores for each player
-                    const player1Score = gameWeekScores.find(
-                        s => s.player_id === fixture.player1_id
-                    );
-                    const player2Score = gameWeekScores.find(
-                        s => s.player_id === fixture.player2_id
-                    );
-                    
                     scores[fixture.id] = {
-                        player1_score: player1Score?.points,
-                        player1_correct_scores: player1Score?.correct_scores,
-                        player2_score: player2Score?.points,
-                        player2_correct_scores: player2Score?.correct_scores
+                        player1_score: gameWeekScores.find(s => s.player_id === fixture.player1_id)?.points,
+                        player1_correct_scores: gameWeekScores.find(s => s.player_id === fixture.player1_id)?.correct_scores,
+                        player2_score: gameWeekScores.find(s => s.player_id === fixture.player2_id)?.points,
+                        player2_correct_scores: gameWeekScores.find(s => s.player_id === fixture.player2_id)?.correct_scores
                     };
                 });
             }
             
             setFixtureScores(scores);
+
         } catch (error) {
             console.error('Error checking game week scores:', error);
         }
-    };
 
+    }, [seasonId]);
+
+    // Main data fetching effect
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -184,7 +190,8 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
         };
         
         fetchData();
-    }, [seasonId]);
+        
+    }, [seasonId, fetchFixtureScores]);
 
     // Format date function
     const formatDate = (dateString?: string | null) => {
@@ -322,6 +329,44 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
                             </div>
                         </div>
                     ))}
+
+                    {/* Winners Column - only show if final round has a winner */}
+                    {(() => {
+                        // Find the final round
+                        const finalRound = rounds.find(r => r.round_name === 'Final');
+                        if (!finalRound) return null;
+                        
+                        // Find the winning fixture and winner
+                        const winningFixture = finalRound.fixtures.find(f => f.winner_id);
+                        if (!winningFixture) return null;
+                        
+                        // Find the winner name
+                        const winner = players.find(p => p.id === winningFixture.winner_id);
+                        if (!winner) return null;
+                        
+                        return (
+                            <div className={`${Layout.column} ${Layout.winnerColumn}`}>
+                                <h3 className={Layout.roundTitle}>Winner</h3>
+                                <div className={Layout.scrollContainer}>
+                                    <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                                        {/* Trophy SVG */}
+                                        <svg className="w-24 h-24 text-yellow-500 mb-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M11 17.9V19H7v2h10v-2h-4v-1.1A8 8 0 0 0 20 10h1V8h-1V4H4v4H3v2h1a8 8 0 0 0 7 7.9zM6 6h12v2H6V6z"/>
+                                        </svg>
+                                        <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                                            {winner.username}
+                                        </div>
+                                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                                            George Cup Champion
+                                        </div>
+                                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                                            {seasonName}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
                 </div>
             )}
         </div>
