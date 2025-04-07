@@ -113,9 +113,46 @@
 
 22. Make Dashboard
 
-- add functionality to dashboard
-- add message section to dashboard
-- add rules section and note from chris to dashboard.
+- add functionality to dashboard - indiviual squares containting different components, when clicked these will take you to the links, they will show on the dashboard page with the below views.
+
+  Content(
+
+enter scores
+
+- link - link to enter scores page
+- dashboard view - coniditon of most recent game week. game week is the week that open for predictions time has passed most recently
+
+  24/25 season League
+
+- link - takes you to viewseasons, with the current season props
+- dashbaord view - top 6 of the table showing, your place showing if not in top 6 and only top 5 show
+
+  24/25 season George Cup
+
+- link - takes you to view george cup page, with current season props
+- dashbaord view - shows your current fixtures and round, if you have been knocked out this will show the current round and underneath say the round you were knocked out on: For Example "George Cup Semi Finals - Live 09/05/25. You were knocked out in the 2nd Round"
+
+messages
+
+- link - messages page, list of measages that host has posted, add, edit and delete message button for hosts only. Host can also pin and unpin messages.
+- dashboard view, shows pin message by host.
+- Also add this to side bar menu.
+
+rules
+
+- link - rules page, rules listed.
+- dashboard view - just a title no need for anything live.
+- Also add this to side bar menu.
+
+chat
+
+- link - chat page
+- dashboard view - last few messages
+- in side bar add a link to new page
+- basic chat page where users can leave messages
+- if possible, most recent message you read is whrre you rejoin
+
+  )
 
 23. Desired features
 
@@ -127,6 +164,8 @@
 - enter scores, change to (title: game week, sub: as is live open to close )✅
 - history page, seasons winners cup winners etc. needs supabase table
 - add season name as title to view seasons page
+  about me
+- small page, add to side menu, that has information about me and the project, git hub links etc. Also add this to side bar menu.
 
 23. Bugs
 
