@@ -107,7 +107,11 @@
 
 19. create lavery cup
 
+- Create base page and link to view seasons
+
 20. view lavery cup
+
+- Create base page and link to view seasons
 
 21. Test cups and format
 
