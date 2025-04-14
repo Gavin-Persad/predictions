@@ -47,11 +47,21 @@ export default function ViewGameWeeks({ seasonId, onClose }: ViewGameWeeksProps)
                 *,
                 seasons (
                     name
+                ),
+                lavery_cup_rounds (
+                    id,
+                    round_number,
+                    round_name
+                ),
+                george_cup_rounds!george_cup_rounds_game_week_id_fkey (
+                    id,
+                    round_number,
+                    round_name
                 )
             `)
             .eq('season_id', seasonId)
             .order('live_start', { ascending: false });
-
+    
             if (error) {
                 setMessage('Error fetching game weeks');
                 console.error(error);
@@ -59,7 +69,7 @@ export default function ViewGameWeeks({ seasonId, onClose }: ViewGameWeeksProps)
                 setGameWeeks(data);
             }
         };
-
+    
         fetchGameWeeks();
     }, [seasonId]);
 
@@ -101,27 +111,44 @@ export default function ViewGameWeeks({ seasonId, onClose }: ViewGameWeeksProps)
             
             <div className="w-full flex flex-col items-center">
                 <div className="w-full max-w-2xl space-y-4">
-                    {gameWeeks.map((gameWeek) => (
-                        <div
-                        key={gameWeek.id}
-                        onClick={() => setSelectedGameWeek(gameWeek)}
-                        className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg shadow hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
-                        >
-                        <div className="flex justify-between items-center">
-                            <div className="text-left">
-                                <div className="font-medium text-gray-900 dark:text-gray-100">
-                                    Game Week {gameWeek.week_number}, {gameWeek.seasons.name}
+                {gameWeeks.map((gameWeek) => {
+                        const hasLaveryCupRound = gameWeek.lavery_cup_rounds && gameWeek.lavery_cup_rounds.length > 0;
+                        const hasGeorgeCupRound = gameWeek.george_cup_rounds && gameWeek.george_cup_rounds.length > 0;
+                        
+                        return (
+                            <div
+                            key={gameWeek.id}
+                            onClick={() => setSelectedGameWeek(gameWeek)}
+                            className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg shadow hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
+                            >
+                            <div className="flex justify-between items-center">
+                                <div className="text-left">
+                                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                                        Game Week {gameWeek.week_number}, {gameWeek.seasons.name}
+                                    </div>
+                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                        {new Date(gameWeek.live_start).toLocaleDateString()} - {new Date(gameWeek.live_end).toLocaleDateString()}
+                                    </div>
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        {hasLaveryCupRound && (
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                                Lavery Cup - {gameWeek.lavery_cup_rounds[0].round_name}
+                                            </span>
+                                        )}
+                                        {hasGeorgeCupRound && (
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                George Cup - {gameWeek.george_cup_rounds[0].round_name}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="text-sm text-gray-600 dark:text-gray-400">
-                                    {new Date(gameWeek.live_start).toLocaleDateString()} - {new Date(gameWeek.live_end).toLocaleDateString()}
-                                </div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                    {checkGameWeekStatus(gameWeek)}
+                                </span>
                             </div>
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
-                                {checkGameWeekStatus(gameWeek)}
-                            </span>
-                        </div>
-                        </div>
-                    ))}
+                            </div>
+                        );
+                    })}
                     </div>
                 </div>
             </div>
