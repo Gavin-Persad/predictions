@@ -28,6 +28,11 @@ type GameWeek = {
         round_number: number;
         round_name: string;
     }>;
+    george_cup_rounds: Array<{
+        id: string;
+        round_number: number;
+        round_name: string;
+    }>;
 };
 
 type Fixture = {
@@ -82,6 +87,11 @@ export default function PredictionsPage() {
                     name
                 ),
                 lavery_cup_rounds (
+                    id,
+                    round_number,
+                    round_name
+                ),
+                george_cup_rounds!george_cup_rounds_game_week_id_fkey (
                     id,
                     round_number,
                     round_name
@@ -165,7 +175,6 @@ export default function PredictionsPage() {
                 return;
             }
     
-            // Handle the scores (same as before)
             const predictionsToUpsert = Object.entries(data.scores).map(([fixture_id, scores]) => ({
                 user_id: user.id,
                 fixture_id,
@@ -185,11 +194,9 @@ export default function PredictionsPage() {
                 return;
             }
     
-            // Handle Lavery Cup selections if present
             if (data.laveryCup) {
                 const { team1, team2, roundId } = data.laveryCup;
                 
-                // Check if team selections already exist for this player and round
                 const { data: existingSelections, error: checkError } = await supabase
                     .from('lavery_cup_selections')
                     .select('id')
@@ -202,7 +209,6 @@ export default function PredictionsPage() {
                     return;
                 }
                 
-                // Insert or update Lavery Cup selections
                 const laveryCupData = {
                     id: existingSelections?.id || uuidv4(),
                     round_id: roundId,
@@ -223,7 +229,6 @@ export default function PredictionsPage() {
                     return;
                 }
                 
-                // Track the used teams
                 const teamsToTrack = [
                     {
                         id: uuidv4(),
@@ -239,7 +244,6 @@ export default function PredictionsPage() {
                     }
                 ];
                 
-                // Insert used teams, ignoring conflicts
                 const { error: teamsError } = await supabase
                     .from('player_used_teams')
                     .upsert(teamsToTrack, { onConflict: 'season_id,player_id,team_name' });
@@ -279,40 +283,46 @@ export default function PredictionsPage() {
                             </h1>
                             <div className="space-y-4">
                             {gameWeeks.map((gameWeek) => {
-                                const status = checkGameWeekStatus(gameWeek);
-                                const hasLaveryCupRound = gameWeek.lavery_cup_rounds && gameWeek.lavery_cup_rounds.length > 0;
-                                return (
-                                    <button
-                                        key={gameWeek.id}
-                                        onClick={() => setSelectedGameWeek(gameWeek.id)}
-                                        className={`w-full p-4 rounded-lg shadow transition-colors duration-200 ${getStatusStyle(status)}`}
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <div className="text-left">
-                                                <div className="font-medium">
-                                                    Game Week {gameWeek.week_number}, {gameWeek.seasons.name}
-                                                </div>
-                                                <div className="text-sm text-gray-600 dark:text-gray-400">
-                                                    {new Date(gameWeek.live_start).toLocaleDateString()} - {new Date(gameWeek.live_end).toLocaleDateString()}
-                                                </div>
-                                                {hasLaveryCupRound && (
-                                                    <div className="mt-2">
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                                            Lavery Cup - {gameWeek.lavery_cup_rounds[0].round_name}
-                                                        </span>
+                                    const status = checkGameWeekStatus(gameWeek);
+                                    const hasLaveryCupRound = gameWeek.lavery_cup_rounds && gameWeek.lavery_cup_rounds.length > 0;
+                                    const hasGeorgeCupRound = gameWeek.george_cup_rounds && gameWeek.george_cup_rounds.length > 0;
+                                    return (
+                                        <button
+                                            key={gameWeek.id}
+                                            onClick={() => setSelectedGameWeek(gameWeek.id)}
+                                            className={`w-full p-4 rounded-lg shadow transition-colors duration-200 ${getStatusStyle(status)}`}
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <div className="text-left">
+                                                    <div className="font-medium">
+                                                        Game Week {gameWeek.week_number}, {gameWeek.seasons.name}
                                                     </div>
-                                                )}
+                                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                        {new Date(gameWeek.live_start).toLocaleDateString()} - {new Date(gameWeek.live_end).toLocaleDateString()}
+                                                    </div>
+                                                    <div className="mt-2 flex flex-wrap gap-2">
+                                                        {hasLaveryCupRound && (
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                                Lavery Cup - {gameWeek.lavery_cup_rounds[0].round_name}
+                                                            </span>
+                                                        )}
+                                                        {hasGeorgeCupRound && (
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                                George Cup - {gameWeek.george_cup_rounds[0].round_name}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <span className="text-sm">
+                                                    {status === 'predictions' && 'Open for Predictions'}
+                                                    {status === 'live' && 'Live'}
+                                                    {status === 'past' && 'Closed'}
+                                                    {status === 'upcoming' && 'Upcoming'}
+                                                </span>
                                             </div>
-                                            <span className="text-sm">
-                                                {status === 'predictions' && 'Open for Predictions'}
-                                                {status === 'live' && 'Live'}
-                                                {status === 'past' && 'Closed'}
-                                                {status === 'upcoming' && 'Upcoming'}
-                                            </span>
-                                        </div>
-                                    </button>
-                                );
-                            })}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </>
                     ) : (

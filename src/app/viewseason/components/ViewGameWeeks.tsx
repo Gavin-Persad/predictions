@@ -16,6 +16,16 @@ type GameWeek = {
     seasons: {
         name: string;
     };
+    lavery_cup_rounds: Array<{
+        id: string;
+        round_number: number;
+        round_name: string;
+    }>;
+    george_cup_rounds: Array<{
+        id: string;
+        round_number: number;
+        round_name: string;
+    }>;
 };
 
 type ViewGameWeeksProps = {
