@@ -9,6 +9,7 @@ import PredictionsForm from './components/PredictionsForm';
 import PredictionsDisplay from './components/PredictionsDisplay';
 import Sidebar from '../../components/Sidebar';
 import DarkModeToggle from '../../components/darkModeToggle';
+import { v4 as uuidv4 } from 'uuid';
 
 type GameWeek = {
     id: string;
@@ -17,11 +18,12 @@ type GameWeek = {
     predictions_close: string;
     live_start: string;
     live_end: string;
+    season_id: string; 
     seasons: {
+        id: string;
         name: string;
     };
 };
-
 type Fixture = {
     id: string;
     fixture_number: number;
@@ -38,6 +40,7 @@ export default function PredictionsPage() {
     const [fixtures, setFixtures] = useState<Fixture[]>([]);
     const [predictions, setPredictions] = useState<{[key: string]: {home: number, away: number}}>({});
     const [isEditing, setIsEditing] = useState(false);
+    const [userId, setUserId] = useState<string | null>(null);
 
     const checkGameWeekStatus = (gameWeek: GameWeek) => {
         const now = new Date();
@@ -62,16 +65,16 @@ export default function PredictionsPage() {
                 return;
             }
     
-            // Updated query to include season name
             const { data, error } = await supabase
-                .from('game_weeks')
-                .select(`
-                    *,
-                    seasons (
-                        name
-                    )
-                `)
-                .order('week_number', { ascending: false });
+            .from('game_weeks')
+            .select(`
+                *,
+                seasons (
+                    id,
+                    name
+                )
+            `)
+            .order('week_number', { ascending: false });
     
             if (error) {
                 console.error('Error:', error);
@@ -134,41 +137,114 @@ export default function PredictionsPage() {
         }
     };
 
-    const handleSubmitPredictions = async (newPredictions: {[key: string]: {home: number, away: number}}) => {
+    const handleSubmitPredictions = async (data: { 
+        scores: { [key: string]: { home: number; away: number } },
+        laveryCup?: {
+            team1: string;
+            team2: string;
+            roundId: string;
+        }
+    }) => {
         try {
             const user = (await supabase.auth.getUser()).data.user;
             if (!user) {
                 console.error('No user found');
                 return;
             }
-
-            const predictionsToUpsert = Object.entries(newPredictions).map(([fixture_id, scores]) => ({
+    
+            // Handle the scores (same as before)
+            const predictionsToUpsert = Object.entries(data.scores).map(([fixture_id, scores]) => ({
                 user_id: user.id,
                 fixture_id,
                 home_prediction: scores.home,
                 away_prediction: scores.away,
                 updated_at: new Date().toISOString()
             }));
-
+    
             const { error } = await supabase
                 .from('predictions')
                 .upsert(predictionsToUpsert, {
                     onConflict: 'user_id,fixture_id'
                 });
-
+    
             if (error) {
                 console.error('Error upserting predictions:', error);
                 return;
             }
-
-            setPredictions(newPredictions);
+    
+            // Handle Lavery Cup selections if present
+            if (data.laveryCup) {
+                const { team1, team2, roundId } = data.laveryCup;
+                
+                // Check if team selections already exist for this player and round
+                const { data: existingSelections, error: checkError } = await supabase
+                    .from('lavery_cup_selections')
+                    .select('id')
+                    .eq('player_id', user.id)
+                    .eq('round_id', roundId)
+                    .single();
+                    
+                if (checkError && checkError.code !== 'PGRST116') {
+                    console.error('Error checking existing selections:', checkError);
+                    return;
+                }
+                
+                // Insert or update Lavery Cup selections
+                const laveryCupData = {
+                    id: existingSelections?.id || uuidv4(),
+                    round_id: roundId,
+                    player_id: user.id,
+                    team1_name: team1,
+                    team2_name: team2,
+                    team1_won: null,
+                    team2_won: null,
+                    advanced: false
+                };
+                
+                const { error: laveryCupError } = await supabase
+                    .from('lavery_cup_selections')
+                    .upsert(laveryCupData);
+                    
+                if (laveryCupError) {
+                    console.error('Error saving Lavery Cup selections:', laveryCupError);
+                    return;
+                }
+                
+                // Track the used teams
+                const teamsToTrack = [
+                    {
+                        id: uuidv4(),
+                        season_id: gameWeeks.find(gw => gw.id === selectedGameWeek)?.season_id,
+                        player_id: user.id,
+                        team_name: team1
+                    },
+                    {
+                        id: uuidv4(),
+                        season_id: gameWeeks.find(gw => gw.id === selectedGameWeek)?.season_id,
+                        player_id: user.id,
+                        team_name: team2
+                    }
+                ];
+                
+                // Insert used teams, ignoring conflicts
+                const { error: teamsError } = await supabase
+                    .from('player_used_teams')
+                    .upsert(teamsToTrack, { onConflict: 'season_id,player_id,team_name' });
+                    
+                if (teamsError) {
+                    console.error('Error tracking used teams:', teamsError);
+                    return;
+                }
+            }
+    
+            setPredictions(data.scores);
             setIsEditing(false);
-
+    
         } catch (error) {
             console.error('Error in handleSubmitPredictions:', error);
         }
     };
-
+    
     if (loading) {
         return <div className="flex justify-center items-center h-screen">Loading...</div>;
     }
@@ -222,12 +298,14 @@ export default function PredictionsPage() {
                         <>
                             {checkGameWeekStatus(gameWeeks.find(gw => gw.id === selectedGameWeek)!) === 'predictions' ? (
                                 isEditing || Object.keys(predictions).length === 0 ? (
-                                    <PredictionsForm
-                                        fixtures={fixtures}
-                                        onSubmit={handleSubmitPredictions}
-                                        initialPredictions={predictions}
-                                        onBack={() => setSelectedGameWeek(null)}
-                                    />
+                                <PredictionsForm
+                                    fixtures={fixtures}
+                                    onSubmit={handleSubmitPredictions}
+                                    initialPredictions={predictions}
+                                    onBack={() => setSelectedGameWeek(null)}
+                                    gameWeekId={selectedGameWeek}
+                                    seasonId={gameWeeks.find(gw => gw.id === selectedGameWeek)?.season_id ?? ''}                                    playerId={userId || ''}
+                                />
                                 ) : (
                                 <PredictionsDisplay
                                     fixtures={fixtures}
