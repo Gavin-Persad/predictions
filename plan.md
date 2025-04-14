@@ -107,7 +107,21 @@
 
 19. create lavery cup
 
+- Create base page and link to view seasons✅
+- create round creation and link to game week✅
+- edit enterscores form to add lavery cup selection and link to supabase✅
+- edit predictions display to also show lavery cup selection✅
+- check round progression to winner
+- check reset lavery cup function
+
 20. view lavery cup
+
+- Create base page and link to view seasons
+- create view lavery cup component
+- have in rounds, similar to the george cup with scrollable columns and player list which is checked off
+- show selections only after live start
+- mark selections as correct or incorrect once scores are in.
+- no winners show reset coming warning
 
 21. Test cups and format
 
@@ -172,6 +186,7 @@ chat
 - page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.
 - add loading... to view seasons page when fetching seasons.
 - check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
+- errors showing when going to enter scores page due to adding lavery cup selections
 
 24. Test thoroughly with 1 player and 1 host
 

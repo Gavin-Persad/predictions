@@ -25,180 +25,166 @@ type PredictionDisplayProps = {
     canEdit?: boolean;
     onEdit?: () => void;
     onBack: () => void;
+    gameWeekId?: string; // Add this
+    playerId?: string;   // Add this
 };
 
-export default function PredictionsDisplay({ 
-    fixtures, 
-    predictions, 
-    gameWeekStatus,
-    canEdit,
-    onEdit,
-    onBack 
-}: PredictionDisplayProps) {
-    const [allPredictions, setAllPredictions] = useState<Array<{
-        fixture_id: string;
-        home_prediction: number;
-        away_prediction: number;
-    }>>([]);
-    const [loading, setLoading] = useState(true);
-    const [totalPoints, setTotalPoints] = useState(0);
-    const [correctScores, setCorrectScores] = useState(0);
+type LaveryCupRound = {
+    id: string;
+    round_number: number;
+    round_name: string;
+    game_week_id: string;
+};
 
-    useEffect(() => {
-        const fetchAllPredictions = async () => {
-            if (!fixtures.length) return;
-            
-            setLoading(true);
-            
-            const { data, error } = await supabase
-                .from('predictions')
-                .select('fixture_id, home_prediction, away_prediction')
-                .in('fixture_id', fixtures.map(f => f.id));
-    
-            if (error) {
-                console.error('Error fetching predictions:', error);
-                return;
-            }
-    
-            if (data) {
-                setAllPredictions(data);
-            }
-            setLoading(false);
-        };
-    
-        if (gameWeekStatus === 'past') {
-            fetchAllPredictions();
-        }
-    }, [fixtures, gameWeekStatus]);
+type LaveryCupSelection = {
+    team1_name: string;
+    team2_name: string;
+    team1_won: boolean | null;
+    team2_won: boolean | null;
+    advanced: boolean;
+};
 
-    useEffect(() => {
-        if (gameWeekStatus === 'past' && !loading) {
-            let scoreCount = 0;
-            let points = 0;
+    export default function PredictionsDisplay({ 
+        fixtures, 
+        predictions, 
+        gameWeekStatus, 
+        canEdit, 
+        onEdit,
+        onBack,
+        gameWeekId,
+        playerId
+    }: PredictionDisplayProps) {
+        const [laveryCupRound, setLaveryCupRound] = useState<LaveryCupRound | null>(null);
+        const [laveryCupSelection, setLaveryCupSelection] = useState<LaveryCupSelection | null>(null);
+        const [loading, setLoading] = useState(false);
 
-            fixtures.forEach(fixture => {
-                if (predictions[fixture.id] && typeof fixture.home_score === 'number' && typeof fixture.away_score === 'number') {
-                    const basePoints = calculatePoints(
-                        { home_prediction: predictions[fixture.id].home, away_prediction: predictions[fixture.id].away },
-                        { home_score: fixture.home_score, away_score: fixture.away_score }
-                    );
-
-                    if (predictions[fixture.id].home === fixture.home_score && 
-                        predictions[fixture.id].away === fixture.away_score) {
-                        scoreCount++;
+        useEffect(() => {
+            const fetchLaveryCupData = async () => {
+                if (!gameWeekId || !playerId) return;
+                
+                setLoading(true);
+                try {
+                    // Check if this game week is part of a Lavery Cup round
+                    const { data: roundData } = await supabase
+                        .from('lavery_cup_rounds')
+                        .select('*')
+                        .eq('game_week_id', gameWeekId)
+                        .single();
+                    
+                    if (roundData) {
+                        setLaveryCupRound(roundData);
+                        
+                        // Get the user's selections for this round
+                        const { data: selectionData } = await supabase
+                            .from('lavery_cup_selections')
+                            .select('*')
+                            .eq('round_id', roundData.id)
+                            .eq('player_id', playerId)
+                            .single();
+                        
+                        if (selectionData) {
+                            setLaveryCupSelection(selectionData);
+                        }
                     }
-
-                    const isUnique = allPredictions?.filter(p => 
-                        p.fixture_id === fixture.id && 
-                        p.home_prediction === predictions[fixture.id].home && 
-                        p.away_prediction === predictions[fixture.id].away
-                    ).length === 1;
-
-                    points += basePoints + (isUnique && basePoints >= 3 ? 2 : 0);
+                } catch (error) {
+                    console.error('Error fetching Lavery Cup data:', error);
+                } finally {
+                    setLoading(false);
                 }
-            });
-
-            const weeklyBonus = calculateWeeklyCorrectScoreBonus(scoreCount);
-            setCorrectScores(scoreCount);
-            setTotalPoints(points + weeklyBonus);
-        }
-    }, [fixtures, predictions, allPredictions, gameWeekStatus, loading]);
-
-    const renderScoreBreakdown = (fixture: typeof fixtures[0]) => {
-        if (gameWeekStatus === 'past' && 
-            predictions[fixture.id] && 
-            typeof fixture.home_score === 'number' && 
-            typeof fixture.away_score === 'number' && 
-            !loading) {
-            return (
-                <div className="flex justify-end mt-2">
-                    <div className="w-64 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-                        <ScoreBreakdown
-                            prediction={predictions[fixture.id]}
-                            fixture={{
-                                id: fixture.id,
-                                home_team: fixture.home_team,
-                                away_team: fixture.away_team,
-                                home_score: fixture.home_score,
-                                away_score: fixture.away_score
-                            }}
-                            allPredictions={allPredictions}
-                        />
-                    </div>
-                </div>
-            );
-        }
-        return null;
-    };
-
-    return (
-        <div className="space-y-4">
-            <button
-                onClick={onBack}
-                className="mb-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-            >
-                Back
-            </button>
+            };
             
-            {fixtures.map(fixture => (
-                <div key={fixture.id} className="p-4 bg-white dark:bg-gray-800 rounded shadow">
-                    <div className="grid grid-cols-3 gap-4 items-center">
-                        <div className="text-right text-gray-900 dark:text-gray-100">
-                            {fixture.home_team}
+            fetchLaveryCupData();
+        }, [gameWeekId, playerId]);
+
+        // Add a helper function to render team status
+        const renderTeamStatus = (won: boolean | null) => {
+            if (won === null) return null;
+            if (won) return <span className="text-green-600 font-bold">(Won)</span>;
+            return <span className="text-red-600 font-bold">(Lost)</span>;
+        };
+
+        return (
+            <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                    <button
+                        onClick={onBack}
+                        className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                    >
+                        Back
+                    </button>
+                    {canEdit && gameWeekStatus === 'predictions' && (
+                        <button
+                            onClick={onEdit}
+                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                            Edit Predictions
+                        </button>
+                    )}
+                </div>
+                
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Your Predictions</h2>
+                
+                <div className="space-y-4">
+                    {fixtures.map((fixture) => (
+                        <div key={fixture.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 items-center bg-gray-50 dark:bg-gray-800 p-3 rounded-lg text-gray-900 dark:text-white">
+                            <div className="text-center sm:text-right text-sm sm:text-base">{fixture.home_team}</div>
+                            <div className="flex justify-center space-x-2 font-bold">
+                                {predictions[fixture.id] ? (
+                                    <>
+                                        <span>{predictions[fixture.id].home}</span>
+                                        <span>-</span>
+                                        <span>{predictions[fixture.id].away}</span>
+                                    </>
+                                ) : (
+                                    <span className="text-gray-400">No prediction</span>
+                                )}
+                            </div>
+                            <div className="text-center sm:text-left text-sm sm:text-base">{fixture.away_team}</div>
                         </div>
-                        <div className="text-center text-gray-900 dark:text-gray-100">
-                            {predictions[fixture.id] ? (
-                                `${predictions[fixture.id].home} - ${predictions[fixture.id].away}`
-                            ) : (
-                                'No prediction'
+                    ))}
+                </div>
+                
+                {/* Lavery Cup Selections */}
+                {laveryCupRound && laveryCupSelection && (
+                    <div className="mt-8 pt-6 border-t dark:border-gray-700">
+                        <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+                            Lavery Cup Selections - {laveryCupRound.round_name}
+                        </h3>
+                        
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex flex-col">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Team 1</p>
+                                    <p className="font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+                                    <span>{laveryCupSelection.team1_name}</span>
+                                    {gameWeekStatus === 'past' && renderTeamStatus(laveryCupSelection.team1_won)}
+
+                                    </p>
+                                </div>
+                                
+                                <div className="flex flex-col">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Team 2</p>
+                                    <p className="font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+                                    <span>{laveryCupSelection.team2_name}</span>
+                                    {gameWeekStatus === 'past' && renderTeamStatus(laveryCupSelection.team2_won)}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            {gameWeekStatus === 'past' && (
+                                <div className="mt-4 pt-4 border-t dark:border-gray-700">
+                                    <p className="font-medium text-gray-900 dark:text-white">
+                                        Status: {laveryCupSelection.advanced ? (
+                                            <span className="text-green-600">Advanced to next round</span>
+                                        ) : (
+                                            <span className="text-red-600">Eliminated</span>
+                                        )}
+                                    </p>
+                                </div>
                             )}
                         </div>
-                        <div className="text-left text-gray-900 dark:text-gray-100">
-                            {fixture.away_team}
-                        </div>
                     </div>
-                    {renderScoreBreakdown(fixture)}
-                </div>
-            ))}
-            
-            {gameWeekStatus === 'past' && !loading && (
-                <div className="flex justify-end mt-6">
-                    <div className="w-64 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-                        <div className="text-sm space-y-2">
-                            <div className="font-semibold text-gray-900 dark:text-gray-100">
-                                Weekly Summary
-                            </div>
-                            <div className="grid gap-1.5">
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600 dark:text-gray-400">Exact scores:</span>
-                                    <span className="text-gray-900 dark:text-gray-100">{correctScores}</span>
-                                </div>
-                                {correctScores >= 4 && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600 dark:text-gray-400">Weekly bonus:</span>
-                                        <span className="text-emerald-600 dark:text-emerald-400">
-                                            +{calculateWeeklyCorrectScoreBonus(correctScores)}
-                                        </span>
-                                    </div>
-                                )}
-                                <div className="flex justify-between pt-1 border-t border-gray-200 dark:border-gray-700">
-                                    <span className="font-medium text-gray-900 dark:text-gray-100">Total points:</span>
-                                    <span className="font-bold text-gray-900 dark:text-gray-100">{totalPoints}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-            
-            {gameWeekStatus === 'predictions' && canEdit && (
-                <button
-                    onClick={onEdit}
-                    className="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                    Edit Predictions
-                </button>
-            )}
-        </div>
-    );
-}
+                )}
+            </div>
+        );
+    }

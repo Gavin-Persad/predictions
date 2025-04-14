@@ -14,6 +14,8 @@ import GameWeekOptions from './components/GameWeekOptions';
 import LeagueTable from './components/leagueTable';
 import ViewGeorgeCup from './components/georgeCup/viewGeorgeCup';
 import EditGeorgeCup from './components/georgeCup/EditGeorgeCup';
+import ViewLaveryCup from './components/laveryCup/viewLaveryCup';
+import EditLaveryCup from './components/laveryCup/editLaveryCup';
 
 type Season = {
     id: string;
@@ -300,6 +302,16 @@ export default function ViewSeason() {
                         <EditGeorgeCup
                             seasonId={selectedSeason.id}
                             onClose={() => setEditGeorgeCup(false)}
+                        />
+                    ) : showLaveryCup ? (
+                        <ViewLaveryCup
+                            seasonId={selectedSeason.id}
+                            onClose={() => setShowLaveryCup(false)}
+                        />
+                    ) : editLaveryCup ? (
+                        <EditLaveryCup
+                            seasonId={selectedSeason.id}
+                            onClose={() => setEditLaveryCup(false)}
                         />
                     ) : gameWeekOptionView ? (
                         <GameWeekOptions
