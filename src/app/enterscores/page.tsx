@@ -23,7 +23,13 @@ type GameWeek = {
         id: string;
         name: string;
     };
+    lavery_cup_rounds: Array<{
+        id: string;
+        round_number: number;
+        round_name: string;
+    }>;
 };
+
 type Fixture = {
     id: string;
     fixture_number: number;
@@ -64,7 +70,7 @@ export default function PredictionsPage() {
                 router.push('/');
                 return;
             }
-
+    
             setUserId(session.user.id);
     
             const { data, error } = await supabase
@@ -74,6 +80,11 @@ export default function PredictionsPage() {
                 seasons (
                     id,
                     name
+                ),
+                lavery_cup_rounds (
+                    id,
+                    round_number,
+                    round_name
                 )
             `)
             .order('week_number', { ascending: false });
@@ -267,33 +278,41 @@ export default function PredictionsPage() {
                                 Game Week Predictions
                             </h1>
                             <div className="space-y-4">
-                                {gameWeeks.map((gameWeek) => {
-                                    const status = checkGameWeekStatus(gameWeek);
-                                    return (
-                                        <button
-                                            key={gameWeek.id}
-                                            onClick={() => setSelectedGameWeek(gameWeek.id)}
-                                            className={`w-full p-4 rounded-lg shadow transition-colors duration-200 ${getStatusStyle(status)}`}
-                                        >
-                                            <div className="flex justify-between items-center">
-                                                <div className="text-left">
-                                                    <div className="font-medium">
-                                                        Game Week {gameWeek.week_number}, {gameWeek.seasons.name}
-                                                    </div>
-                                                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                                                        {new Date(gameWeek.live_start).toLocaleDateString()} - {new Date(gameWeek.live_end).toLocaleDateString()}
-                                                    </div>
+                            {gameWeeks.map((gameWeek) => {
+                                const status = checkGameWeekStatus(gameWeek);
+                                const hasLaveryCupRound = gameWeek.lavery_cup_rounds && gameWeek.lavery_cup_rounds.length > 0;
+                                return (
+                                    <button
+                                        key={gameWeek.id}
+                                        onClick={() => setSelectedGameWeek(gameWeek.id)}
+                                        className={`w-full p-4 rounded-lg shadow transition-colors duration-200 ${getStatusStyle(status)}`}
+                                    >
+                                        <div className="flex justify-between items-center">
+                                            <div className="text-left">
+                                                <div className="font-medium">
+                                                    Game Week {gameWeek.week_number}, {gameWeek.seasons.name}
                                                 </div>
-                                                <span className="text-sm">
-                                                    {status === 'predictions' && 'Open for Predictions'}
-                                                    {status === 'live' && 'Live'}
-                                                    {status === 'past' && 'Closed'}
-                                                    {status === 'upcoming' && 'Upcoming'}
-                                                </span>
+                                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                    {new Date(gameWeek.live_start).toLocaleDateString()} - {new Date(gameWeek.live_end).toLocaleDateString()}
+                                                </div>
+                                                {hasLaveryCupRound && (
+                                                    <div className="mt-2">
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                            Lavery Cup - {gameWeek.lavery_cup_rounds[0].round_name}
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
-                                        </button>
-                                    );
-                                })}
+                                            <span className="text-sm">
+                                                {status === 'predictions' && 'Open for Predictions'}
+                                                {status === 'live' && 'Live'}
+                                                {status === 'past' && 'Closed'}
+                                                {status === 'upcoming' && 'Upcoming'}
+                                            </span>
+                                        </div>
+                                    </button>
+                                );
+                            })}
                             </div>
                         </>
                     ) : (

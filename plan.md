@@ -110,7 +110,7 @@
 - Create base page and link to view seasons✅
 - create round creation and link to game week✅
 - edit enterscores form to add lavery cup selection and link to supabase✅
-- edit predictions display to also show lavery cup selection
+- edit predictions display to also show lavery cup selection✅
 - check round progression to winner
 - check reset lavery cup function
 
