@@ -4,8 +4,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../../../../supabaseClient";
-import { Layout } from "./editLaveryCupLayout";
 import { format } from "date-fns";
+import { v4 as uuidv4 } from 'uuid';
 
 interface Props {
     seasonId: string;
@@ -16,14 +16,6 @@ type Player = {
     id: string;
     username: string;
 };
-
-type SeasonPlayerWithProfile = {
-    player_id: string;
-    profiles: {
-      id: string;
-      username: string;
-    };
-  };
 
 type GameWeek = {
     id: string;
@@ -183,10 +175,13 @@ export default function EditLaveryCup({ seasonId, onClose }: Props): JSX.Element
         try {
             const roundNumber = rounds.length ? Math.max(...rounds.map(r => r.round_number)) + 1 : 1;
             const roundName = `Round ${roundNumber}`;
+
+            const newRoundId = uuidv4();
             
             const { data: newRound, error } = await supabase
                 .from('lavery_cup_rounds')
                 .insert([{
+                    id: newRoundId,
                     season_id: seasonId,
                     round_number: roundNumber,
                     round_name: roundName,
