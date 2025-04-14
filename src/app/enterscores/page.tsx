@@ -64,6 +64,8 @@ export default function PredictionsPage() {
                 router.push('/');
                 return;
             }
+
+            setUserId(session.user.id);
     
             const { data, error } = await supabase
             .from('game_weeks')
@@ -314,6 +316,8 @@ export default function PredictionsPage() {
                                     canEdit={true}
                                     onEdit={() => setIsEditing(true)}
                                     onBack={() => setSelectedGameWeek(null)}
+                                    gameWeekId={selectedGameWeek}
+                                    playerId={userId || ''}
                                 />
                                 )
                             ) : (
@@ -324,6 +328,8 @@ export default function PredictionsPage() {
                                     canEdit={true}
                                     onEdit={() => setIsEditing(true)}
                                     onBack={() => setSelectedGameWeek(null)}
+                                    gameWeekId={selectedGameWeek}
+                                    playerId={userId || ''}
                                 />
                             )}
                         </>
