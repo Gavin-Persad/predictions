@@ -111,16 +111,16 @@
 - create round creation and link to game week✅
 - edit enterscores form to add lavery cup selection and link to supabase✅
 - edit predictions display to also show lavery cup selection✅
-- check round progression to winner
-- check reset lavery cup function
+- check round progression to winner⏳
+- check reset lavery cup function⏳
 
-20. view lavery cup
+20. view lavery cup✅
 
-- Create base page and link to view seasons
-- create view lavery cup component
-- have in rounds, similar to the george cup with scrollable columns and player list which is checked off
-- show selections only after live start
-- mark selections as correct or incorrect once scores are in.
+- Create base page and link to view seasons✅
+- create view lavery cup component✅
+- have in rounds, similar to the george cup with scrollable columns and player list which is checked off✅
+- show selections only after live start✅
+- mark selections as correct or incorrect once scores are in.✅
 - no winners show reset coming warning
 
 21. Test cups and format
@@ -176,7 +176,7 @@ chat
 - view game week, change to (title: game week, sub: as is live open to close )✅
 - edit game week, change to (title: game week, sub: as is live open to close )✅
 - enter scores, change to (title: game week, sub: as is live open to close )✅
-- history page, seasons winners cup winners etc. needs supabase table
+- history page, seasons winners cup winners etc. needs supabase table updated by other areas(individual comps)
 - add season name as title to view seasons page
   about me
 - small page, add to side menu, that has information about me and the project, git hub links etc. Also add this to side bar menu.

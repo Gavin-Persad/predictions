@@ -10,10 +10,16 @@ type PlayerBoxStyles = {
     currentUser: string;
 }
 
+type SelectionBoxStyles = {
+    base: string;
+    currentUser: string;
+}
+
 type LayoutStyles = {
     container: string;
     column: string;
     roundTitle: string;
+    selectionBox: SelectionBoxStyles;
     fixtureBox: string;
     pastRound: string;
     activeRound: string;
@@ -27,6 +33,10 @@ export const Layout: LayoutStyles = {
     column: "min-w-[250px] flex-shrink-0 flex flex-col h-full",
     roundTitle: "text-lg font-bold mb-2 text-gray-900 dark:text-gray-100 sticky top-0 bg-white dark:bg-gray-800 py-2",
     fixtureBox: "border rounded p-3 mb-2 bg-gray-200 dark:bg-gray-700",
+    selectionBox: {
+        base: "border rounded p-3 mb-2 bg-gray-200 dark:bg-gray-700",
+        currentUser: "border-2 border-blue-500"
+    },
     pastRound: "bg-gray-100 dark:bg-gray-700/50",
     activeRound: "bg-white dark:bg-gray-800",
     playerBox: {
