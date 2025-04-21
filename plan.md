@@ -111,6 +111,7 @@
 - create round creation and link to game week✅
 - edit enterscores form to add lavery cup selection and link to supabase✅
 - edit predictions display to also show lavery cup selection✅
+- update enter scores to allow for lavery cup markings. Add second page if there is a lavery cup. This page will have the teams that have been selected, host will need to tick the winners. Then submit. The modal will then show the two pages, first the correct scores, when you hit confirm you will then see the second page of the modal, the lavery cup selections and markings. When you hit confirm on this we will then update the supabase as already set we will also now update the lavery_cup_rounds table is_complete and update the lavery_cup_selections table team1_won and team2_won on supabase.
 - check round progression to winner⏳
 - check reset lavery cup function⏳
 
@@ -187,6 +188,7 @@ chat
 - add loading... to view seasons page when fetching seasons.
 - check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
 - errors showing when going to enter scores page due to adding lavery cup selections
+- view george cup - scroll bar for columns is just off bottom of the page
 
 24. Test thoroughly with 1 player and 1 host
 
