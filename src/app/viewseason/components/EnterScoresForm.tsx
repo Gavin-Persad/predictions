@@ -533,9 +533,11 @@ const LaveryCupConfirmModal = ({
                 // Calculate which players advance
                 const updatedSelections = laveryCupSelections.map(selection => ({
                     ...selection,
+                    team1_won: selection.team1_won === true,
+                    team2_won: selection.team2_won === true,
                     advanced: selection.team1_won === true && selection.team2_won === true
                 }));
-                
+
                 // Update each selection individually to avoid losing required fields
                 for (const selection of updatedSelections) {
                     const { error: selectionError } = await supabase
@@ -583,13 +585,8 @@ const LaveryCupConfirmModal = ({
             return;
         }
     
-        // If there's a Lavery Cup round, go to the Lavery Cup form
-        if (laveryCupRound && !laveryCupRound.is_complete) {
-            setShowScoresForm(false);
-        } else {
-            // Otherwise show confirmation modal for regular scores
-            setShowConfirmModal(true);
-        }
+        // Always show confirmation modal first
+        setShowConfirmModal(true);
     };
 
     const handleSubmitLaveryCup = () => {
