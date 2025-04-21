@@ -111,19 +111,25 @@
 - create round creation and link to game week✅
 - edit enterscores form to add lavery cup selection and link to supabase✅
 - edit predictions display to also show lavery cup selection✅
-- check round progression to winner
-- check reset lavery cup function
+- update enter scores to allow for lavery cup markings. Add second page if there is a lavery cup. This page will have the teams that have been selected, host will need to tick the winners. Then submit. The modal will then show the two pages, first the correct scores, when you hit confirm you will then see the second page of the modal, the lavery cup selections and markings. When you hit confirm on this we will then update the supabase as already set we will also now update the lavery_cup_rounds table is_complete and update the lavery_cup_selections table team1_won and team2_won on supabase.✅
+- lavery cup issues✅
+- modal flow not working - opening modal on page 2, buttons are not taking you to the correct places.
+- update leagues button issues✅
+- if team is not selected then boolean should be updated to false on lavery_cup_selection table.✅
+- if both booleans are true then should also update the advanced column on lavery_cup_selection table✅
+- check round progression to winner✅
+- check reset lavery cup function⏳
 
-20. view lavery cup
+20. view lavery cup✅
 
-- Create base page and link to view seasons
-- create view lavery cup component
-- have in rounds, similar to the george cup with scrollable columns and player list which is checked off
-- show selections only after live start
-- mark selections as correct or incorrect once scores are in.
+- Create base page and link to view seasons✅
+- create view lavery cup component✅
+- have in rounds, similar to the george cup with scrollable columns and player list which is checked off✅
+- show selections only after live start✅
+- mark selections as correct or incorrect once scores are in.✅
 - no winners show reset coming warning
 
-21. Test cups and format
+21. Test cups and format⏳
 
 22. Make Dashboard
 
@@ -176,7 +182,7 @@ chat
 - view game week, change to (title: game week, sub: as is live open to close )✅
 - edit game week, change to (title: game week, sub: as is live open to close )✅
 - enter scores, change to (title: game week, sub: as is live open to close )✅
-- history page, seasons winners cup winners etc. needs supabase table
+- history page, seasons winners cup winners etc. needs supabase table updated by other areas(individual comps)
 - add season name as title to view seasons page
   about me
 - small page, add to side menu, that has information about me and the project, git hub links etc. Also add this to side bar menu.
@@ -187,6 +193,7 @@ chat
 - add loading... to view seasons page when fetching seasons.
 - check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
 - errors showing when going to enter scores page due to adding lavery cup selections
+- view george cup - scroll bar for columns is just off bottom of the page
 
 24. Test thoroughly with 1 player and 1 host
 
