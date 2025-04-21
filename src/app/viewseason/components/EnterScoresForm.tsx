@@ -530,25 +530,25 @@ const LaveryCupConfirmModal = ({
             
             // 9. If there's a Lavery Cup round, update those selections
             if (laveryCupRound && laveryCupSelections.length > 0) {
-                // Calculate which players advance (both teams won)
+                // Calculate which players advance
                 const updatedSelections = laveryCupSelections.map(selection => ({
                     ...selection,
                     advanced: selection.team1_won === true && selection.team2_won === true
                 }));
                 
-                // Update lavery_cup_selections
-                const { error: laveryCupSelectionsError } = await supabase
-                    .from('lavery_cup_selections')
-                    .upsert(
-                        updatedSelections.map(({ id, team1_won, team2_won, advanced }) => ({
-                            id,
-                            team1_won,
-                            team2_won,
-                            advanced
-                        }))
-                    );
-                
-                if (laveryCupSelectionsError) throw laveryCupSelectionsError;
+                // Update each selection individually to avoid losing required fields
+                for (const selection of updatedSelections) {
+                    const { error: selectionError } = await supabase
+                        .from('lavery_cup_selections')
+                        .update({
+                            team1_won: selection.team1_won,
+                            team2_won: selection.team2_won,
+                            advanced: selection.advanced
+                        })
+                        .eq('id', selection.id);
+                    
+                    if (selectionError) throw selectionError;
+                }
                 
                 // Mark the round as complete
                 const { error: roundUpdateError } = await supabase
@@ -685,11 +685,15 @@ const LaveryCupConfirmModal = ({
             {showConfirmModal && (
                 <ConfirmScoresModal
                     fixtures={fixtures}
-                    onConfirm={laveryCupRound ? () => setShowLaveryCupModal(true) : handleSaveAll}
+                    onConfirm={() => {
+                        if (!laveryCupRound || laveryCupRound.is_complete) {
+                            handleSaveAll();
+                        }
+                    }}
                     onCancel={() => setShowConfirmModal(false)}
                     onNext={() => {
                         setShowConfirmModal(false);
-                        setShowLaveryCupModal(true);
+                        setShowScoresForm(false);
                     }}
                     hasLaveryCup={!!laveryCupRound && !laveryCupRound.is_complete}
                 />
