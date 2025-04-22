@@ -96,34 +96,62 @@ export default function ScoreBreakdown(props: ScoreBreakdownProps) {
             { home_score: fixture.home_score!, away_score: fixture.away_score! }
         );
         
-        if (points >= 3) correctScoreCount++;
-        totalPoints += points;
+        const isUnique = points === 3 && 
+        props.uniqueCorrectScores && 
+        props.uniqueCorrectScores[fixture.id];
+    
+        const uniqueBonus = isUnique ? 2 : 0;
+        const totalFixturePoints = points + uniqueBonus;
         
-        return { fixture, prediction, points };
+        if (points >= 3) correctScoreCount++;
+        totalPoints += totalFixturePoints;
+        
+        return { 
+            fixture, 
+            prediction, 
+            basePoints: points,
+            isUniqueCorrect: isUnique,
+            uniqueBonus,
+            totalPoints: totalFixturePoints 
+        };
     })
-    .filter(item => item.points > 0);
+    .filter(item => item.basePoints > 0);
     
     const weeklyBonus = showWeeklyBonus ? calculateWeeklyCorrectScoreBonus(correctScoreCount) : 0;
     const grandTotal = totalPoints + weeklyBonus;
     
     return (
         <div className="text-sm space-y-4">
-            
-            {fixturePoints.map(({ fixture, points }) => (
+            {fixturePoints.map(({ fixture, basePoints, isUniqueCorrect, uniqueBonus, totalPoints: fixtureTotal }) => (
                 <div key={fixture.id} className="grid gap-1.5 pb-2 border-b border-gray-200 dark:border-gray-700">
                     <div className="font-medium text-gray-900 dark:text-gray-100">
                         {fixture.home_team} vs {fixture.away_team}
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">Points:</span>
-                        <span className="text-gray-900 dark:text-gray-100">{points}</span>
+                        <span className="text-gray-600 dark:text-gray-400">Base points:</span>
+                        <span className="text-gray-900 dark:text-gray-100">{basePoints}</span>
                     </div>
+                    
+                    {isUniqueCorrect && (
+                        <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Unique correct score bonus:</span>
+                            <span className="text-emerald-600 dark:text-emerald-400">+2</span>
+                        </div>
+                    )}
+                    
+                    {(isUniqueCorrect) && (
+                        <div className="flex justify-between pt-1 border-t border-gray-200 dark:border-gray-700">
+                            <span className="font-medium text-gray-600 dark:text-gray-400">Fixture total:</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">{fixtureTotal}</span>
+                        </div>
+                    )}
                 </div>
             ))}
             
+            {/* Summary section for all fixtures */}
             <div className="grid gap-1.5 pt-2">
                 <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Base points total:</span>
+                    <span className="text-gray-600 dark:text-gray-400">Base and unique points total:</span>
                     <span className="text-gray-900 dark:text-gray-100">{totalPoints}</span>
                 </div>
                 
