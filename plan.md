@@ -127,7 +127,9 @@
 - have in rounds, similar to the george cup with scrollable columns and player list which is checked off✅
 - show selections only after live start✅
 - mark selections as correct or incorrect once scores are in.✅
-- no winners show reset coming warning
+- one round complete and one player shows as winner, winner should only show when one player is left and all others eliminated. Once a second round it added, the winners column is removed.
+- players not being checked off on the players list when eliminated.
+- no winners show reset coming warning⏳
 
 21. Test cups and format⏳
 
@@ -194,6 +196,8 @@ chat
 - check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
 - errors showing when going to enter scores page due to adding lavery cup selections
 - view george cup - scroll bar for columns is just off bottom of the page
+- my predictions, an entered form says elminated on lavery cup before host has entered scores, this should say waiting on results.
+- george cup doesn't show winners or player vs player games until next round is drawn, winners should show as soon as there are points in place.
 
 24. Test thoroughly with 1 player and 1 host
 
