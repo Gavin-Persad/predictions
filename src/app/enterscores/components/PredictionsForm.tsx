@@ -88,11 +88,51 @@ export default function PredictionsForm({
                 router.push('/');
                 return;
             }
-
+    
             try {
                 setLoading(true);
                 
-                // Check if this game week is part of a Lavery Cup round
+                // Define the eligibility check function inside the effect
+                const checkPlayerEligibility = async (roundData: LaveryCupRound): Promise<boolean> => {
+                    // If it's the first round, everyone is eligible
+                    if (roundData.round_number === 1) return true;
+                    
+                    // For rounds 2+, check if player advanced from previous round
+                    try {
+                        // Find the previous round
+                        const { data: previousRounds } = await supabase
+                            .from('lavery_cup_rounds')
+                            .select('*')
+                            .eq('season_id', seasonId)
+                            .lt('round_number', roundData.round_number)
+                            .order('round_number', { ascending: false })
+                            .limit(1);
+                        
+                        if (!previousRounds || previousRounds.length === 0) return false;
+                        
+                        const previousRound = previousRounds[0];
+                        
+                        // Check if player advanced from the previous round
+                        const { data: prevSelection } = await supabase
+                            .from('lavery_cup_selections')
+                            .select('advanced')
+                            .eq('player_id', playerId)
+                            .eq('round_id', previousRound.id)
+                            .single();
+                        
+                        // If no selection found or not advanced, player is not eligible
+                        if (!prevSelection || !prevSelection.advanced) {
+                            return false;
+                        }
+                        
+                        return true;
+                    } catch (error) {
+                        console.error('Error checking player eligibility:', error);
+                        return false;
+                    }
+                };
+                
+                // Fetch Lavery Cup round data
                 const { data: roundData, error: roundError } = await supabase
                     .from('lavery_cup_rounds')
                     .select('*')
@@ -101,43 +141,51 @@ export default function PredictionsForm({
                     .single();
                 
                 if (roundError && roundError.code !== 'PGRST116') {
-                    // PGRST116 means no rows returned, which is fine, not all game weeks have a Lavery Cup round
                     console.error('Error fetching Lavery Cup round:', roundError);
                 }
                 
                 if (roundData) {
-                    setLaveryCupRound(roundData);
+                    // Use the local eligibility checking function
+                    const isEligible = await checkPlayerEligibility(roundData);
                     
-                    // If we have a round, fetch previously used teams
-                    const { data: usedTeamsData, error: usedTeamsError } = await supabase
-                        .from('player_used_teams')
-                        .select('team_name')
-                        .eq('player_id', playerId)
-                        .eq('season_id', seasonId);
-                    
-                    if (usedTeamsError) {
-                        console.error('Error fetching used teams:', usedTeamsError);
-                    }
-                    
-                    if (usedTeamsData) {
-                        setUsedTeams(usedTeamsData.map(item => item.team_name));
-                    }
-                    
-                    // Check if player already has selections for this round
-                    const { data: existingSelections, error: selectionsError } = await supabase
-                        .from('lavery_cup_selections')
-                        .select('team1_name, team2_name')
-                        .eq('player_id', playerId)
-                        .eq('round_id', roundData.id)
-                        .single();
-                    
-                    if (selectionsError && selectionsError.code !== 'PGRST116') {
-                        console.error('Error fetching existing selections:', selectionsError);
-                    }
-                    
-                    if (existingSelections) {
-                        setLaveryCupTeam1(existingSelections.team1_name);
-                        setLaveryCupTeam2(existingSelections.team2_name);
+                    if (!isEligible) {
+                        // Player is eliminated - don't show the Lavery Cup section
+                        setLaveryCupRound(null);
+                    } else {
+                        // Player is eligible - show the Lavery Cup section
+                        setLaveryCupRound(roundData);
+                        
+                        // Fetch used teams for this player
+                        const { data: usedTeamsData, error: usedTeamsError } = await supabase
+                            .from('player_used_teams')
+                            .select('team_name')
+                            .eq('player_id', playerId)
+                            .eq('season_id', seasonId);
+                        
+                        if (usedTeamsError) {
+                            console.error('Error fetching used teams:', usedTeamsError);
+                        }
+                        
+                        if (usedTeamsData) {
+                            setUsedTeams(usedTeamsData.map(item => item.team_name));
+                        }
+                        
+                        // Check for existing selections
+                        const { data: existingSelections, error: selectionsError } = await supabase
+                            .from('lavery_cup_selections')
+                            .select('team1_name, team2_name')
+                            .eq('player_id', playerId)
+                            .eq('round_id', roundData.id)
+                            .single();
+                        
+                        if (selectionsError && selectionsError.code !== 'PGRST116') {
+                            console.error('Error fetching existing selections:', selectionsError);
+                        }
+                        
+                        if (existingSelections) {
+                            setLaveryCupTeam1(existingSelections.team1_name);
+                            setLaveryCupTeam2(existingSelections.team2_name);
+                        }
                     }
                 }
             } catch (error) {
@@ -146,20 +194,18 @@ export default function PredictionsForm({
                 setLoading(false);
             }
         };
-
+        
         checkAuthAndFetchData();
     }, [router, gameWeekId, seasonId, playerId]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
-        // If there's a Lavery Cup round and both teams are not selected, show an error
         if (laveryCupRound && (!laveryCupTeam1 || !laveryCupTeam2)) {
             alert('Please select two different teams for the Lavery Cup');
             return;
         }
         
-        // If there's a Lavery Cup round, include the selections
         if (laveryCupRound) {
             onSubmit({
                 scores: predictions,
@@ -174,7 +220,6 @@ export default function PredictionsForm({
         }
     };
 
-    // Generate list of available teams (teams not yet used)
     const allTeams = [...FOOTBALL_TEAMS["Premier League"], ...FOOTBALL_TEAMS["EFL Championship"]].sort();
     
     return (
