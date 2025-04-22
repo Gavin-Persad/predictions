@@ -186,9 +186,47 @@ type LaveryCupSelection = {
                                 )}
                             </div>
                             <div className="text-center sm:text-left text-sm sm:text-base">{fixture.away_team}</div>
+                            {gameWeekStatus === 'past' && 
+                                fixture.home_score !== null && 
+                                fixture.away_score !== null && 
+                                predictions[fixture.id] && (
+                                    <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mt-2">
+                                        <ScoreBreakdown 
+                                            prediction={predictions[fixture.id]} 
+                                            fixture={{
+                                                id: fixture.id,
+                                                home_team: fixture.home_team,
+                                                away_team: fixture.away_team,
+                                                home_score: fixture.home_score!,
+                                                away_score: fixture.away_score!
+                                            }}
+                                        />
+                                    </div>
+                                )}
                         </div>
                     ))}
                 </div>
+
+                {gameWeekStatus === 'past' && fixtures.some(f => f.home_score !== null) && (
+                    <div className="mt-8 pt-6 border-t dark:border-gray-700">
+                        <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+                            Score Breakdown
+                        </h3>
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                            <ScoreBreakdown 
+                                fixtures={fixtures.map(fixture => ({
+                                    id: fixture.id,
+                                    home_team: fixture.home_team,
+                                    away_team: fixture.away_team,
+                                    home_score: fixture.home_score ?? null,
+                                    away_score: fixture.away_score ?? null
+                                }))}
+                                predictions={predictions}
+                                showWeeklyBonus={true}
+/>
+                        </div>
+                    </div>
+                )}
                 
                 {/* Lavery Cup Selections */}
                 {laveryCupRound && laveryCupSelection && (
