@@ -47,7 +47,6 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
     const [loading, setLoading] = useState(true);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-    // Get current user
     useEffect(() => {
         const getCurrentUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
@@ -57,13 +56,11 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
         getCurrentUser();
     }, []);
 
-    // Main data fetching
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
                 
-                // Get season name
                 const { data: seasonData, error: seasonError } = await supabase
                     .from('seasons')
                     .select('name')
@@ -73,7 +70,6 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
                 if (seasonError) throw seasonError;
                 setSeasonName(seasonData.name);
                 
-                // Get players for this season
                 const { data: playersData, error: playersError } = await supabase
                     .from('season_players')
                     .select(`
@@ -122,7 +118,6 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
                     }, {} as Record<string, any>);
                 }
                 
-                // Process rounds with game week dates
                 const processedRounds = roundsData.map(round => ({
                     ...round,
                     game_week_start_date: round.game_week_id && gameWeeks[round.game_week_id] ? 
@@ -131,7 +126,6 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
                 
                 setRounds(processedRounds);
                 
-                // Get selections for all rounds
                 const selectionsObj: Record<string, Selection[]> = {};
                 
                 for (const round of processedRounds) {
@@ -167,7 +161,6 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
         fetchData();
     }, [seasonId]);
 
-    // Format date
     const formatDate = (dateString?: string | null) => {
         if (!dateString) return '';
         try {
@@ -177,31 +170,24 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
         }
     };
 
-    // Check if selections should be hidden (before live start)
     const isRoundLive = (round: Round) => {
         if (!round.game_week_start_date) return false;
         return new Date() >= new Date(round.game_week_start_date);
     };
 
-    // Get class for team display based on win status
     const getTeamStatusClass = (isWin: boolean | null) => {
         if (isWin === null) return '';
         return isWin ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400 line-through';
     };
     
-    // Check if player is eliminated (hasn't advanced from previous rounds)
     const isPlayerEliminated = (playerId: string, roundNumber: number) => {
         if (roundNumber === 1) return false;
         
-        // Check all previous rounds, not just the immediate predecessor
         const previousRounds = rounds.filter(r => r.round_number < roundNumber && r.is_complete);
         
         for (const prevRound of previousRounds) {
             const playerSelections = selections[prevRound.id]?.filter(s => s.player_id === playerId);
             
-            // Player is eliminated if:
-            // 1. They had selections but didn't advance, OR
-            // 2. They didn't submit any selections for a completed round
             if ((playerSelections?.length > 0 && !playerSelections[0].advanced) || 
                 (playerSelections?.length === 0)) {
                 return true;
@@ -210,7 +196,7 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
         
         return false;
     };
-    
+
     return (
         <div className="flex flex-col h-full">
             <div className="flex flex-col mb-6">
@@ -237,30 +223,21 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
                     <div className={Layout.column}>
                         <h3 className={Layout.roundTitle}>Players</h3>
                         <div className={Layout.scrollContainer}>
-                            {players.map(player => {
-                                // Player is eliminated if they didn't advance from the highest completed round
-                                const completedRounds = rounds.filter(r => r.is_complete);
-                                const highestCompletedRound = completedRounds.length > 0 
-                                    ? completedRounds[completedRounds.length - 1] 
-                                    : null;
-                                    
-                                const isEliminated = highestCompletedRound
-                                    ? selections[highestCompletedRound.id]?.some(
-                                        s => s.player_id === player.id && !s.advanced
-                                    )
-                                    : false;
-                                
-                                return (
-                                    <div 
-                                        key={player.id} 
-                                        className={`${Layout.playerBox.base} ${
-                                            isEliminated ? Layout.playerBox.eliminated : ''
-                                        } ${player.id === currentUserId ? Layout.playerBox.currentUser : ''}`}
-                                    >
-                                        {player.username}
-                                    </div>
-                                );
-                            })}
+                        {players.map(player => {
+                            const isEliminated = rounds.length > 0 ? 
+                                isPlayerEliminated(player.id, rounds[rounds.length - 1].round_number + 1) : false;
+                            
+                            return (
+                                <div 
+                                    key={player.id} 
+                                    className={`${Layout.playerBox.base} ${
+                                        isEliminated ? Layout.playerBox.eliminated : ''
+                                    } ${player.id === currentUserId ? Layout.playerBox.currentUser : ''}`}
+                                >
+                                    {player.username}
+                                </div>
+                            );
+                        })}
                         </div>
                     </div>
 
