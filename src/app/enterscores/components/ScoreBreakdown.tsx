@@ -88,9 +88,6 @@ export default function ScoreBreakdown(props: ScoreBreakdownProps) {
     
     return (
         <div className="text-sm space-y-4">
-            <div className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
-                Score Breakdown
-            </div>
             
             {fixturePoints.map(({ fixture, points }) => (
                 <div key={fixture.id} className="grid gap-1.5 pb-2 border-b border-gray-200 dark:border-gray-700">
