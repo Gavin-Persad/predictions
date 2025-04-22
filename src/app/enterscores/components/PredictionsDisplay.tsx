@@ -174,11 +174,15 @@ type LaveryCupSelection = {
                             {gameWeekStatus === 'past' && (
                                 <div className="mt-4 pt-4 border-t dark:border-gray-700">
                                     <p className="font-medium text-gray-900 dark:text-white">
-                                        Status: {laveryCupSelection.advanced ? (
-                                            <span className="text-green-600">Advanced to next round</span>
-                                        ) : (
-                                            <span className="text-red-600">Eliminated</span>
-                                        )}
+                                        Status: {
+                                            laveryCupSelection.team1_won === null && laveryCupSelection.team2_won === null ? (
+                                                <span className="text-blue-600">Waiting on results</span>
+                                            ) : laveryCupSelection.advanced ? (
+                                                <span className="text-green-600">Advanced to next round</span>
+                                            ) : (
+                                                <span className="text-red-600">Eliminated</span>
+                                            )
+                                        }
                                     </p>
                                 </div>
                             )}
