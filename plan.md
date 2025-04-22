@@ -130,7 +130,7 @@
 
 - my predictions, an entered form says elminated on lavery cup before host has entered scores, this should say waiting on results.✅
 - george cup doesn't show winners or player vs player games until next round is drawn, winners should show as soon as there are points in place.
-- one round complete and one player shows as winner, winner should only show when one player is left and all others eliminated. Once a second round it added, the winners column is removed.
+- one round complete and one player shows as winner, winner should only show when one player is left and all others eliminated. Once a second round it added, the winners column is removed.⏳
 - players not being checked off on the players list when eliminated.
 - SCORE BREAKDOWN NOT SHOWING ON CLOSED ENTERSCORES CARDS
 
@@ -138,7 +138,7 @@
    Issue: Players see "Eliminated" status before host enters scores
    Fix: Change status to "Waiting on results" when team1_won/team2_won are null
    Location: PredictionsDisplay component
-2. Lavery Cup Winner Column Logic
+2. Lavery Cup Winner Column Logic⏳
    Issue: Winner column appears too early and disappears when second round is added
    Fix: Only show winner column when all rounds are complete AND only one player remains
    Location: ViewLaveryCup component, within the IIFE that renders the winner column
@@ -214,6 +214,7 @@ chat
 - add season name as title to view seasons page
   about me
 - small page, add to side menu, that has information about me and the project, git hub links etc. Also add this to side bar menu.
+- edit lavery cup - add players list that checks off as players go out, like cups first columns
 
 23. Bugs
 

@@ -203,7 +203,13 @@ export default function EditLaveryCup({ seasonId, onClose }: Props): JSX.Element
     
     const handleMarkWinningTeams = async (roundId: string) => {
         try {
-            const roundSelections = selections.filter(s => s.round_id === roundId);
+            const round = rounds.find(r => r.id === roundId);
+            if (!round) return;
+            
+            const allRoundSelections = selections.filter(s => s.round_id === roundId);
+            const roundSelections = allRoundSelections.filter(s => 
+                isPlayerEligible(s.player_id, round.round_number)
+            );
             
             const updatedPromises = roundSelections.map(selection => {
                 const team1Won = winningTeams.includes(selection.team1_name);
@@ -310,6 +316,27 @@ export default function EditLaveryCup({ seasonId, onClose }: Props): JSX.Element
         } catch (e) {
             return '';
         }
+    };
+
+    const isPlayerEligible = (playerId: string, roundNumber: number) => {
+        if (roundNumber === 1) return true;
+        
+        const previousRounds = rounds
+            .filter(r => r.round_number < roundNumber && r.is_complete);
+        
+        for (const prevRound of previousRounds) {
+            const playerSelections = selections.filter(s => 
+                s.round_id === prevRound.id && 
+                s.player_id === playerId
+            );
+            
+            if ((playerSelections.length > 0 && !playerSelections[0].advanced) || 
+                (playerSelections.length === 0)) {
+                return false;
+            }
+        }
+        
+        return true;
     };
 
     const canSelectGameWeek = (gameWeek: GameWeek) => {

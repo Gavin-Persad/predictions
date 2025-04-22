@@ -193,11 +193,22 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
     const isPlayerEliminated = (playerId: string, roundNumber: number) => {
         if (roundNumber === 1) return false;
         
-        const previousRound = rounds.find(r => r.round_number === roundNumber - 1);
-        if (!previousRound) return false;
+        // Check all previous rounds, not just the immediate predecessor
+        const previousRounds = rounds.filter(r => r.round_number < roundNumber && r.is_complete);
         
-        const playerSelections = selections[previousRound.id]?.filter(s => s.player_id === playerId);
-        return previousRound.is_complete && playerSelections?.length > 0 && !playerSelections?.[0]?.advanced;
+        for (const prevRound of previousRounds) {
+            const playerSelections = selections[prevRound.id]?.filter(s => s.player_id === playerId);
+            
+            // Player is eliminated if:
+            // 1. They had selections but didn't advance, OR
+            // 2. They didn't submit any selections for a completed round
+            if ((playerSelections?.length > 0 && !playerSelections[0].advanced) || 
+                (playerSelections?.length === 0)) {
+                return true;
+            }
+        }
+        
+        return false;
     };
     
     return (
@@ -335,44 +346,92 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
                     ))}
 
                     {/* Winner Column - only show if final round has a winner */}
-                    {(() => {
-                        // Find the final round
-                        const finalRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
-                        if (!finalRound || !finalRound.is_complete) return null;
-                        
-                        // Find winners from final round
-                        const winners = selections[finalRound.id]?.filter(s => s.advanced);
-                        if (!winners || winners.length === 0) return null;
-                        
-                        return (
-                            <div className={`${Layout.column} ${Layout.winnerColumn}`}>
-                                <h3 className={Layout.roundTitle}>Winner</h3>
-                                <div className={Layout.scrollContainer}>
-                                    {winners.map(winner => {
-                                        const player = players.find(p => p.id === winner.player_id);
-                                        if (!player) return null;
-                                        
-                                        return (
-                                            <div key={winner.id} className="flex flex-col items-center justify-center h-full text-center p-4">
-                                                <svg className="w-24 h-24 text-yellow-500 mb-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                                    <path d="M11 17.9V19H7v2h10v-2h-4v-1.1A8 8 0 0 0 20 10h1V8h-1V4H4v4H3v2h1a8 8 0 0 0 7 7.9zM6 6h12v2H6V6z"/>
-                                                </svg>
-                                                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                                                    {player.username}
-                                                </div>
-                                                <div className="text-sm text-gray-600 dark:text-gray-400">
-                                                    Lavery Cup Champion
-                                                </div>
-                                                <div className="text-sm text-gray-600 dark:text-gray-400">
-                                                    {seasonName}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                        {(() => {
+        // Find the final round
+        const finalRound = rounds.length > 0 ? rounds[rounds.length - 1] : null;
+        if (!finalRound) return null;
+        
+        // Find all players who have advanced through all rounds (still active)
+        const advancedPlayers = new Set<string>();
+        
+        // Initialize with all players
+        players.forEach(player => advancedPlayers.add(player.id));
+        
+        // Remove players who didn't advance in any completed round
+        rounds.forEach(round => {
+            if (round.is_complete) {
+                const roundSelections = selections[round.id] || [];
+                const advancedInRound = new Set(
+                    roundSelections
+                        .filter(s => s.advanced)
+                        .map(s => s.player_id)
+                );
+                
+                // Keep only players who advanced in this round
+                Array.from(advancedPlayers).forEach(playerId => {
+                    // If player had a selection but didn't advance, remove them
+                    const hadSelection = roundSelections.some(s => s.player_id === playerId);
+                    if (hadSelection && !advancedInRound.has(playerId)) {
+                        advancedPlayers.delete(playerId);
+                    }
+                });
+            }
+        });
+        
+        // If we have exactly one winner and all rounds are complete
+        if (advancedPlayers.size === 1 && rounds.every(r => r.is_complete)) {
+            const winnerId = Array.from(advancedPlayers)[0];
+            const winner = players.find(p => p.id === winnerId);
+            
+            if (!winner) return null;
+            
+            return (
+                <div className={`${Layout.column} ${Layout.winnerColumn}`}>
+                    <h3 className={Layout.roundTitle}>Winner</h3>
+                    <div className={Layout.scrollContainer}>
+                        <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                            <svg className="w-24 h-24 text-yellow-500 mb-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M11 17.9V19H7v2h10v-2h-4v-1.1A8 8 0 0 0 20 10h1V8h-1V4H4v4H3v2h1a8 8 0 0 0 7 7.9zM6 6h12v2H6V6z"/>
+                            </svg>
+                            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                                {winner.username}
                             </div>
-                        );
-                    })()}
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                                Lavery Cup Champion
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                                {seasonName}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        // If we have multiple winners and the final round is complete, show "Next round coming soon"
+        else if (advancedPlayers.size > 1 && finalRound.is_complete) {
+            return (
+                <div className={`${Layout.column} ${Layout.winnerColumn}`}>
+                    <h3 className={Layout.roundTitle}>Next Steps</h3>
+                    <div className={Layout.scrollContainer}>
+                        <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                            <svg className="w-24 h-24 text-blue-500 mb-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.618 5.968l1.453-1.453 1.414 1.414-1.453 1.453a9 9 0 1 1-1.414-1.414zM12 20a7 7 0 1 0 0-14 7 7 0 0 0 0 14zm0-12v5l4 2-1 2-5-3V8z"/>
+                            </svg>
+                            <div className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                                Next round coming soon...
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                                {advancedPlayers.size} players remaining
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        return null;
+    })()}
+
                 </div>
             )}
         </div>
