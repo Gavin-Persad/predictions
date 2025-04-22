@@ -27,6 +27,11 @@ type PredictionDisplayProps = {
     onBack: () => void;
     gameWeekId?: string; 
     playerId?: string; 
+    uniqueCorrectScores?: UniqueScoreMap;
+};
+
+type UniqueScoreMap = {
+    [fixtureId: string]: boolean;
 };
 
 type LaveryCupRound = {
@@ -58,6 +63,8 @@ type LaveryCupSelection = {
         const [laveryCupRound, setLaveryCupRound] = useState<LaveryCupRound | null>(null);
         const [laveryCupSelection, setLaveryCupSelection] = useState<LaveryCupSelection | null>(null);
         const [loading, setLoading] = useState(false);
+        const [allPredictions, setAllPredictions] = useState<Record<string, any[]>>({});
+        const [uniqueCorrectScores, setUniqueCorrectScores] = useState<UniqueScoreMap>({});
 
         useEffect(() => {
             const fetchLaveryCupData = async () => {
@@ -143,6 +150,68 @@ type LaveryCupSelection = {
             fetchLaveryCupData();
         }, [gameWeekId, playerId, gameWeekStatus]);
 
+        useEffect(() => {
+            const fetchAllPredictionsAndCalculateUnique = async () => {
+                if (!gameWeekId || !fixtures.length || gameWeekStatus !== 'past') return;
+                
+                try {
+                    const fixtureIds = fixtures.map(f => f.id);
+                    
+                    const { data, error } = await supabase
+                        .from('predictions')
+                        .select('fixture_id, home_prediction, away_prediction')
+                        .in('fixture_id', fixtureIds);
+                    
+                    if (error) {
+                        console.error('Error fetching predictions:', error);
+                        return;
+                    }
+                    
+                    if (data) {
+                        const predictionsByFixture: Record<string, any[]> = {};
+                        data.forEach(pred => {
+                            if (!predictionsByFixture[pred.fixture_id]) {
+                                predictionsByFixture[pred.fixture_id] = [];
+                            }
+                            predictionsByFixture[pred.fixture_id].push(pred);
+                        });
+                        
+                        setAllPredictions(predictionsByFixture);
+                        
+                        const uniqueScores: UniqueScoreMap = {};
+                        
+                        fixtures.forEach(fixture => {
+                            if (fixture.home_score === null || fixture.away_score === null) return;
+                            
+                            const playerPred = predictions[fixture.id];
+                            if (!playerPred) return;
+                            
+                            if (playerPred.home === fixture.home_score && 
+                                playerPred.away === fixture.away_score) {
+                                
+                                const fixturesPreds = predictionsByFixture[fixture.id] || [];
+                                
+                                const correctPreds = fixturesPreds.filter(p => 
+                                    p.home_prediction === fixture.home_score && 
+                                    p.away_prediction === fixture.away_score
+                                );
+                                
+                                if (correctPreds.length === 1) {
+                                    uniqueScores[fixture.id] = true;
+                                }
+                            }
+                        });
+                        
+                        setUniqueCorrectScores(uniqueScores);
+                    }
+                } catch (err) {
+                    console.error('Error in fetch predictions:', err);
+                }
+            };
+            
+            fetchAllPredictionsAndCalculateUnique();
+        }, [fixtures, predictions, gameWeekId, gameWeekStatus]);
+
         const renderTeamStatus = (won: boolean | null) => {
             if (won === null) return null;
             if (won) return <span className="text-green-600 font-bold">(Won)</span>;
@@ -197,14 +266,15 @@ type LaveryCupSelection = {
                                 ) > 0 && (
                                 <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mt-2">
                                     <ScoreBreakdown 
-                                    prediction={predictions[fixture.id]} 
-                                    fixture={{
-                                        id: fixture.id,
-                                        home_team: fixture.home_team,
-                                        away_team: fixture.away_team,
-                                        home_score: fixture.home_score!,
-                                        away_score: fixture.away_score!
-                                    }}
+                                        prediction={predictions[fixture.id]} 
+                                        fixture={{
+                                            id: fixture.id,
+                                            home_team: fixture.home_team,
+                                            away_team: fixture.away_team,
+                                            home_score: fixture.home_score!,
+                                            away_score: fixture.away_score!
+                                        }}
+                                        uniqueCorrectScores={uniqueCorrectScores}
                                     />
                                 </div>
                                 )}
@@ -219,16 +289,17 @@ type LaveryCupSelection = {
                         </h3>
                         <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                             <ScoreBreakdown 
-                                fixtures={fixtures.map(fixture => ({
-                                    id: fixture.id,
-                                    home_team: fixture.home_team,
-                                    away_team: fixture.away_team,
-                                    home_score: fixture.home_score ?? null,
-                                    away_score: fixture.away_score ?? null
-                                }))}
-                                predictions={predictions}
-                                showWeeklyBonus={true}
-/>
+                            fixtures={fixtures.map(fixture => ({
+                                id: fixture.id,
+                                home_team: fixture.home_team,
+                                away_team: fixture.away_team,
+                                home_score: fixture.home_score ?? null,
+                                away_score: fixture.away_score ?? null
+                            }))}
+                            predictions={predictions}
+                            showWeeklyBonus={true}
+                            uniqueCorrectScores={uniqueCorrectScores}
+                        />
                         </div>
                     </div>
                 )}

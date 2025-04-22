@@ -25,11 +25,16 @@ type ScoreBreakdownProps = {
         home_score: number; 
         away_score: number; 
     };
+    uniqueCorrectScores?: UniqueScoreMap;
+};
+
+type UniqueScoreMap = {
+    [fixtureId: string]: boolean;
 };
 
 export default function ScoreBreakdown(props: ScoreBreakdownProps) {
     if (props.prediction && props.fixture) {
-        const { prediction, fixture } = props;
+        const { prediction, fixture, uniqueCorrectScores } = props;
         
         if (typeof fixture.home_score !== 'number' || typeof fixture.away_score !== 'number') {
             return null;
@@ -42,6 +47,13 @@ export default function ScoreBreakdown(props: ScoreBreakdownProps) {
         
         if (basePoints <= 0) return null;
     
+        const isUniqueCorrectScore = basePoints === 3 && 
+            uniqueCorrectScores && 
+            uniqueCorrectScores[fixture.id];
+        
+        const uniqueBonus = isUniqueCorrectScore ? 2 : 0;
+        const totalPoints = basePoints + uniqueBonus;
+    
         return (
             <div className="text-sm space-y-2">
                 <div className="font-semibold text-gray-900 dark:text-gray-100">
@@ -52,9 +64,17 @@ export default function ScoreBreakdown(props: ScoreBreakdownProps) {
                         <span className="text-gray-600 dark:text-gray-400">Base points:</span>
                         <span className="text-gray-900 dark:text-gray-100">{basePoints}</span>
                     </div>
+                    
+                    {isUniqueCorrectScore && (
+                        <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Unique correct score bonus:</span>
+                            <span className="text-emerald-600 dark:text-emerald-400">+2</span>
+                        </div>
+                    )}
+                    
                     <div className="flex justify-between pt-1 border-t border-gray-200 dark:border-gray-700">
                         <span className="font-medium text-gray-900 dark:text-gray-100">Total:</span>
-                        <span className="font-bold text-gray-900 dark:text-gray-100">{basePoints}</span>
+                        <span className="font-bold text-gray-900 dark:text-gray-100">{totalPoints}</span>
                     </div>
                 </div>
             </div>
