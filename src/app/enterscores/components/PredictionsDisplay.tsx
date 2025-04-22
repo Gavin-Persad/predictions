@@ -25,8 +25,8 @@ type PredictionDisplayProps = {
     canEdit?: boolean;
     onEdit?: () => void;
     onBack: () => void;
-    gameWeekId?: string; // Add this
-    playerId?: string;   // Add this
+    gameWeekId?: string; 
+    playerId?: string; 
 };
 
 type LaveryCupRound = {
@@ -34,6 +34,7 @@ type LaveryCupRound = {
     round_number: number;
     round_name: string;
     game_week_id: string;
+    season_id: string;
 };
 
 type LaveryCupSelection = {
@@ -64,26 +65,72 @@ type LaveryCupSelection = {
                 
                 setLoading(true);
                 try {
-                    // Check if this game week is part of a Lavery Cup round
-                    const { data: roundData } = await supabase
+                    const { data: roundData, error: roundError } = await supabase
                         .from('lavery_cup_rounds')
                         .select('*')
                         .eq('game_week_id', gameWeekId)
                         .single();
                     
+                    if (roundError && roundError.code !== 'PGRST116') {
+                        console.error('Error fetching Lavery Cup round:', roundError);
+                    }
+                    
                     if (roundData) {
+                        const checkPlayerEligibility = async (roundData: LaveryCupRound): Promise<boolean> => {
+                            if (gameWeekStatus === 'past') return true;
+                            
+                            if (roundData.round_number === 1) return true;
+                            
+                            try {
+                                const { data: previousRounds } = await supabase
+                                    .from('lavery_cup_rounds')
+                                    .select('*')
+                                    .eq('season_id', roundData.season_id)
+                                    .lt('round_number', roundData.round_number)
+                                    .order('round_number', { ascending: false })
+                                    .limit(1);
+                                
+                                if (!previousRounds || previousRounds.length === 0) return false;
+                                
+                                const previousRound = previousRounds[0];
+                                
+                                const { data: prevSelection } = await supabase
+                                    .from('lavery_cup_selections')
+                                    .select('advanced')
+                                    .eq('player_id', playerId)
+                                    .eq('round_id', previousRound.id)
+                                    .single();
+                                
+                                if (!prevSelection || !prevSelection.advanced) {
+                                    return false;
+                                }
+                                
+                                return true;
+                            } catch (error) {
+                                console.error('Error checking player eligibility:', error);
+                                return false;
+                            }
+                        };
+                        
+                        const isEligible = await checkPlayerEligibility(roundData);
+                        
                         setLaveryCupRound(roundData);
                         
-                        // Get the user's selections for this round
-                        const { data: selectionData } = await supabase
-                            .from('lavery_cup_selections')
-                            .select('*')
-                            .eq('round_id', roundData.id)
-                            .eq('player_id', playerId)
-                            .single();
-                        
-                        if (selectionData) {
-                            setLaveryCupSelection(selectionData);
+                        if (isEligible || gameWeekStatus === 'past') {
+                            const { data: selectionData, error: selectionError } = await supabase
+                                .from('lavery_cup_selections')
+                                .select('*')
+                                .eq('player_id', playerId)
+                                .eq('round_id', roundData.id)
+                                .single();
+                            
+                            if (selectionError && selectionError.code !== 'PGRST116') {
+                                console.error('Error fetching Lavery Cup selection:', selectionError);
+                            }
+                            
+                            if (selectionData) {
+                                setLaveryCupSelection(selectionData);
+                            }
                         }
                     }
                 } catch (error) {
@@ -92,11 +139,10 @@ type LaveryCupSelection = {
                     setLoading(false);
                 }
             };
-            
+        
             fetchLaveryCupData();
-        }, [gameWeekId, playerId]);
+        }, [gameWeekId, playerId, gameWeekStatus]);
 
-        // Add a helper function to render team status
         const renderTeamStatus = (won: boolean | null) => {
             if (won === null) return null;
             if (won) return <span className="text-green-600 font-bold">(Won)</span>;
