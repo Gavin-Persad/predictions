@@ -34,12 +34,14 @@ export default function ScoreBreakdown(props: ScoreBreakdownProps) {
         if (typeof fixture.home_score !== 'number' || typeof fixture.away_score !== 'number') {
             return null;
         }
-
+    
         const basePoints = calculatePoints(
             { home_prediction: prediction.home, away_prediction: prediction.away },
             { home_score: fixture.home_score, away_score: fixture.away_score }
         );
-
+        
+        if (basePoints <= 0) return null;
+    
         return (
             <div className="text-sm space-y-2">
                 <div className="font-semibold text-gray-900 dark:text-gray-100">
@@ -66,19 +68,20 @@ export default function ScoreBreakdown(props: ScoreBreakdownProps) {
     let correctScoreCount = 0;
     
     const fixturePoints = fixtures
-        .filter(f => f.home_score !== null && f.away_score !== null && predictions[f.id])
-        .map(fixture => {
-            const prediction = predictions[fixture.id];
-            const points = calculatePoints(
-                { home_prediction: prediction.home, away_prediction: prediction.away },
-                { home_score: fixture.home_score!, away_score: fixture.away_score! }
-            );
-            
-            if (points >= 3) correctScoreCount++;
-            totalPoints += points;
-            
-            return { fixture, prediction, points };
-        });
+    .filter(f => f.home_score !== null && f.away_score !== null && predictions[f.id])
+    .map(fixture => {
+        const prediction = predictions[fixture.id];
+        const points = calculatePoints(
+            { home_prediction: prediction.home, away_prediction: prediction.away },
+            { home_score: fixture.home_score!, away_score: fixture.away_score! }
+        );
+        
+        if (points >= 3) correctScoreCount++;
+        totalPoints += points;
+        
+        return { fixture, prediction, points };
+    })
+    .filter(item => item.points > 0);
     
     const weeklyBonus = showWeeklyBonus ? calculateWeeklyCorrectScoreBonus(correctScoreCount) : 0;
     const grandTotal = totalPoints + weeklyBonus;

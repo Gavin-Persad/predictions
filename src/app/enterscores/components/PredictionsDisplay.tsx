@@ -189,19 +189,24 @@ type LaveryCupSelection = {
                             {gameWeekStatus === 'past' && 
                                 fixture.home_score !== null && 
                                 fixture.away_score !== null && 
-                                predictions[fixture.id] && (
-                                    <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mt-2">
-                                        <ScoreBreakdown 
-                                            prediction={predictions[fixture.id]} 
-                                            fixture={{
-                                                id: fixture.id,
-                                                home_team: fixture.home_team,
-                                                away_team: fixture.away_team,
-                                                home_score: fixture.home_score!,
-                                                away_score: fixture.away_score!
-                                            }}
-                                        />
-                                    </div>
+                                predictions[fixture.id] && 
+                                // Only show breakdown if points > 0
+                                calculatePoints(
+                                { home_prediction: predictions[fixture.id].home, away_prediction: predictions[fixture.id].away },
+                                { home_score: fixture.home_score!, away_score: fixture.away_score! }
+                                ) > 0 && (
+                                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mt-2">
+                                    <ScoreBreakdown 
+                                    prediction={predictions[fixture.id]} 
+                                    fixture={{
+                                        id: fixture.id,
+                                        home_team: fixture.home_team,
+                                        away_team: fixture.away_team,
+                                        home_score: fixture.home_score!,
+                                        away_score: fixture.away_score!
+                                    }}
+                                    />
+                                </div>
                                 )}
                         </div>
                     ))}
