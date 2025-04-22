@@ -129,7 +129,7 @@
 - mark selections as correct or incorrect once scores are in.✅
 
 - my predictions, an entered form says elminated on lavery cup before host has entered scores, this should say waiting on results.✅
-- george cup doesn't show winners or player vs player games until next round is drawn, winners should show as soon as there are points in place.
+- george cup doesn't show winners or player vs player games until next round is drawn, winners should show as soon as there are points in place.⌛
 - one round complete and one player shows as winner, winner should only show when one player is left and all others eliminated. Once a second round it added, the winners column is removed.✅
 - players not being checked off on the players list when eliminated.✅
 - SCORE BREAKDOWN NOT SHOWING ON CLOSED ENTERSCORES CARDS✅
@@ -150,7 +150,7 @@
    Issue: Score breakdown not showing on closed EnterScores cards
    Fix: Ensure breakdown appears correctly after scores submitted
    Location: EnterScores component or related display components
-5. George Cup Winners Display
+5. George Cup Winners Display⌛
    Issue: Winners don't show until next round is drawn
    Fix: Update winners as soon as points are in place
    Location: ViewGeorgeCup component, winner determination logic
