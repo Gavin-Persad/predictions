@@ -511,41 +511,53 @@ const LaveryCupConfirmModal = ({
 
             if (gameWeekScoresError) throw gameWeekScoresError;
 
-            // 8. Update season scores
-            // First, fetch existing season scores
-            const { data: existingSeasonScores, error: existingScoresError } = await supabase
-                .from('season_scores')
-                .select('player_id, correct_scores, points')
-                .eq('season_id', seasonId);
+            // 8. Recalculate ALL season scores from scratch
+            // First, get all game weeks for this season
+            const { data: seasonGameWeeks, error: gameWeeksError } = await supabase
+            .from('game_weeks')
+            .select('id')
+            .eq('season_id', seasonId);
 
-            if (existingScoresError) throw existingScoresError;
+            if (gameWeeksError) throw gameWeeksError;
 
-            // Create a map of existing scores for easier lookup
-            const existingScoresMap: Record<string, { correct_scores: number, points: number }> = {};
-            (existingSeasonScores || []).forEach(score => {
-                existingScoresMap[score.player_id] = {
-                    correct_scores: score.correct_scores || 0,
-                    points: score.points || 0
-                };
+            // Fetch all game week scores for all weeks in the season
+            const { data: allGameWeekScores, error: allScoresError } = await supabase
+            .from('game_week_scores')
+            .select('player_id, correct_scores, points')
+            .in('game_week_id', seasonGameWeeks.map(gw => gw.id));
+
+            if (allScoresError) throw allScoresError;
+
+            // Sum up all scores by player
+            const totalScoresByPlayer: Record<string, { correct_scores: number, points: number }> = {};
+
+            allGameWeekScores.forEach(score => {
+            if (!totalScoresByPlayer[score.player_id]) {
+                totalScoresByPlayer[score.player_id] = { correct_scores: 0, points: 0 };
+            }
+
+            totalScoresByPlayer[score.player_id].correct_scores += score.correct_scores;
+            totalScoresByPlayer[score.player_id].points += score.points;
             });
 
-            // Add current scores to existing totals
-            const seasonScores = Object.entries(playerScores).map(([player_id, scores]) => {
-                const existing = existingScoresMap[player_id] || { correct_scores: 0, points: 0 };
-                return {
-                    season_id: seasonId,
-                    player_id,
-                    correct_scores: existing.correct_scores + scores.correct_scores,
-                    points: existing.points + scores.points
-                };
-            });
-            
+            // Create the updated season scores to save
+            const seasonScores = Object.entries(totalScoresByPlayer).map(([player_id, scores]) => ({
+            season_id: seasonId,
+            player_id,
+            correct_scores: scores.correct_scores,
+            points: scores.points
+            }));
+
+            // Clear existing season scores first to avoid any staleness
+            await supabase
+            .from('season_scores')
+            .delete()
+            .eq('season_id', seasonId);
+
+            // Then insert the freshly calculated totals
             const { error: seasonUpdateError } = await supabase
-                .from('season_scores')
-                .upsert(seasonScores, {
-                    onConflict: 'season_id,player_id',
-                    ignoreDuplicates: false
-                });
+            .from('season_scores')
+            .insert(seasonScores);
 
             if (seasonUpdateError) throw seasonUpdateError;
             
