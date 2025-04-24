@@ -134,10 +134,6 @@
 - players not being checked off on the players list when eliminated.✅
 - SCORE BREAKDOWN NOT SHOWING ON CLOSED ENTERSCORES CARDS✅
 
-- Colour coding issues on show scores cells seems to be Correct Score (0-3 goals) and Correct Results not showing.
-- league table not adding weekly scores, just showing the most recent weeks scores. Not updating the season_scores table on supabase.
-- george cup showing all drawing players as out before draw. this should be not be the case, players scores are showing and we should be able to see who has progressed before the draw is made.
-
 1. Lavery Cup Prediction Status Fix✅
    Issue: Players see "Eliminated" status before host enters scores
    Fix: Change status to "Waiting on results" when team1_won/team2_won are null
@@ -159,6 +155,9 @@
    Fix: Update winners as soon as points are in place
    Location: ViewGeorgeCup component, winner determination logic
 6. players remaining number is wrong in view lavery cup.
+
+- Colour coding issues on show scores cells seems to be Correct Score (0-3 goals) and Correct Results not showing.
+- league table not adding weekly scores, just showing the most recent weeks scores. Not updating the season_scores table on supabase.
 
 - no winners show reset coming warning⏳
 
