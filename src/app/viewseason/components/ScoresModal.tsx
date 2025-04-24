@@ -311,9 +311,11 @@ useEffect(() => {
                                                         ${(selectedPlayer === player.id || 
                                                         selectedFixture === fixture.id ||
                                                         (selectedCell.playerId === player.id && selectedCell.fixtureId === fixture.id)) 
-                                                        ? 'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' 
-                                                        : `${prediction ? getPredictionColorClass(prediction, fixture) : ''} 
-                                                        dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700`}
+                                                            ? 'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' 
+                                                            : prediction 
+                                                                ? getPredictionColorClass(prediction, fixture) + ' dark:text-gray-100' 
+                                                                : 'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                                        }
                                                         ${prediction ? 'cursor-pointer' : ''}`}
                                                 >
                                                 {prediction ? `${prediction.home_prediction}-${prediction.away_prediction}` : '-'}
