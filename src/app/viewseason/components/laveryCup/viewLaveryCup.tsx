@@ -329,7 +329,7 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
         if (!finalRound) return null;
         
         // Find all players who have advanced through all rounds (still active)
-        const advancedPlayers = new Set<string>();
+        let advancedPlayers = new Set<string>();
         
         // Initialize with all players
         players.forEach(player => advancedPlayers.add(player.id));
@@ -344,14 +344,17 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
                         .map(s => s.player_id)
                 );
                 
-                // Keep only players who advanced in this round
-                Array.from(advancedPlayers).forEach(playerId => {
-                    // If player had a selection but didn't advance, remove them
-                    const hadSelection = roundSelections.some(s => s.player_id === playerId);
-                    if (hadSelection && !advancedInRound.has(playerId)) {
-                        advancedPlayers.delete(playerId);
-                    }
+                // Keep only players who explicitly advanced in this round
+                // This is the key change - we're completely rebuilding the set for each round
+                const newAdvancedPlayers = new Set<string>();
+                
+                // Only add players who actually advanced
+                advancedInRound.forEach(playerId => {
+                    newAdvancedPlayers.add(playerId);
                 });
+                
+                // Replace our working set with only the players who advanced
+                advancedPlayers = newAdvancedPlayers;
             }
         });
         

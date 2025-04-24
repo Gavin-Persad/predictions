@@ -71,9 +71,6 @@
 - ensure that once fixtures have been selected that they are in place when returning to this screen.✅
 - Working on passing winners through to next round⌛currently working on getting winner determination working✅
 
-- create view cup❌
-- tree format as the rounds are created, shows scores from that game week.❌
-
 15. Make it so that scores do not show unitl the live fixtures start✅
 
 16. rebuild the cups from the start. We can now have fixtures picked by computer.✅
@@ -154,12 +151,15 @@
    Issue: Winners don't show until next round is drawn
    Fix: Update winners as soon as points are in place
    Location: ViewGeorgeCup component, winner determination logic
-6. players remaining number is wrong in view lavery cup.
+6. players remaining number is wrong in view lavery cup.✅
 
-- Colour coding issues on show scores cells seems to be Correct Score (0-3 goals) and Correct Results not showing.
-- league table not adding weekly scores, just showing the most recent weeks scores. Not updating the season_scores table on supabase.
+- Colour coding issues on show scores cells seems to be Correct Score (0-3 goals) and Correct Results not showing.✅
+- league table not adding weekly scores, just showing the most recent weeks scores. Not updating the season_scores table on supabase.✅
 
 - no winners show reset coming warning⏳
+- every one needs to go all out in the next round, see what happens. add a pending for reset screen in view lavery cup if needed.
+- create a reset lavery cup button with typing confirmation in edit lavery cup. make sure this deletes only the information needed.
+- check that lavery cup can restart.
 
 21. Test cups and format⏳
 
@@ -220,6 +220,7 @@ chat
   about me
 - small page, add to side menu, that has information about me and the project, git hub links etc. Also add this to side bar menu.
 - edit lavery cup - add players list that checks off as players go out, like cups first columns
+- egg on your face, make a way of alerting those who scored less than a player who did not enter scores.
 
 23. Bugs
 
