@@ -32,47 +32,58 @@ export default function LeagueTable({ seasonId, onClose }: LeagueTableProps) {
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState<'position' | 'username' | 'correct_scores' | 'points'>('points');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
-      const fetchScores = async () => {
-          const { data: rawData, error } = await supabase
-              .from('season_scores')
-              .select(`
-                  player_id,
-                  correct_scores,
-                  points,
-                  profiles (
-                      username
-                  )
-              `)
-              .eq('season_id', seasonId);
 
-          if (error || !rawData) {
-              console.error('Error:', error);
-              return;
-          }
+        const fetchCurrentUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+            setCurrentUserId(user.id);
+            }
+        };
+        
+        fetchCurrentUser();
 
-          const data = rawData as unknown as DatabaseResponse[];
-          
-          const formattedScores = data.map(score => ({
-              player_id: score.player_id,
-              username: score.profiles.username,
-              correct_scores: score.correct_scores,
-              points: score.points,
-              position: 0
-          }));
+        const fetchScores = async () => {
+            const { data: rawData, error } = await supabase
+                .from('season_scores')
+                .select(`
+                    player_id,
+                    correct_scores,
+                    points,
+                    profiles (
+                        username
+                    )
+                `)
+                .eq('season_id', seasonId);
 
-          const sortedScores = [...formattedScores].sort((a, b) => b.points - a.points);
-          const positionedScores = sortedScores.map((score, index) => ({
-              ...score,
-              position: index + 1
-          }));
+            if (error || !rawData) {
+                console.error('Error:', error);
+                return;
+            }
 
-          setScores(positionedScores);
-          setLoading(false);
-      };
+            const data = rawData as unknown as DatabaseResponse[];
+            
+            const formattedScores = data.map(score => ({
+                player_id: score.player_id,
+                username: score.profiles.username,
+                correct_scores: score.correct_scores,
+                points: score.points,
+                position: 0
+            }));
 
-      fetchScores();
+            const sortedScores = [...formattedScores].sort((a, b) => b.points - a.points);
+            const positionedScores = sortedScores.map((score, index) => ({
+                ...score,
+                position: index + 1
+            }));
+
+            setScores(positionedScores);
+            setLoading(false);
+        };
+
+        fetchScores();
   }, [seasonId]);
 
   const handleSort = (field: typeof sortField) => {
@@ -147,11 +158,14 @@ return (
                           </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                          {sortedScores.map((score) => (
-                              <tr 
-                                  key={score.player_id}
-                                  className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                              >
+                            {sortedScores.map((score) => (
+                            <tr 
+                                key={score.player_id}
+                                className={`hover:bg-gray-50 dark:hover:bg-gray-700 
+                                ${score.player_id === currentUserId 
+                                    ? 'bg-blue-100 dark:bg-blue-900 font-semibold' 
+                                    : ''}`}
+                            >
                                   <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">
                                       {score.position}
                                   </td>
