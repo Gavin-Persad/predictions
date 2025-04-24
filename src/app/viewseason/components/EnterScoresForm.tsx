@@ -512,12 +512,33 @@ const LaveryCupConfirmModal = ({
             if (gameWeekScoresError) throw gameWeekScoresError;
 
             // 8. Update season scores
-            const seasonScores = Object.entries(playerScores).map(([player_id, scores]) => ({
-                season_id: seasonId,
-                player_id,
-                correct_scores: scores.correct_scores,
-                points: scores.points
-            }));
+            // First, fetch existing season scores
+            const { data: existingSeasonScores, error: existingScoresError } = await supabase
+                .from('season_scores')
+                .select('player_id, correct_scores, points')
+                .eq('season_id', seasonId);
+
+            if (existingScoresError) throw existingScoresError;
+
+            // Create a map of existing scores for easier lookup
+            const existingScoresMap: Record<string, { correct_scores: number, points: number }> = {};
+            (existingSeasonScores || []).forEach(score => {
+                existingScoresMap[score.player_id] = {
+                    correct_scores: score.correct_scores || 0,
+                    points: score.points || 0
+                };
+            });
+
+            // Add current scores to existing totals
+            const seasonScores = Object.entries(playerScores).map(([player_id, scores]) => {
+                const existing = existingScoresMap[player_id] || { correct_scores: 0, points: 0 };
+                return {
+                    season_id: seasonId,
+                    player_id,
+                    correct_scores: existing.correct_scores + scores.correct_scores,
+                    points: existing.points + scores.points
+                };
+            });
             
             const { error: seasonUpdateError } = await supabase
                 .from('season_scores')

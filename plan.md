@@ -220,6 +220,7 @@ chat
   about me
 - small page, add to side menu, that has information about me and the project, git hub links etc. Also add this to side bar menu.
 - edit lavery cup - add players list that checks off as players go out, like cups first columns
+- egg on your face, make a way of alerting those who scored less than a player who did not enter scores.
 
 23. Bugs
 
