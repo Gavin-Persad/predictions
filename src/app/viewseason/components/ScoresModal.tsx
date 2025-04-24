@@ -98,32 +98,34 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
     };  
 
     const getPredictionColorClass = (prediction: Prediction, fixture: Fixture): string => {
-        if (!fixture.home_score || !fixture.away_score) return '';
-
+        // Fix: Check if scores are null/undefined, not falsy (which rejects zeros)
+        if (fixture.home_score === null || fixture.home_score === undefined || 
+            fixture.away_score === null || fixture.away_score === undefined) return '';
+    
         // Calculate if prediction matches result
-    const actualResult = fixture.home_score > fixture.away_score ? 'H' : 
-        fixture.home_score < fixture.away_score ? 'A' : 'D';
-    const predictedResult = prediction.home_prediction > prediction.away_prediction ? 'H' :
-        prediction.home_prediction < prediction.away_prediction ? 'A' : 'D';
-
-    // Check for exact score match
-    if (prediction.home_prediction === fixture.home_score && 
-    prediction.away_prediction === fixture.away_score) {
-    const totalGoals = fixture.home_score + fixture.away_score;
-    if (totalGoals >= 6) return 'bg-red-100 dark:bg-red-900';
-    if (totalGoals === 5) return 'bg-purple-100 dark:bg-purple-900';
-    if (totalGoals === 4) return 'bg-green-100 dark:bg-green-900';
-    return 'bg-yellow-100 dark:bg-yellow-700';
-    }
-
-// Check for correct result but wrong score
-if (actualResult === predictedResult) {
-return 'bg-amber-200 dark:bg-amber-900';
-}
-
-// Incorrect prediction
-return '';
-};
+        const actualResult = fixture.home_score > fixture.away_score ? 'H' : 
+            fixture.home_score < fixture.away_score ? 'A' : 'D';
+        const predictedResult = prediction.home_prediction > prediction.away_prediction ? 'H' :
+            prediction.home_prediction < prediction.away_prediction ? 'A' : 'D';
+    
+        // Check for exact score match
+        if (prediction.home_prediction === fixture.home_score && 
+            prediction.away_prediction === fixture.away_score) {
+            const totalGoals = fixture.home_score + fixture.away_score;
+            if (totalGoals >= 6) return 'bg-red-100 dark:bg-red-900';
+            if (totalGoals === 5) return 'bg-purple-100 dark:bg-purple-900';
+            if (totalGoals === 4) return 'bg-green-100 dark:bg-green-900';
+            return 'bg-yellow-100 dark:bg-yellow-700';
+        }
+    
+        // Check for correct result but wrong score
+        if (actualResult === predictedResult) {
+            return 'bg-amber-200 dark:bg-amber-900';
+        }
+    
+        // Incorrect prediction
+        return '';
+    };
 
 const isUniqueCorrectScore = (prediction: Prediction, fixture: Fixture): boolean => {
     // First check if it's a correct score
