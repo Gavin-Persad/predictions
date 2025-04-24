@@ -129,10 +129,14 @@
 - mark selections as correct or incorrect once scores are in.✅
 
 - my predictions, an entered form says elminated on lavery cup before host has entered scores, this should say waiting on results.✅
-- george cup doesn't show winners or player vs player games until next round is drawn, winners should show as soon as there are points in place.⌛
+- george cup doesn't show winners or player vs player games until next round is drawn, winners should show as soon as there are points in place.✅
 - one round complete and one player shows as winner, winner should only show when one player is left and all others eliminated. Once a second round it added, the winners column is removed.✅
 - players not being checked off on the players list when eliminated.✅
 - SCORE BREAKDOWN NOT SHOWING ON CLOSED ENTERSCORES CARDS✅
+
+- Colour coding issues on show scores cells seems to be Correct Score (0-3 goals) and Correct Results not showing.
+- league table not adding weekly scores, just showing the most recent weeks scores. Not updating the season_scores table on supabase.
+- george cup showing all drawing players as out before draw. this should be not be the case, players scores are showing and we should be able to see who has progressed before the draw is made.
 
 1. Lavery Cup Prediction Status Fix✅
    Issue: Players see "Eliminated" status before host enters scores
@@ -150,10 +154,11 @@
    Issue: Score breakdown not showing on closed EnterScores cards
    Fix: Ensure breakdown appears correctly after scores submitted
    Location: EnterScores component or related display components
-5. George Cup Winners Display⌛
+5. George Cup Winners Display✅
    Issue: Winners don't show until next round is drawn
    Fix: Update winners as soon as points are in place
    Location: ViewGeorgeCup component, winner determination logic
+6. players remaining number is wrong in view lavery cup.
 
 - no winners show reset coming warning⏳
 
@@ -211,6 +216,7 @@ chat
 - edit game week, change to (title: game week, sub: as is live open to close )✅
 - enter scores, change to (title: game week, sub: as is live open to close )✅
 - history page, seasons winners cup winners etc. needs supabase table updated by other areas(individual comps)
+- keep record of highest indivual score for a week and a game. Keep these displayed on dashboard. Winnner takes a prize.
 - add season name as title to view seasons page
   about me
 - small page, add to side menu, that has information about me and the project, git hub links etc. Also add this to side bar menu.
@@ -223,6 +229,8 @@ chat
 - check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
 - errors showing in console when going to my pedictions, enter scores page due to adding lavery cup selections
 - view george cup - scroll bar for columns is just off bottom of the page
+- game logic - scores not show points in my predictions until host has entered correct scores - my scores should not show host scores until host has entered them - This is causing players to see incorrect scores until host has entered correct scores.
+- george cup - coin toss not done until host opens edit george cup component. This means players have to wait on host to manually flip a coin
 
 24. Test thoroughly with 1 player and 1 host
 
