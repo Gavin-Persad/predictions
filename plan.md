@@ -154,7 +154,7 @@
    Issue: Winners don't show until next round is drawn
    Fix: Update winners as soon as points are in place
    Location: ViewGeorgeCup component, winner determination logic
-6. players remaining number is wrong in view lavery cup.
+6. players remaining number is wrong in view lavery cup.✅
 
 - Colour coding issues on show scores cells seems to be Correct Score (0-3 goals) and Correct Results not showing.
 - league table not adding weekly scores, just showing the most recent weeks scores. Not updating the season_scores table on supabase.
