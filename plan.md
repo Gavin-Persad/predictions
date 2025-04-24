@@ -71,9 +71,6 @@
 - ensure that once fixtures have been selected that they are in place when returning to this screen.✅
 - Working on passing winners through to next round⌛currently working on getting winner determination working✅
 
-- create view cup❌
-- tree format as the rounds are created, shows scores from that game week.❌
-
 15. Make it so that scores do not show unitl the live fixtures start✅
 
 16. rebuild the cups from the start. We can now have fixtures picked by computer.✅
@@ -160,6 +157,9 @@
 - league table not adding weekly scores, just showing the most recent weeks scores. Not updating the season_scores table on supabase.✅
 
 - no winners show reset coming warning⏳
+- every one needs to go all out in the next round, see what happens. add a pending for reset screen in view lavery cup if needed.
+- create a reset lavery cup button with typing confirmation in edit lavery cup. make sure this deletes only the information needed.
+- check that lavery cup can restart.
 
 21. Test cups and format⏳
 
