@@ -231,6 +231,7 @@ chat
 - view george cup - scroll bar for columns is just off bottom of the page
 - game logic - scores not show points in my predictions until host has entered correct scores - my scores should not show host scores until host has entered them - This is causing players to see incorrect scores until host has entered correct scores.
 - george cup - coin toss not done until host opens edit george cup component. This means players have to wait on host to manually flip a coin
+- enter scores any one who is signed up is able to enter scores, this should not be the case, only players game weeks should only show for player who are in that season on the season_players for the season that the game week is in.
 
 24. Test thoroughly with 1 player and 1 host
 

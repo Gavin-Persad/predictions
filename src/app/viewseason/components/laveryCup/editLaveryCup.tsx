@@ -468,7 +468,7 @@ export default function EditLaveryCup({ seasonId, onClose }: Props): JSX.Element
                                                     {roundSelections.length > 0 ? (
                                                         roundSelections.map(selection => (
                                                             <tr key={selection.id}>
-                                                                <td className="px-4 py-3 whitespace-nowrap">
+                                                                <td className="px-4 py-3 whitespace-nowrap text-gray-900 dark:text-gray-100">
                                                                     {selection.player_username}
                                                                 </td>
                                                                 <td className="px-4 py-3 whitespace-nowrap">
@@ -482,7 +482,8 @@ export default function EditLaveryCup({ seasonId, onClose }: Props): JSX.Element
                                                                             />
                                                                         )}
                                                                         <span className={selection.team1_won === true ? 'text-green-600 dark:text-green-400 font-bold' : 
-                                                                                         selection.team1_won === false ? 'text-red-600 dark:text-red-400 line-through' : ''}>
+                                                                                        selection.team1_won === false ? 'text-red-600 dark:text-red-400 line-through' : 
+                                                                                        'text-gray-900 dark:text-gray-100'}>
                                                                             {selection.team1_name}
                                                                         </span>
                                                                     </div>
@@ -498,7 +499,8 @@ export default function EditLaveryCup({ seasonId, onClose }: Props): JSX.Element
                                                                             />
                                                                         )}
                                                                         <span className={selection.team2_won === true ? 'text-green-600 dark:text-green-400 font-bold' : 
-                                                                                         selection.team2_won === false ? 'text-red-600 dark:text-red-400 line-through' : ''}>
+                                                                                        selection.team2_won === false ? 'text-red-600 dark:text-red-400 line-through' : 
+                                                                                        'text-gray-900 dark:text-gray-100'}>
                                                                             {selection.team2_name}
                                                                         </span>
                                                                     </div>
