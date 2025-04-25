@@ -346,6 +346,48 @@ export default function EditLaveryCup({ seasonId, onClose }: Props): JSX.Element
         return !isUsedInRound && liveStart > now;
     };
 
+    const determineWinner = useCallback(() => {
+        if (!rounds.length) return null;
+        
+        // Find all players who have advanced through all rounds (still active)
+        let advancedPlayers = new Set<string>();
+        
+        // Initialize with all players
+        players.forEach(player => advancedPlayers.add(player.id));
+        
+        // Remove players who didn't advance in any completed round
+        rounds.forEach(round => {
+            if (round.is_complete) {
+                const roundSelections = selections.filter(s => s.round_id === round.id);
+                const advancedInRound = new Set(
+                    roundSelections
+                        .filter(s => s.advanced)
+                        .map(s => s.player_id)
+                );
+                
+                // Keep only players who explicitly advanced in this round
+                const newAdvancedPlayers = new Set<string>();
+                
+                advancedInRound.forEach(playerId => {
+                    newAdvancedPlayers.add(playerId);
+                });
+                
+                // Replace our working set with only the players who advanced
+                advancedPlayers = newAdvancedPlayers;
+            }
+        });
+        
+        // If we have exactly one winner and all rounds are complete
+        if (advancedPlayers.size === 1 && rounds.every(r => r.is_complete)) {
+            const winnerId = Array.from(advancedPlayers)[0];
+            return players.find(p => p.id === winnerId) || null;
+        }
+        
+        return null;
+    }, [rounds, players, selections]);
+    
+    const winner = determineWinner();
+
     return (
         <div className="flex flex-col h-full">
             <div className="flex flex-col mb-6">
@@ -374,31 +416,38 @@ export default function EditLaveryCup({ seasonId, onClose }: Props): JSX.Element
                             Create New Round
                         </h3>
                         
-                        <div className="flex items-center space-x-4">
-                            <select
-                                className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white flex-grow"
-                                value={selectedGameWeekId || ''}
-                                onChange={(e) => setSelectedGameWeekId(e.target.value || null)}
-                            >
-                                <option value="">Select a Game Week</option>
-                                {gameWeeks
-                                    .filter(gw => canSelectGameWeek(gw))
-                                    .map(gw => (
-                                        <option key={gw.id} value={gw.id}>
-                                            Week {gw.week_number} - Starts {formatDate(gw.live_start)}
-                                        </option>
-                                    ))
-                                }
-                            </select>
-                            
-                            <button
-                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                                disabled={!selectedGameWeekId}
-                                onClick={createNewRound}
-                            >
-                                Create Round
-                            </button>
-                        </div>
+                        {winner ? (
+                            <p className="text-gray-600 dark:text-gray-400 italic text-center">
+                                Tournament complete.
+                            </p>
+                        ) : (
+                            <div className="flex items-center space-x-4">
+                                <select
+                                    className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white flex-grow"
+                                    value={selectedGameWeekId || ''}
+                                    onChange={(e) => setSelectedGameWeekId(e.target.value || null)}
+                                    disabled={winner !== null}
+                                >
+                                    <option value="">Select a Game Week</option>
+                                    {gameWeeks
+                                        .filter(gw => canSelectGameWeek(gw))
+                                        .map(gw => (
+                                            <option key={gw.id} value={gw.id}>
+                                                Week {gw.week_number} - Starts {formatDate(gw.live_start)}
+                                            </option>
+                                        ))
+                                    }
+                                </select>
+                                
+                                <button
+                                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                                    disabled={!selectedGameWeekId || winner !== null}
+                                    onClick={createNewRound}
+                                >
+                                    Create Round
+                                </button>
+                            </div>
+                        )}
                     </div>
                     
                     {/* Rounds section */}
@@ -548,6 +597,22 @@ export default function EditLaveryCup({ seasonId, onClose }: Props): JSX.Element
                             })
                         )}
                     </div>
+                    {/* Winner section */}
+                    {winner && (
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border-2 border-yellow-400 dark:border-yellow-600">
+                            <div className="flex flex-col items-center text-center">
+                                <svg className="w-20 h-20 text-yellow-500 mb-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M11 17.9V19H7v2h10v-2h-4v-1.1A8 8 0 0 0 20 10h1V8h-1V4H4v4H3v2h1a8 8 0 0 0 7 7.9zM6 6h12v2H6V6z"/>
+                                </svg>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                                    Tournament Complete!
+                                </h3>
+                                <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                                    🏆 <span className="text-yellow-600 dark:text-yellow-400">{winner.username}</span> is the champion! 🏆
+                                </p>
+                            </div>
+                        </div>
+)}
                 </div>
             )}
             
