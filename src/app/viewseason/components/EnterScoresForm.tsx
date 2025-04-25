@@ -149,7 +149,7 @@ const LaveryCupConfirmModal = ({
                     {selection.team2_name}
                   </div>
                 </div>
-                <div className="mt-2 text-sm">
+                <div className="mt-2 text-sm text-gray-900 dark:text-gray-100">
                   Status: {selection.team1_won && selection.team2_won ? 'Advanced' : 'Not Advanced'}
                 </div>
               </div>

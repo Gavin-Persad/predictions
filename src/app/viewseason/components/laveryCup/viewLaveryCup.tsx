@@ -176,7 +176,7 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
     };
 
     const getTeamStatusClass = (isWin: boolean | null) => {
-        if (isWin === null) return '';
+        if (isWin === null) return 'text-gray-900 dark:text-gray-100';
         return isWin ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400 line-through';
     };
     
