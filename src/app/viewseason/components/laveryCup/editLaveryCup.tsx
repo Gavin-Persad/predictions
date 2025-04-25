@@ -260,11 +260,6 @@ export default function EditLaveryCup({ seasonId, onClose }: Props): JSX.Element
                 ));
             }
             
-            const anyonePassed = updatedSelections?.some(s => s.advanced);
-            if (!anyonePassed) {
-                setShowResetModal(true);
-            }
-            
             setWinningTeams([]);
             
         } catch (error) {
@@ -388,6 +383,24 @@ export default function EditLaveryCup({ seasonId, onClose }: Props): JSX.Element
     
     const winner = determineWinner();
 
+    const isTournamentDeadlocked = useCallback(() => {
+        if (!rounds.length) return false;
+        
+        // Find the most recent completed round
+        const completedRounds = rounds.filter(r => r.is_complete);
+        if (completedRounds.length === 0) return false;
+        
+        const latestRound = completedRounds.reduce((latest, round) => 
+          !latest || round.round_number > latest.round_number ? round : latest, completedRounds[0]);
+        
+        // Check if any players advanced in this round
+        const roundSelections = selections.filter(s => s.round_id === latestRound.id);
+        const anyAdvanced = roundSelections.some(s => s.advanced);
+        
+        // Tournament is deadlocked if latest round is complete but nobody advanced
+        return roundSelections.length > 0 && !anyAdvanced;
+      }, [rounds, selections]);
+
     return (
         <div className="flex flex-col h-full">
             <div className="flex flex-col mb-6">
@@ -449,6 +462,30 @@ export default function EditLaveryCup({ seasonId, onClose }: Props): JSX.Element
                             </div>
                         )}
                     </div>
+
+                    {isTournamentDeadlocked() && (
+                    <div className="bg-red-50 dark:bg-red-900 border-2 border-red-300 dark:border-red-700 p-6 rounded-lg shadow">
+                        <div className="flex flex-col items-center text-center">
+                        <svg className="w-16 h-16 text-red-500 mb-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <h3 className="text-xl font-bold text-red-700 dark:text-red-400 mb-2">
+                            Tournament Deadlock
+                        </h3>
+                        <p className="text-gray-700 dark:text-gray-300 mb-4">
+                            All players have been eliminated in the latest round. The tournament cannot continue.
+                        </p>
+                        <button
+                            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                            onClick={() => setShowResetModal(true)}
+                        >
+                            Reset Tournament
+                        </button>
+                        </div>
+                    </div>
+                    )}
                     
                     {/* Rounds section */}
                     <div className="space-y-6">
