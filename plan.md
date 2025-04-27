@@ -214,6 +214,7 @@ rules
 - edit lavery cup - add players list that checks off as players go out, like cups first columns
 - egg on your face, make a way of alerting those who scored less than a player who did not enter scores.
 - chat board for players
+- add title to viewseasons
 
 23. Bugs
 
