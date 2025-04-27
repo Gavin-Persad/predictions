@@ -197,6 +197,22 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
         return false;
     };
 
+    const isTournamentDeadlocked = useCallback(() => {
+        if (!rounds.length) return false;
+        
+        // Find the most recent completed round
+        const completedRounds = rounds.filter(r => r.is_complete);
+        if (completedRounds.length === 0) return false;
+        
+        const latestRound = completedRounds.reduce((latest, round) => 
+          !latest || round.round_number > latest.round_number ? round : latest, completedRounds[0]);
+        
+        // Check if any players advanced in this round
+        const roundSelections = selections[latestRound.id] || [];
+        return roundSelections.length > 0 && !roundSelections.some(s => s.advanced);
+    }, [rounds, selections]);
+      
+
     return (
         <div className="flex flex-col h-full">
             <div className="flex flex-col mb-6">
@@ -212,14 +228,32 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
                     Lavery Cup - {seasonName}
                 </h2>
             </div>
-
+    
             {loading ? (
                 <div className="flex justify-center items-center">
                     <p className="text-gray-900 dark:text-gray-100">Loading...</p>
                 </div>
             ) : (
-                <div className={Layout.container}>
-                    {/* Players Column */}
+                <>
+                    {isTournamentDeadlocked() && (
+                        <div className="bg-red-50 dark:bg-red-900 border border-red-300 dark:border-red-700 p-4 rounded-lg mb-6">
+                            <div className="flex flex-col items-center text-center">
+                                <svg className="w-8 h-8 text-red-500 mb-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <p className="text-red-700 dark:text-red-400 font-medium">
+                                    All players have been eliminated in the latest round!
+                                </p>
+                                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                                    Tournament reset coming soon.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                    <div className={Layout.container}>
+                        {/* Players Column */}
                     <div className={Layout.column}>
                         <h3 className={Layout.roundTitle}>Players</h3>
                         <div className={Layout.scrollContainer}>
@@ -413,7 +447,8 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
     })()}
 
                 </div>
-            )}
-        </div>
-    );
+            </>
+        )}
+    </div>
+);
 }
