@@ -115,7 +115,7 @@
 - if team is not selected then boolean should be updated to false on lavery_cup_selection table.✅
 - if both booleans are true then should also update the advanced column on lavery_cup_selection table✅
 - check round progression to winner✅
-- check reset lavery cup function⏳
+- check reset lavery cup function✅
 
 20. view lavery cup✅
 
@@ -156,12 +156,12 @@
 - Colour coding issues on show scores cells seems to be Correct Score (0-3 goals) and Correct Results not showing.✅
 - league table not adding weekly scores, just showing the most recent weeks scores. Not updating the season_scores table on supabase.✅
 
-- no winners show reset coming warning ⏳ structure in place needs testing ⏳
-- every one needs to go all out in the next round, see what happens. add a pending for reset screen in view lavery cup if needed.
-- create a reset lavery cup button with typing confirmation in edit lavery cup. make sure this deletes only the information needed.
-- check that lavery cup can restart.
+- no winners show reset coming warning structure in place needs testing ✅
+- every one needs to go all out in the next round, see what happens. add a pending for reset screen in view lavery cup if needed.✅
+- create a reset lavery cup button with typing confirmation in edit lavery cup. make sure this deletes only the information needed.✅
+- check that lavery cup can restart.✅
 
-21. Test cups and format ⏳
+21. Test cups and format ✅
 
 22. Make Dashboard
 
@@ -214,7 +214,7 @@ rules
 - edit lavery cup - add players list that checks off as players go out, like cups first columns
 - egg on your face, make a way of alerting those who scored less than a player who did not enter scores.
 - chat board for players
-- add title to viewseasons
+- add title (season name) to viewseasons options view
 
 23. Bugs
 
