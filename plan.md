@@ -163,9 +163,9 @@
 
 21. Test cups and format ✅
 
-22. Make Dashboard
+22. Make Dashboard ⏳
 
-- add functionality to dashboard - indiviual squares containting different components, when clicked these will take you to the links, they will show on the dashboard page with the below views.
+- add functionality to dashboard - indiviual squares containting different components, when clicked these will take you to the links, they will show on the dashboard page with the below views.✅
 
   Content(
 

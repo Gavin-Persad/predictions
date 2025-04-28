@@ -90,12 +90,8 @@ export default function Dashboard() {
           
           {/* Messages Panel */}
           <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Messages</h2>
-            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 min-h-[80px]">
-              <p className="text-gray-600 dark:text-gray-300 italic text-center">
-                Message placeholder - Pinned announcements will appear here
-              </p>
-            </div>
+            <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Notice Board</h2>
+            <MessagesPanel isHost={profile?.is_host || false} />
           </div>
           
           {/* Main Tiles Grid */}
