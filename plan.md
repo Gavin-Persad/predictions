@@ -193,7 +193,7 @@ messages✅
 
 - link - messages page, list of measages that host has posted, add, edit and delete message button for hosts only. Host can also pin and unpin messages.
 
-rules⌛
+rules✅
 
 - link - rules page, rules listed.
 - dashboard view - just a title no need for anything live.

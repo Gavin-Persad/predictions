@@ -9,7 +9,6 @@ import Sidebar from '../../components/Sidebar';
 import DarkModeToggle from '../../components/darkModeToggle';
 import Link from 'next/link';
 
-// Import placeholder components (we'll create these later)
 import MessagesPanel from './components/MessagesPanel';
 import CurrentGameWeekTile from './components/CurrentGameWeekTile';
 import LeagueTableTile from './components/LeagueTableTile';
