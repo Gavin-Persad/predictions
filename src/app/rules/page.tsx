@@ -88,7 +88,7 @@ export default function Rules() {
                     </ul>
                   </li>
                   <li><strong>Correct Result:</strong> 1 point - When you predict the correct outcome (home win, away win, or draw) but not the exact score</li>
-                  <li><strong>Unique Correct Score:</strong> 2 bonus points - When you're the only player to predict the exact score</li>
+                  <li><strong>Unique Correct Score:</strong> 2 bonus points - When you&apos;'re the only player to predict the exact score</li>
                   <li><strong>Weekly Bonuses:</strong>
                     <ul className="list-circle ml-5 mt-1">
                       <li>4 correct scores in one week: +1 point</li>
@@ -163,7 +163,7 @@ export default function Rules() {
                   <li>Each round, players select two teams they believe will win their matches</li>
                   <li>Players can only use each team once during the entire tournament</li>
                   <li>Both teams must win in 90 minutes for the player to advance to the next round</li>
-                  <li>If a player's selected team loses or draws, they are eliminated</li>
+                  <li>If a player&apos;'s selected team loses or draws, they are eliminated</li>
                   <li>If all players are eliminated in a round, the tournament is reset</li>
                   <li>The last player remaining after all rounds is the winner</li>
                   <li>If predictions window is missed and no selections are made, the players is eliminated</li>

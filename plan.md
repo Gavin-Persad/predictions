@@ -221,7 +221,7 @@ rules✅
 
 23. Bugs
 
-- URGENT - League table needs to be changed to match rules, add tie breaker and lock positions.
+- URGENT - League table needs to be changed to match rules, add tie breaker.
 - page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.
 - add loading... to view seasons page when fetching seasons.
 - check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
@@ -234,10 +234,12 @@ rules✅
 - white space at bottom when scrolling down in mobile view in view george cup, view lavery cup, edit george cup. Check other areas also.
 - message panel - dashboard needs refreshed to show changes when adding deleting or editing messages
 - delete game week - errors where it deletes the fixtures but not the game week
+- dashboard - need to test league tile view if you are not in the top 6
+- dashbaord - links need to be routed to page with props, enter scores, league
 
-24. Test thoroughly with 20 player and 20 host
+24. Prepare for beta testing
 
-25. Prepare for beta testing
+25. Test thoroughly with 20 player and 20 host
 
 26. Update ReadMe and announce on LinkedIn
 
