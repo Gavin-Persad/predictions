@@ -3,8 +3,8 @@
 "use client";
 
 import React from 'react';
-import Sidebar from '../../../components/Sidebar';
-import DarkModeToggle from '../../../components/darkModeToggle';
+import Sidebar from '../../components/Sidebar';
+import DarkModeToggle from '../../components/darkModeToggle';
 
 export default function Rules() {
   
@@ -74,8 +74,9 @@ export default function Rules() {
                 Players are ranked in the league table based on their total points accumulated over the season. In case of a tie, the following tiebreakers apply:
               </p>
               <ul className="list-disc ml-5 space-y-1 text-gray-700 dark:text-gray-300">
-                <li>Most exact scores predicted</li>
+                <li>Most correct scores predicted</li>
                 <li>Most correct results predicted</li>
+                <li>Most unique correct scores predicted</li>
               </ul>
             </div>
           </section>
@@ -134,6 +135,7 @@ export default function Rules() {
                   <li>If a player's selected team loses or draws, they are eliminated</li>
                   <li>If all players are eliminated in a round, the tournament is reset</li>
                   <li>The last player remaining after all rounds is the winner</li>
+                  <li>If predictions window is missed and no selections are made, the players is eliminated</li>
                 </ul>
               </div>
               

@@ -189,13 +189,11 @@ enter scores
 - link - takes you to view Lavery Cup page, with current season props
 - dashbaord view - shows your current round and your selections, if they have been marked whether or not they were correct and at the bottom advanced or eliminated, if you have been knocked out and a new round is starting this will show the current round and underneath say the round you were knocked out on: For Example "Lavery Cup Semi Finals - Live 09/05/25. You were knocked out in the 2nd Round"
 
-messages
+messages✅
 
 - link - messages page, list of measages that host has posted, add, edit and delete message button for hosts only. Host can also pin and unpin messages.
-- dashboard view, shows pin message by host.
-- Also add this to side bar menu.
 
-rules
+rules⌛
 
 - link - rules page, rules listed.
 - dashboard view - just a title no need for anything live.
@@ -223,6 +221,7 @@ rules
 
 23. Bugs
 
+- URGENT - League table needs to be changed to match rules, add tie breaker and lock positions.
 - page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.
 - add loading... to view seasons page when fetching seasons.
 - check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
@@ -233,6 +232,7 @@ rules
 - enter scores any one who is signed up is able to enter scores, this should not be the case, only players game weeks should only show for player who are in that season on the season_players for the season that the game week is in.
 - host enter scores - when looking at the game weeks, a game week thats prediction window has closed but has not yet been edited says closed. This should say ready for correct scores or something like this. This may be fixed by the score modal issue where all correct scores show as 0-0 when the should be null.
 - white space at bottom when scrolling down in mobile view in view george cup, view lavery cup, edit george cup. Check other areas also.
+- message panel - dashboard needs refreshed to show changes when adding deleting or editing messages
 
 24. Test thoroughly with 20 player and 20 host
 

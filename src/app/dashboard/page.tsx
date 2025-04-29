@@ -131,10 +131,7 @@ export default function Dashboard() {
           
           {/* Rules Tile (Full Width) */}
           <div className="mt-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-md transition-shadow">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Rules</h2>
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded min-h-[100px] flex items-center justify-center">
-              <p className="text-gray-600 dark:text-gray-300 text-center">Competition rules will appear here</p>
-            </div>
+            <RulesTile />
           </div>
         </div>
       </div>
