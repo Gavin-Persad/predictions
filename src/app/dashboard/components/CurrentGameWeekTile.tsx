@@ -1,4 +1,4 @@
-//src/app/dashboard/components/RulesTile.tsx
+//src/app/dashboard/components/CurrentGameWeekTile.tsx
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
