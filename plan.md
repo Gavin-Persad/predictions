@@ -169,10 +169,10 @@
 
   Content(
 
-enter scores
+enter scores✅
 
-- link - link to enter scores page
-- dashboard view - coniditon of most recent game week. game week is the week that open for predictions time has passed most recently
+- link - link to enter scores page✅
+- dashboard view - coniditon of most recent game week. game week is the week that open for predictions time has passed most recently✅
 
   24/25 season League
 
@@ -233,6 +233,7 @@ rules✅
 - host enter scores - when looking at the game weeks, a game week thats prediction window has closed but has not yet been edited says closed. This should say ready for correct scores or something like this. This may be fixed by the score modal issue where all correct scores show as 0-0 when the should be null.
 - white space at bottom when scrolling down in mobile view in view george cup, view lavery cup, edit george cup. Check other areas also.
 - message panel - dashboard needs refreshed to show changes when adding deleting or editing messages
+- delete game week - errors where it deletes the fixtures but not the game week
 
 24. Test thoroughly with 20 player and 20 host
 
