@@ -84,6 +84,11 @@ export default function Sidebar() {
                                 <span className="block px-4 py-2 hover:bg-gray-700 rounded">View Season</span>
                             </Link>
                         </li>
+                        <li>
+                            <Link href="/rules">
+                                <span className="block px-4 py-2 hover:bg-gray-700 rounded">Rules</span>
+                            </Link>
+                        </li>
                         {profile?.is_host && (
                             <li>
                                 <Link href="/createseason">
