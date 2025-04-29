@@ -163,38 +163,41 @@
 
 21. Test cups and format ✅
 
-22. Make Dashboard
+22. Make Dashboard ⏳
 
-- add functionality to dashboard - indiviual squares containting different components, when clicked these will take you to the links, they will show on the dashboard page with the below views.
+- add functionality to dashboard - indiviual squares containting different components, when clicked these will take you to the links, they will show on the dashboard page with the below views.✅
 
   Content(
 
-enter scores
+enter scores✅
 
-- link - link to enter scores page
-- dashboard view - coniditon of most recent game week. game week is the week that open for predictions time has passed most recently
+- link - link to enter scores page✅
+- dashboard view - coniditon of most recent game week. game week is the week that open for predictions time has passed most recently✅
 
-  24/25 season League
+  24/25 season League✅
 
-- link - takes you to viewseasons, with the current season props
-- dashbaord view - top 6 of the table showing, your place showing if not in top 6 and only top 5 show
+- link - takes you to viewseasons, with the current season props✅
+- dashbaord view - top 6 of the table showing, your place showing if not in top 6 and only top 5 show✅
 
-  24/25 season George Cup
+  24/25 season George Cup ⌛ needs testing
 
 - link - takes you to view george cup page, with current season props
 - dashbaord view - shows your current fixtures and round, if you have been knocked out this will show the current round and underneath say the round you were knocked out on: For Example "George Cup Semi Finals - Live 09/05/25. You were knocked out in the 2nd Round"
 
-messages
+  24/25 season Lavery Cup ⌛ almost in place, some issues needs working out.
+
+- link - takes you to view Lavery Cup page, with current season props
+- dashbaord view - shows your current round and your selections, if they have been marked whether or not they were correct and at the bottom advanced or eliminated, if you have been knocked out and a new round is starting this will show the current round and underneath say the round you were knocked out on: For Example "Lavery Cup Semi Finals - Live 09/05/25. You were knocked out in the 2nd Round"
+
+messages✅
 
 - link - messages page, list of measages that host has posted, add, edit and delete message button for hosts only. Host can also pin and unpin messages.
-- dashboard view, shows pin message by host.
-- Also add this to side bar menu.
 
-rules
+rules✅
 
-- link - rules page, rules listed.
-- dashboard view - just a title no need for anything live.
-- Also add this to side bar menu.
+- link - rules page, rules listed.✅
+- dashboard view - just a title no need for anything live.✅
+- Also add this to side bar menu.✅
 
   )
 
@@ -209,15 +212,18 @@ rules
 - history page, seasons winners cup winners etc. needs supabase table updated by other areas(individual comps)
 - keep record of highest indivual score for a week and a game. Keep these displayed on dashboard. Winnner takes a prize.
 - add season name as title to view seasons page
-  about me
+- about me
 - small page, add to side menu, that has information about me and the project, git hub links etc. Also add this to side bar menu.
 - edit lavery cup - add players list that checks off as players go out, like cups first columns
 - egg on your face, make a way of alerting those who scored less than a player who did not enter scores.
 - chat board for players
 - add title (season name) to viewseasons options view
+- dashbaord - links need to be routed to page with props, enter scores, league, george cup, lavery cup
+- dashboard - george cup tile - should show when user was knocked out
 
 23. Bugs
 
+- URGENT - League table needs to be changed to match rules, add tie breaker.
 - page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.
 - add loading... to view seasons page when fetching seasons.
 - check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
@@ -227,10 +233,14 @@ rules
 - george cup - coin toss not done until host opens edit george cup component. This means players have to wait on host to manually flip a coin
 - enter scores any one who is signed up is able to enter scores, this should not be the case, only players game weeks should only show for player who are in that season on the season_players for the season that the game week is in.
 - host enter scores - when looking at the game weeks, a game week thats prediction window has closed but has not yet been edited says closed. This should say ready for correct scores or something like this. This may be fixed by the score modal issue where all correct scores show as 0-0 when the should be null.
+- white space at bottom when scrolling down in mobile view in view george cup, view lavery cup, edit george cup. Check other areas also.
+- message panel - dashboard needs refreshed to show changes when adding deleting or editing messages
+- delete game week - errors where it deletes the fixtures but not the game week
+- dashboard - need to test league tile view if you are not in the top 6
 
-24. Test thoroughly with 1 player and 1 host
+24. Prepare for beta testing
 
-25. Prepare for beta testing
+25. Test thoroughly with 20 player and 20 host
 
 26. Update ReadMe and announce on LinkedIn
 

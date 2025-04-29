@@ -31,7 +31,6 @@ export default function ProfileSettings() {
             return;
         }
 
-        // Fetch profile data
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
             setMessage('Error fetching user');
