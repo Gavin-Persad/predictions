@@ -179,12 +179,12 @@ enter scores✅
 - link - takes you to viewseasons, with the current season props✅
 - dashbaord view - top 6 of the table showing, your place showing if not in top 6 and only top 5 show✅
 
-  24/25 season George Cup ⌛ needs testing
+  24/25 season George Cup ✅
 
 - link - takes you to view george cup page, with current season props
 - dashbaord view - shows your current fixtures and round, if you have been knocked out this will show the current round and underneath say the round you were knocked out on: For Example "George Cup Semi Finals - Live 09/05/25. You were knocked out in the 2nd Round"
 
-  24/25 season Lavery Cup ⌛ almost in place, some issues needs working out.
+  24/25 season Lavery Cup ✅
 
 - link - takes you to view Lavery Cup page, with current season props
 - dashbaord view - shows your current round and your selections, if they have been marked whether or not they were correct and at the bottom advanced or eliminated, if you have been knocked out and a new round is starting this will show the current round and underneath say the round you were knocked out on: For Example "Lavery Cup Semi Finals - Live 09/05/25. You were knocked out in the 2nd Round"
@@ -220,6 +220,7 @@ rules✅
 - add title (season name) to viewseasons options view
 - dashbaord - links need to be routed to page with props, enter scores, league, george cup, lavery cup
 - dashboard - george cup tile - should show when user was knocked out
+- about me - small about me section to be added in the footer maybe.
 
 23. Bugs
 
