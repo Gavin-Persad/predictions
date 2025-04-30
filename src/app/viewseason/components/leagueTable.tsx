@@ -46,6 +46,21 @@ export default function LeagueTable({ seasonId, onClose }: LeagueTableProps) {
         fetchCurrentUser();
 
         const fetchScores = async () => {
+            // First, get all valid players for this season
+            const { data: seasonPlayers, error: playersError } = await supabase
+                .from('season_players')
+                .select('player_id')
+                .eq('season_id', seasonId);
+                
+            if (playersError || !seasonPlayers) {
+                console.error('Error fetching season players:', playersError);
+                return;
+            }
+            
+            // Create a Set of valid player IDs for fast lookup
+            const validPlayerIds = new Set(seasonPlayers.map(player => player.player_id));
+            
+            // Fetch scores
             const { data: rawData, error } = await supabase
                 .from('season_scores')
                 .select(`
@@ -57,28 +72,37 @@ export default function LeagueTable({ seasonId, onClose }: LeagueTableProps) {
                     )
                 `)
                 .eq('season_id', seasonId);
-
+        
             if (error || !rawData) {
                 console.error('Error:', error);
                 return;
             }
-
+        
             const data = rawData as unknown as DatabaseResponse[];
             
-            const formattedScores = data.map(score => ({
+            // Filter scores to include only valid season players
+            const filteredScores = data.filter(score => validPlayerIds.has(score.player_id));
+            
+            const formattedScores = filteredScores.map(score => ({
                 player_id: score.player_id,
                 username: score.profiles.username,
                 correct_scores: score.correct_scores,
                 points: score.points,
                 position: 0
             }));
-
-            const sortedScores = [...formattedScores].sort((a, b) => b.points - a.points);
+        
+            // Sort by points then by correct scores
+            const sortedScores = [...formattedScores].sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                
+                return b.correct_scores - a.correct_scores;
+            });
+            
             const positionedScores = sortedScores.map((score, index) => ({
                 ...score,
                 position: index + 1
             }));
-
+        
             setScores(positionedScores);
             setLoading(false);
         };
@@ -97,10 +121,14 @@ export default function LeagueTable({ seasonId, onClose }: LeagueTableProps) {
 
 const sortedScores = [...scores].sort((a, b) => {
     const modifier = sortDirection === 'asc' ? 1 : -1;
+    
     if (sortField === 'username') {
         return modifier * a.username.localeCompare(b.username);
+    } else if (sortField === 'position') {
+        return modifier * (a.position - b.position);
+    } else {
+        return modifier * (a[sortField] - b[sortField]);
     }
-    return modifier * (a[sortField] - b[sortField]);
 });
 
 return (

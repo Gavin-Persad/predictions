@@ -107,7 +107,6 @@ export default function Rules() {
               <ul className="list-disc ml-5 space-y-1 text-gray-700 dark:text-gray-300">
                 <li>Most correct scores predicted</li>
                 <li>Most correct results predicted</li>
-                <li>Most unique correct scores predicted</li>
               </ul>
             </div>
           </section>
