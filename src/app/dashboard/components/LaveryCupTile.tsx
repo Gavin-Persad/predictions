@@ -258,7 +258,10 @@ export default function LaveryCupTile() {
         const winnerId = Array.from(advancedPlayers)[0];
         
         // Find the player name
-        const winnerPlayer = playersData.find((p: any) => p.profiles.id === winnerId);
+        const winnerPlayer = playersData.find((p: any) => p.profiles.id === winnerId) as { 
+          profiles: { id: string; username: string } 
+        } | undefined;
+        
         if (winnerPlayer) {
           return {
             id: winnerId,
