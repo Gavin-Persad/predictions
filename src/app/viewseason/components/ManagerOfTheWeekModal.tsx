@@ -36,6 +36,18 @@ export default function ManagerOfTheWeekModal({ gameWeekId, seasonId, onClose }:
 
     useEffect(() => {
         const fetchScores = async () => {
+            const { data: seasonPlayers, error: playersError } = await supabase
+                .from('season_players')
+                .select('player_id')
+                .eq('season_id', seasonId);
+                
+            if (playersError || !seasonPlayers) {
+                console.error('Error fetching season players:', playersError);
+                return;
+            }
+            
+            const validPlayerIds = new Set(seasonPlayers.map(player => player.player_id));
+        
             const { data: rawData, error } = await supabase
                 .from('game_week_scores')
                 .select(`
@@ -47,34 +59,41 @@ export default function ManagerOfTheWeekModal({ gameWeekId, seasonId, onClose }:
                     )
                 `)
                 .eq('game_week_id', gameWeekId);
-
+        
             if (error || !rawData) {
                 console.error('Error:', error);
                 return;
             }
-
+        
             const data = rawData as unknown as DatabaseResponse[];
             
-            const formattedScores = data.map(score => ({
+            const filteredScores = data.filter(score => validPlayerIds.has(score.player_id));
+            
+            const formattedScores = filteredScores.map(score => ({
                 player_id: score.player_id,
                 username: score.profiles.username,
                 correct_scores: score.correct_scores,
                 points: score.points,
                 position: 0
             }));
-
-            const sortedScores = [...formattedScores].sort((a, b) => b.points - a.points);
+        
+            const sortedScores = [...formattedScores].sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                
+                return b.correct_scores - a.correct_scores;
+            });
+            
             const positionedScores = sortedScores.map((score, index) => ({
                 ...score,
                 position: index + 1
             }));
-
+        
             setScores(positionedScores);
             setLoading(false);
         };
 
         fetchScores();
-    }, [gameWeekId]);
+    }, [gameWeekId, seasonId]);
 
     const handleSort = (field: typeof sortField) => {
         if (field === sortField) {

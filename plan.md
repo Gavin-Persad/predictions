@@ -211,20 +211,18 @@ rules✅
 - enter scores, change to (title: game week, sub: as is live open to close )✅
 - history page, seasons winners cup winners etc. needs supabase table updated by other areas(individual comps)
 - keep record of highest indivual score for a week and a game. Keep these displayed on dashboard. Winnner takes a prize.
-- add season name as title to view seasons page
+- add season name as title to view seasons page✅
 - about me
 - small page, add to side menu, that has information about me and the project, git hub links etc. Also add this to side bar menu.
 - edit lavery cup - add players list that checks off as players go out, like cups first columns
 - egg on your face, make a way of alerting those who scored less than a player who did not enter scores.
-- chat board for players
-- add title (season name) to viewseasons options view
+- add title (season name) to viewseasons options view✅
 - dashbaord - links need to be routed to page with props, enter scores, league, george cup, lavery cup
 - dashboard - george cup tile - should show when user was knocked out
-- about me - small about me section to be added in the footer maybe.
 
 23. Bugs
 
-- URGENT - League table needs to be changed to match rules, add tie breaker.
+- URGENT - League table needs to be changed to match rules, add tie breaker.✅
 - page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.
 - add loading... to view seasons page when fetching seasons.
 - check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
@@ -233,7 +231,7 @@ rules✅
 - game logic - scores not show points in my predictions until host has entered correct scores - my scores should not show host scores until host has entered them - This is causing players to see incorrect scores until host has entered correct scores.
 - george cup - coin toss not done until host opens edit george cup component. This means players have to wait on host to manually flip a coin
 - enter scores any one who is signed up is able to enter scores, this should not be the case, only players game weeks should only show for player who are in that season on the season_players for the season that the game week is in.
-- host enter scores - when looking at the game weeks, a game week thats prediction window has closed but has not yet been edited says closed. This should say ready for correct scores or something like this. This may be fixed by the score modal issue where all correct scores show as 0-0 when the should be null.
+- URGENT - host enter scores - when looking at the game weeks, a game week thats prediction window has closed but has not yet been edited says closed. This should say ready for correct scores or something like this. This may be fixed by the score modal issue where all correct scores show as 0-0 when the should be null.🔵
 - white space at bottom when scrolling down in mobile view in view george cup, view lavery cup, edit george cup. Check other areas also.
 - message panel - dashboard needs refreshed to show changes when adding deleting or editing messages
 - delete game week - errors where it deletes the fixtures but not the game week
