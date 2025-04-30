@@ -326,6 +326,12 @@ export default function ViewSeason() {
                             >
                                 Back to Seasons
                             </button>
+                            
+                            {/* Add season title here */}
+                            <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
+                                {selectedSeason.name}
+                            </h1>
+                            
                             <div className="w-full flex flex-col items-center">
                                 <div className="grid grid-cols-3 gap-4 w-full max-w-3xl">
 
