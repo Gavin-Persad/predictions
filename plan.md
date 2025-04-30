@@ -236,6 +236,7 @@ rules✅
 - white space at bottom when scrolling down in mobile view in view george cup, view lavery cup, edit george cup. Check other areas also.
 - message panel - dashboard needs refreshed to show changes when adding deleting or editing messages
 - delete game week - errors where it deletes the fixtures but not the game week
+- delete season needs correcting
 - dashboard - need to test league tile view if you are not in the top 6
 
 24. Prepare for beta testing
