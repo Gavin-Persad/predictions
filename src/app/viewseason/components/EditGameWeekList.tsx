@@ -5,6 +5,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../../supabaseClient';
 import EditGameWeekForm from './EditGameWeekForm';
+import { determineGameWeekStatus, getStatusLabel } from '../../../utils/gameWeekStatus';
+
 
 type EditGameWeekListProps = {
     seasonId: string;
@@ -70,29 +72,9 @@ export default function EditGameWeekList({ seasonId, onClose }: EditGameWeekList
     }, [seasonId]);
 
     const checkGameWeekStatus = async (gameWeek: GameWeek) => {
-        const now = new Date();
-        const predOpen = new Date(gameWeek.predictions_open);
-        const predClose = new Date(gameWeek.predictions_close);
-        const liveStart = new Date(gameWeek.live_start);
-        const liveEnd = new Date(gameWeek.live_end);
-    
-        if (now > liveEnd) {
-            const { count, error } = await supabase
-                .from('game_week_scores')
-                .select('*', { count: 'exact', head: true })
-                .eq('game_week_id', gameWeek.id);
-            
-            if (error) {
-                console.error('Error checking game week scores:', error);
-            }
-            
-            return count && count > 0 ? 'Scores Entered' : 'Ready for Scores';
-        }
-        
-        if (now >= liveStart && now <= liveEnd) return 'Live';
-        if (now >= predOpen && now <= predClose) return 'Predictions Open';
-        return 'Upcoming';
-    };
+        const status = await determineGameWeekStatus(gameWeek);
+        return getStatusLabel(status);
+      };
 
     useEffect(() => {
         fetchGameWeeks();

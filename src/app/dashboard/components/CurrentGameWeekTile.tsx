@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../../../supabaseClient';
+import { determineGameWeekStatus, getStatusLabel, getStatusColor } from '../../../utils/gameWeekStatus';
+
 
 type GameWeek = {
   id: string;
@@ -55,49 +57,23 @@ export default function CurrentGameWeekTile() {
         const liveStart = new Date(gameWeek.live_start);
         const liveEnd = new Date(gameWeek.live_end);
 
-        let status: 'upcoming' | 'predictions' | 'live' | 'awaiting_scores' | 'completed';
+        const status = await determineGameWeekStatus(gameWeek);
+        setGameWeekStatus(status);
+
+        // If gameWeek is 'completed', fetch the player's score:
+        if (status === 'completed') {
+          const { data: scoreData, error: scoreError } = await supabase
+            .from('game_week_scores')
+            .select('points, correct_scores')
+            .eq('game_week_id', gameWeek.id)
+            .eq('player_id', user.id)
+            .single();
         
-        if (now < predOpen) {
-          status = 'upcoming';
-        } else if (now >= predOpen && now < predClose) {
-          status = 'predictions';
-        } else if (now >= predClose && now <= liveEnd) {
-          status = 'live';
-        } else {
-          // Game week has ended, check if scores have been entered
-          const { data: fixtures, error: fixtureError } = await supabase
-            .from('fixtures')
-            .select('home_score, away_score')
-            .eq('game_week_id', gameWeek.id);
-
-          if (fixtureError) {
-            console.error('Error fetching fixtures:', fixtureError);
-            status = 'awaiting_scores';
-          } else {
-            const scoresEntered = fixtures.some(fixture => 
-              fixture.home_score !== null && fixture.away_score !== null
-            );
-            
-            if (scoresEntered) {
-              status = 'completed';
-              
-              // Fetch player scores
-              const { data: scoreData, error: scoreError } = await supabase
-                .from('game_week_scores')
-                .select('points, correct_scores')
-                .eq('game_week_id', gameWeek.id)
-                .eq('player_id', user.id)
-                .single();
-
-              if (!scoreError && scoreData) {
-                setPlayerScore({
-                  points: scoreData.points,
-                  correct_scores: scoreData.correct_scores
-                });
-              }
-            } else {
-              status = 'awaiting_scores';
-            }
+          if (!scoreError && scoreData) {
+            setPlayerScore({
+              points: scoreData.points,
+              correct_scores: scoreData.correct_scores
+            });
           }
         }
 

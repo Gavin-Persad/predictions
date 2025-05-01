@@ -163,7 +163,7 @@
 
 21. Test cups and format ✅
 
-22. Make Dashboard ⏳
+22. Make Dashboard ✅
 
 - add functionality to dashboard - indiviual squares containting different components, when clicked these will take you to the links, they will show on the dashboard page with the below views.✅
 
@@ -209,34 +209,44 @@ rules✅
 - view game week, change to (title: game week, sub: as is live open to close )✅
 - edit game week, change to (title: game week, sub: as is live open to close )✅
 - enter scores, change to (title: game week, sub: as is live open to close )✅
-- history page, seasons winners cup winners etc. needs supabase table updated by other areas(individual comps)
-- keep record of highest indivual score for a week and a game. Keep these displayed on dashboard. Winnner takes a prize.
 - add season name as title to view seasons page✅
+- add title (season name) to viewseasons options view✅
+-
 - about me
 - small page, add to side menu, that has information about me and the project, git hub links etc. Also add this to side bar menu.
-- edit lavery cup - add players list that checks off as players go out, like cups first columns
+-
 - egg on your face, make a way of alerting those who scored less than a player who did not enter scores.
-- add title (season name) to viewseasons options view✅
+-
 - dashbaord - links need to be routed to page with props, enter scores, league, george cup, lavery cup
 - dashboard - george cup tile - should show when user was knocked out
+-
+- history page, seasons winners cup winners etc. needs supabase table updated by other areas(individual comps)
+- keep record of highest indivual score for a week and a game. Keep these displayed on dashboard. Winnner takes a prize.
 
 23. Bugs
 
 - URGENT - League table needs to be changed to match rules, add tie breaker.✅
-- page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.
-- add loading... to view seasons page when fetching seasons.
-- check routing to ensure that players who are logged in, get redirected from log in to the dashboard.
-- errors showing in console when going to my pedictions, enter scores page due to adding lavery cup selections
-- view george cup - scroll bar for columns is just off bottom of the page
-- game logic - scores not show points in my predictions until host has entered correct scores - my scores should not show host scores until host has entered them - This is causing players to see incorrect scores until host has entered correct scores.
-- george cup - coin toss not done until host opens edit george cup component. This means players have to wait on host to manually flip a coin
+- check routing to ensure that players who are logged in, get redirected from log in to the dashboard.✅
+- game logic - scores not show points in my predictions until host has entered correct scores - my scores should not show host scores until host has entered them - This is causing players to see incorrect scores until host has entered correct scores.✅
+- george cup - coin toss not done until host opens edit george cup component. This means players have to wait on host to manually flip a coin✅
+- URGENT - host enter scores - when looking at the game weeks, a game week thats prediction window has closed but has not yet been edited says closed. This should say ready for correct scores or something like this. This may be fixed by the score modal issue where all correct scores show as 0-0 when the should be null.✅
+- dashboard - need to test league tile view if you are not in the top 6✅
+-
+- add loading... to view seasons page when fetching seasons.🔵
+-
 - enter scores any one who is signed up is able to enter scores, this should not be the case, only players game weeks should only show for player who are in that season on the season_players for the season that the game week is in.
-- URGENT - host enter scores - when looking at the game weeks, a game week thats prediction window has closed but has not yet been edited says closed. This should say ready for correct scores or something like this. This may be fixed by the score modal issue where all correct scores show as 0-0 when the should be null.🔵
-- white space at bottom when scrolling down in mobile view in view george cup, view lavery cup, edit george cup. Check other areas also.
-- message panel - dashboard needs refreshed to show changes when adding deleting or editing messages
+-
 - delete game week - errors where it deletes the fixtures but not the game week
 - delete season needs correcting
-- dashboard - need to test league tile view if you are not in the top 6
+-
+- white space at bottom when scrolling down in mobile view in view george cup, view lavery cup, edit george cup. Check other areas also.
+- view george cup - scroll bar for columns is just off bottom of the page, same for view lavery cup and edit george cup
+-
+- message panel - dashboard needs refreshed to show changes when adding deleting or editing messages
+-
+- errors showing in console when going to my pedictions, enter scores page due to adding lavery cup selections
+-
+- page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.
 
 24. Prepare for beta testing
 

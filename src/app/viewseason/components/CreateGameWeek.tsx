@@ -106,8 +106,8 @@ export default function CreateGameWeek({ seasonId, onClose }: CreateGameWeekProp
                         fixture_number: f.number,
                         home_team: f.home,
                         away_team: f.away,
-                        home_score: 0,
-                        away_score: 0
+                        home_score: null, 
+                        away_score: null 
                     }))
                 );
 
