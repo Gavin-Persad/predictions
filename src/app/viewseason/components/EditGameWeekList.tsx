@@ -29,6 +29,8 @@ export default function EditGameWeekList({ seasonId, onClose }: EditGameWeekList
     const [selectedGameWeek, setSelectedGameWeek] = useState<GameWeek | null>(null);
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(true);
+    const [gameWeekStatuses, setGameWeekStatuses] = useState<{[key: string]: string}>({});
+
 
     const fetchGameWeeks = useCallback(async () => {
         try {
@@ -48,23 +50,45 @@ export default function EditGameWeekList({ seasonId, onClose }: EditGameWeekList
                 console.error(error);
             } else {
                 setGameWeeks(data);
+                
+                const statuses: {[key: string]: string} = {};
+                for (const gameWeek of data) {
+                    statuses[gameWeek.id] = await checkGameWeekStatus(gameWeek);
+                }
+                setGameWeekStatuses(statuses);
             }
+
         } catch (err) {
+
             setMessage('Error fetching game weeks');
             console.error(err);
+
         } finally {
+
             setLoading(false);
         }
     }, [seasonId]);
 
-    const checkGameWeekStatus = (gameWeek: GameWeek) => {
+    const checkGameWeekStatus = async (gameWeek: GameWeek) => {
         const now = new Date();
         const predOpen = new Date(gameWeek.predictions_open);
         const predClose = new Date(gameWeek.predictions_close);
         const liveStart = new Date(gameWeek.live_start);
         const liveEnd = new Date(gameWeek.live_end);
     
-        if (now > liveEnd) return 'Closed';
+        if (now > liveEnd) {
+            const { count, error } = await supabase
+                .from('game_week_scores')
+                .select('*', { count: 'exact', head: true })
+                .eq('game_week_id', gameWeek.id);
+            
+            if (error) {
+                console.error('Error checking game week scores:', error);
+            }
+            
+            return count && count > 0 ? 'Scores Entered' : 'Ready for Scores';
+        }
+        
         if (now >= liveStart && now <= liveEnd) return 'Live';
         if (now >= predOpen && now <= predClose) return 'Predictions Open';
         return 'Upcoming';
@@ -117,7 +141,7 @@ export default function EditGameWeekList({ seasonId, onClose }: EditGameWeekList
                                         </div>
                                     </div>
                                     <span className="text-sm">
-                                        {checkGameWeekStatus(gameWeek)}
+                                        {gameWeekStatuses[gameWeek.id] || 'Loading...'}
                                     </span>
                                 </div>
                             </div>

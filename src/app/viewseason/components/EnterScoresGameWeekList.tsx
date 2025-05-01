@@ -30,6 +30,7 @@ export default function EnterScoresGameWeekList({ seasonId, onClose }: GameWeekL
     const [gameWeeks, setGameWeeks] = useState<GameWeek[]>([]);
     const [selectedGameWeek, setSelectedGameWeek] = useState<GameWeek | null>(null);
     const [loading, setLoading] = useState(true);
+    const [gameWeekStatuses, setGameWeekStatuses] = useState<{[key: string]: string}>({});
 
     useEffect(() => {
         const fetchGameWeeks = async () => {
@@ -55,26 +56,37 @@ export default function EnterScoresGameWeekList({ seasonId, onClose }: GameWeekL
                 console.error('Error:', error);
             } else {
                 setGameWeeks(data);
+                
+                const statuses: {[key: string]: string} = {};
+                for (const gameWeek of data) {
+                    statuses[gameWeek.id] = await checkGameWeekStatus(gameWeek);
+                }
+                setGameWeekStatuses(statuses);
             }
             setLoading(false);
         };
-
+    
         fetchGameWeeks();
     }, [seasonId]);
 
-    const checkGameWeekStatus = (gameWeek: GameWeek) => {
+    const checkGameWeekStatus = async (gameWeek: GameWeek) => {
         const now = new Date();
         const liveEnd = new Date(gameWeek.live_end);
         
         if (now <= liveEnd) {
-            return 'Upcoming';
+            return 'Upcoming/Live';
         }
         
-        const hasScores = gameWeek.fixtures.some(
-            f => f.home_score !== null || f.away_score !== null
-        );
+        const { count, error } = await supabase
+            .from('game_week_scores')
+            .select('*', { count: 'exact', head: true })
+            .eq('game_week_id', gameWeek.id);
         
-        return hasScores ? 'Scores Entered' : 'Ready for Scores';
+        if (error) {
+            console.error('Error checking game week scores:', error);
+        }
+        
+        return count && count > 0 ? 'Scores Entered' : 'Ready for Scores';
     };
 
     if (selectedGameWeek) {
@@ -119,7 +131,7 @@ export default function EnterScoresGameWeekList({ seasonId, onClose }: GameWeekL
                                     </div>
                                 </div>
                                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                                    {checkGameWeekStatus(gameWeek)}
+                                    {gameWeekStatuses[gameWeek.id] || 'Loading...'}
                                 </span>
                             </div>
                         </div>
