@@ -5,6 +5,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../../supabaseClient';
 import EditGameWeekForm from './EditGameWeekForm';
+import { determineGameWeekStatus, getStatusLabel } from '../../../utils/gameWeekStatus';
+
 
 type EditGameWeekListProps = {
     seasonId: string;
@@ -29,6 +31,8 @@ export default function EditGameWeekList({ seasonId, onClose }: EditGameWeekList
     const [selectedGameWeek, setSelectedGameWeek] = useState<GameWeek | null>(null);
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(true);
+    const [gameWeekStatuses, setGameWeekStatuses] = useState<{[key: string]: string}>({});
+
 
     const fetchGameWeeks = useCallback(async () => {
         try {
@@ -48,27 +52,29 @@ export default function EditGameWeekList({ seasonId, onClose }: EditGameWeekList
                 console.error(error);
             } else {
                 setGameWeeks(data);
+                
+                const statuses: {[key: string]: string} = {};
+                for (const gameWeek of data) {
+                    statuses[gameWeek.id] = await checkGameWeekStatus(gameWeek);
+                }
+                setGameWeekStatuses(statuses);
             }
+
         } catch (err) {
+
             setMessage('Error fetching game weeks');
             console.error(err);
+
         } finally {
+
             setLoading(false);
         }
     }, [seasonId]);
 
-    const checkGameWeekStatus = (gameWeek: GameWeek) => {
-        const now = new Date();
-        const predOpen = new Date(gameWeek.predictions_open);
-        const predClose = new Date(gameWeek.predictions_close);
-        const liveStart = new Date(gameWeek.live_start);
-        const liveEnd = new Date(gameWeek.live_end);
-    
-        if (now > liveEnd) return 'Closed';
-        if (now >= liveStart && now <= liveEnd) return 'Live';
-        if (now >= predOpen && now <= predClose) return 'Predictions Open';
-        return 'Upcoming';
-    };
+    const checkGameWeekStatus = async (gameWeek: GameWeek) => {
+        const status = await determineGameWeekStatus(gameWeek);
+        return getStatusLabel(status);
+      };
 
     useEffect(() => {
         fetchGameWeeks();
@@ -117,7 +123,7 @@ export default function EditGameWeekList({ seasonId, onClose }: EditGameWeekList
                                         </div>
                                     </div>
                                     <span className="text-sm">
-                                        {checkGameWeekStatus(gameWeek)}
+                                        {gameWeekStatuses[gameWeek.id] || 'Loading...'}
                                     </span>
                                 </div>
                             </div>

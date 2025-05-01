@@ -52,6 +52,7 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
     });
     const [canViewScores, setCanViewScores] = useState(false);
     const [showColorKey, setShowColorKey] = useState(false);
+    const [hostHasEnteredScores, setHostHasEnteredScores] = useState(false);
 
     const ColorKeyModal = ({ isOpen }: { isOpen: boolean }) => {
         if (!isOpen) return null;
@@ -168,6 +169,17 @@ useEffect(() => {
 
             setCanViewScores(true);
 
+            const { count: scoreCount, error: scoreCountError } = await supabase
+                .from('game_week_scores')
+                .select('*', { count: 'exact', head: true })
+                .eq('game_week_id', gameWeekId);
+            
+            if (scoreCountError) {
+                console.error('Error checking game week scores:', scoreCountError);
+            } else {
+                setHostHasEnteredScores(scoreCount !== null && scoreCount > 0);
+            }
+
             // Fetch fixtures data
             const { data: fixturesData, error: fixturesError } = await supabase
                 .from('fixtures')
@@ -277,12 +289,13 @@ useEffect(() => {
                                         <td 
                                             key={fixture.id}
                                             className={`px-4 py-2 text-center border-b dark:text-gray-100 border-gray-700
-                                                ${selectedFixture === fixture.id ? 
-                                                    'bg-blue-100 dark:bg-blue-900' : ''}`}
+                                                ${selectedFixture === fixture.id ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
                                         >
-                                            {fixture.home_score !== null && fixture.away_score !== null
-                                                ? `${fixture.home_score}-${fixture.away_score}`
-                                                : '-'
+                                            {hostHasEnteredScores
+                                                ? (fixture.home_score !== null && fixture.away_score !== null
+                                                    ? `${fixture.home_score}-${fixture.away_score}`
+                                                    : '-')
+                                                : 'Waiting for host'
                                             }
                                         </td>
                                     ))}

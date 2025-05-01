@@ -5,6 +5,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../../supabaseClient';
 import EnterScoresForm from './EnterScoresForm';
+import { determineGameWeekStatus, getStatusLabel } from '../../../utils/gameWeekStatus';
+
 
 type GameWeekListProps = {
     seasonId: string;
@@ -14,6 +16,8 @@ type GameWeekListProps = {
 type GameWeek = {
     id: string;
     week_number: number;
+    predictions_open: string;
+    predictions_close: string;
     live_start: string;
     live_end: string;
     seasons: {
@@ -30,6 +34,7 @@ export default function EnterScoresGameWeekList({ seasonId, onClose }: GameWeekL
     const [gameWeeks, setGameWeeks] = useState<GameWeek[]>([]);
     const [selectedGameWeek, setSelectedGameWeek] = useState<GameWeek | null>(null);
     const [loading, setLoading] = useState(true);
+    const [gameWeekStatuses, setGameWeekStatuses] = useState<{[key: string]: string}>({});
 
     useEffect(() => {
         const fetchGameWeeks = async () => {
@@ -55,27 +60,23 @@ export default function EnterScoresGameWeekList({ seasonId, onClose }: GameWeekL
                 console.error('Error:', error);
             } else {
                 setGameWeeks(data);
+                
+                const statuses: {[key: string]: string} = {};
+                for (const gameWeek of data) {
+                    statuses[gameWeek.id] = await checkGameWeekStatus(gameWeek);
+                }
+                setGameWeekStatuses(statuses);
             }
             setLoading(false);
         };
-
+    
         fetchGameWeeks();
     }, [seasonId]);
 
-    const checkGameWeekStatus = (gameWeek: GameWeek) => {
-        const now = new Date();
-        const liveEnd = new Date(gameWeek.live_end);
-        
-        if (now <= liveEnd) {
-            return 'Upcoming';
-        }
-        
-        const hasScores = gameWeek.fixtures.some(
-            f => f.home_score !== null || f.away_score !== null
-        );
-        
-        return hasScores ? 'Scores Entered' : 'Ready for Scores';
-    };
+    const checkGameWeekStatus = async (gameWeek: GameWeek) => {
+        const status = await determineGameWeekStatus(gameWeek);
+        return getStatusLabel(status);
+      };
 
     if (selectedGameWeek) {
         return (
@@ -119,7 +120,7 @@ export default function EnterScoresGameWeekList({ seasonId, onClose }: GameWeekL
                                     </div>
                                 </div>
                                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                                    {checkGameWeekStatus(gameWeek)}
+                                    {gameWeekStatuses[gameWeek.id] || 'Loading...'}
                                 </span>
                             </div>
                         </div>
