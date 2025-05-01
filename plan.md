@@ -234,10 +234,10 @@ rules✅
 -
 - add loading... to view seasons page when fetching seasons.✅
 -
-- enter scores any one who is signed up is able to enter scores, this should not be the case, only players game weeks should only show for player who are in that season on the season_players for the season that the game week is in.🔵
+- enter scores any one who is signed up is able to enter scores, this should not be the case, only players game weeks should only show for player who are in that season on the season_players for the season that the game week is in.✅
 -
 - delete game week - errors where it deletes the fixtures but not the game week
-- delete season needs correcting
+- delete season needs correcting🔵
 -
 - white space at bottom when scrolling down in mobile view in view george cup, view lavery cup, edit george cup. Check other areas also.
 - view george cup - scroll bar for columns is just off bottom of the page, same for view lavery cup and edit george cup
