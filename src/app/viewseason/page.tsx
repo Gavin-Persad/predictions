@@ -49,6 +49,7 @@ export default function ViewSeason() {
     const [showLaveryCup, setShowLaveryCup] = useState(false);
     const [editGeorgeCup, setEditGeorgeCup] = useState(false);
     const [editLaveryCup, setEditLaveryCup] = useState(false);
+    const [loadingSeasons, setLoadingSeasons] = useState(true);
 
 
     const fetchPlayers = async (seasonId: string) => {
@@ -87,13 +88,15 @@ export default function ViewSeason() {
 
     useEffect(() => {
         const checkAuthAndFetchData = async () => {
+            setLoadingSeasons(true); 
+            
             const { data: { session } } = await supabase.auth.getSession();
             
             if (!session) {
                 router.push('/');
                 return;
             }
-
+        
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('id, username, is_host')
@@ -107,17 +110,20 @@ export default function ViewSeason() {
             }
 
             const { data: seasonsData, error: seasonsError } = await supabase
-                .from('seasons')
-                .select('id, name, start_date, end_date');
-            
-            if (seasonsError) {
-                setMessage('Error fetching seasons');
-            } else {
-                setSeasons(seasonsData);
-            }
-        };
+            .from('seasons')
+            .select('id, name, start_date, end_date');
+        
+        if (seasonsError) {
+            setMessage('Error fetching seasons');
+        } else {
+            setSeasons(seasonsData);
+        }
+        
+        setLoadingSeasons(false);
+    };
 
         checkAuthAndFetchData();
+
     }, [router]);
 
     const handleDeleteSeason = async () => {
@@ -245,13 +251,19 @@ export default function ViewSeason() {
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl mx-4">
                     {!selectedSeason ? (
-                        <>
-                            <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
-                                Prediction Years
-                            </h1>
-                            <ul className="space-y-4">
-                                {seasons.map(season => (
-                                    <li key={season.id} className="cursor-pointer" onClick={() => handleSeasonClick(season)}>
+    <>
+        <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
+            Prediction Years
+        </h1>
+        
+        {loadingSeasons ? (
+            <div className="flex justify-center items-center py-10">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        ) : (
+            <ul className="space-y-4">
+                {seasons.map(season => (
+                    <li key={season.id} className="cursor-pointer" onClick={() => handleSeasonClick(season)}>
                                         <div className="p-4 bg-gray-200 dark:bg-gray-700 rounded shadow hover:bg-gray-300 dark:hover:bg-gray-600">
                                             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{season.name}</h2>
                                             <p className="text-gray-700 dark:text-gray-300">Start Date: {season.start_date}</p>
@@ -260,8 +272,9 @@ export default function ViewSeason() {
                                     </li>
                                 ))}
                             </ul>
-                        </>
-                    ) : editPlayers ? (
+                        )}
+                    </>
+                    ) :  editPlayers ? (
                         <EditPlayers 
                             seasonId={selectedSeason.id} 
                             onClose={handleCloseEditPlayers} 
