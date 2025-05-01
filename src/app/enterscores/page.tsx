@@ -78,26 +78,50 @@ export default function PredictionsPage() {
     
             setUserId(session.user.id);
     
+            // First, get the seasons the player is registered for
+            const { data: playerSeasons, error: playerSeasonsError } = await supabase
+                .from('season_players')
+                .select('season_id')
+                .eq('player_id', session.user.id);
+            
+            if (playerSeasonsError) {
+                console.error('Error fetching player seasons:', playerSeasonsError);
+                setLoading(false);
+                return;
+            }
+    
+            // If player isn't in any seasons, show empty list
+            if (!playerSeasons || playerSeasons.length === 0) {
+                setGameWeeks([]);
+                setLoading(false);
+                return;
+            }
+    
+            // Extract season IDs
+            const seasonIds = playerSeasons.map(ps => ps.season_id);
+    
+            // Fetch game weeks only for these seasons
             const { data, error } = await supabase
-            .from('game_weeks')
-            .select(`
-                *,
-                seasons (
-                    id,
-                    name
-                ),
-                lavery_cup_rounds (
-                    id,
-                    round_number,
-                    round_name
-                ),
-                george_cup_rounds!george_cup_rounds_game_week_id_fkey (
-                    id,
-                    round_number,
-                    round_name
-                )
-            `)
-            .order('week_number', { ascending: false });
+                .from('game_weeks')
+                .select(`
+                    *,
+                    seasons (
+                        id,
+                        name
+                    ),
+                    lavery_cup_rounds (
+                        id,
+                        round_number,
+                        round_name
+                    ),
+                    george_cup_rounds!george_cup_rounds_game_week_id_fkey (
+                        id,
+                        round_number,
+                        round_name
+                    )
+                `)
+                .in('season_id', seasonIds) 
+                .order('week_number', { ascending: false });
     
             if (error) {
                 console.error('Error:', error);
@@ -275,23 +299,32 @@ export default function PredictionsPage() {
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl">
                     {loading ? (
-                        <div>Loading...</div>
+                        <div className="flex justify-center items-center py-10">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                        </div>
                     ) : !selectedGameWeek ? (
                         <>
                             <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
                                 Game Week Predictions
                             </h1>
-                            <div className="space-y-4">
-                            {gameWeeks.map((gameWeek) => {
-                                    const status = checkGameWeekStatus(gameWeek);
-                                    const hasLaveryCupRound = gameWeek.lavery_cup_rounds && gameWeek.lavery_cup_rounds.length > 0;
-                                    const hasGeorgeCupRound = gameWeek.george_cup_rounds && gameWeek.george_cup_rounds.length > 0;
-                                    return (
-                                        <button
-                                            key={gameWeek.id}
-                                            onClick={() => setSelectedGameWeek(gameWeek.id)}
-                                            className={`w-full p-4 rounded-lg shadow transition-colors duration-200 ${getStatusStyle(status)}`}
-                                        >
+                            
+                            {gameWeeks.length === 0 ? (
+                                <div className="text-center py-8 text-gray-600 dark:text-gray-400">
+                                    <p>You are not registered for any prediction leagues.</p>
+                                    <p className="mt-2">Please contact the host to join a league.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {gameWeeks.map((gameWeek) => {
+                                        const status = checkGameWeekStatus(gameWeek);
+                                        const hasLaveryCupRound = gameWeek.lavery_cup_rounds && gameWeek.lavery_cup_rounds.length > 0;
+                                        const hasGeorgeCupRound = gameWeek.george_cup_rounds && gameWeek.george_cup_rounds.length > 0;
+                                        return (
+                                            <button
+                                                key={gameWeek.id}
+                                                onClick={() => setSelectedGameWeek(gameWeek.id)}
+                                                className={`w-full p-4 rounded-lg shadow transition-colors duration-200 ${getStatusStyle(status)}`}
+                                            >
                                             <div className="flex justify-between items-center">
                                                 <div className="text-left">
                                                     <div className="font-medium">
@@ -320,13 +353,14 @@ export default function PredictionsPage() {
                                                     {status === 'upcoming' && 'Upcoming'}
                                                 </span>
                                             </div>
-                                        </button>
+                                            </button>
                                     );
                                 })}
                             </div>
-                        </>
-                    ) : (
-                        <>
+                        )}
+                    </>
+                ) : (
+                    <>
                             {checkGameWeekStatus(gameWeeks.find(gw => gw.id === selectedGameWeek)!) === 'predictions' ? (
                                 isEditing || Object.keys(predictions).length === 0 ? (
                                 <PredictionsForm
