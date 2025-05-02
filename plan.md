@@ -69,7 +69,7 @@
 - submit is not working when editing a cup round.✅
 - first round fixtures are showing in the right hand column in all rounds( when a new round has been selected by using the arrows on the header.)✅
 - ensure that once fixtures have been selected that they are in place when returning to this screen.✅
-- Working on passing winners through to next round⌛currently working on getting winner determination working✅
+- Working on passing winners through to next round, currently working on getting winner determination working✅
 
 15. Make it so that scores do not show unitl the live fixtures start✅
 
@@ -212,16 +212,27 @@ rules✅
 - add season name as title to view seasons page✅
 - add title (season name) to viewseasons options view✅
 -
+- score modal - colour code key needs to have points added and weekly bonus needs to be added somewhere
+- manager of the week modal need user highlighting
+-
+- Forgot password
+-
 - about me
 - small page, add to side menu, that has information about me and the project, git hub links etc. Also add this to side bar menu.
 -
 - egg on your face, make a way of alerting those who scored less than a player who did not enter scores.
 -
-- dashbaord - links need to be routed to page with props, enter scores, league, george cup, lavery cup
+- dashboard - links need to be routed to page with props, enter scores, league, george cup, lavery cup
 - dashboard - george cup tile - should show when user was knocked out
 -
 - history page, seasons winners cup winners etc. needs supabase table updated by other areas(individual comps)
 - keep record of highest indivual score for a week and a game. Keep these displayed on dashboard. Winnner takes a prize.
+-
+- manager of the week history - somewhere that lists the manager of the weeks
+-
+- season progression chart, bar chart showing points earned over game weeks
+-
+- alerts for predictions open and close, can we email players to let them know?
 
 23. Bugs
 
@@ -237,7 +248,9 @@ rules✅
 - enter scores any one who is signed up is able to enter scores, this should not be the case, only players game weeks should only show for player who are in that season on the season_players for the season that the game week is in.✅
 -
 - delete game week - errors where it deletes the fixtures but not the game week
-- delete season needs correcting🔵
+- delete season needs correcting
+- delete account as well
+- Update readme to help this🔵
 -
 - white space at bottom when scrolling down in mobile view in view george cup, view lavery cup, edit george cup. Check other areas also.
 - view george cup - scroll bar for columns is just off bottom of the page, same for view lavery cup and edit george cup
