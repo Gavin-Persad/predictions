@@ -222,9 +222,6 @@ rules✅
 -
 - egg on your face, make a way of alerting those who scored less than a player who did not enter scores.
 -
-- dashboard - links need to be routed to page with props, enter scores, league, george cup, lavery cup
-- dashboard - george cup tile - should show when user was knocked out
--
 - history page, seasons winners cup winners etc. needs supabase table updated by other areas(individual comps)
 - keep record of highest indivual score for a week and a game. Keep these displayed on dashboard. Winnner takes a prize.
 -
@@ -235,6 +232,9 @@ rules✅
 - season progression chart, bar chart showing points earned over game weeks
 -
 - alerts for predictions open and close, can we email players to let them know?
+-
+- dashboard - links need to be routed to page with props, enter scores, league, george cup, lavery cup
+- dashboard - george cup tile - should show when user was knocked out
 
 23. Bugs
 
@@ -249,8 +249,8 @@ rules✅
 -
 - enter scores any one who is signed up is able to enter scores, this should not be the case, only players game weeks should only show for player who are in that season on the season_players for the season that the game week is in.✅
 -
-- delete game week - errors where it deletes the fixtures but not the game week🔵
-- delete season needs correcting
+- delete game week - errors where it deletes the fixtures but not the game week✅
+- delete season needs correcting✅
 - delete account as well✅
 - Update readme to help this✅
 -
