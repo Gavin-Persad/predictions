@@ -213,7 +213,7 @@ rules✅
 - add title (season name) to viewseasons options view✅
 -
 - score modal - colour code key needs to have points added and weekly bonus needs to be added somewhere
-- manager of the week modal need user highlighting
+- manager of the week modal need user highlighting🔵
 -
 - Forgot password
 -
@@ -229,6 +229,8 @@ rules✅
 - keep record of highest indivual score for a week and a game. Keep these displayed on dashboard. Winnner takes a prize.
 -
 - manager of the week history - somewhere that lists the manager of the weeks
+- enterscores - when host enters scores this updates manager or the week table to keep track of winners, this is can be displayed in a season winners page. And also created a message for the message board on the dashboard
+- create seasons winners page
 -
 - season progression chart, bar chart showing points earned over game weeks
 -
@@ -264,6 +266,8 @@ rules✅
 24. Prepare for beta testing
 
 25. Test thoroughly with 20 player and 20 host
+
+- two lists of players from auth, actual players and those who have signed up but don't usually take part.
 
 26. Update ReadMe and announce on LinkedIn
 
