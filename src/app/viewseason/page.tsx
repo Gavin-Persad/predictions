@@ -131,70 +131,167 @@ export default function ViewSeason() {
         
         setIsDeleting(true);
         try {
+            // 1. First get all game weeks for this season (needed for cascading deletes)
             const { data: gameWeekIds, error: gameWeekError } = await supabase
                 .from('game_weeks')
                 .select('id')
                 .eq('season_id', selectedSeason?.id);
-
+    
             if (gameWeekError) throw gameWeekError;
-
+            
             if (gameWeekIds && gameWeekIds.length > 0) {
+                const gameWeekIdValues = gameWeekIds.map(gw => gw.id);
+                
+                // 2. Get fixtures for these game weeks
                 const { data: fixtureIds, error: fixtureError } = await supabase
                     .from('fixtures')
                     .select('id')
-                    .in('game_week_id', gameWeekIds.map(gw => gw.id));
-
+                    .in('game_week_id', gameWeekIdValues);
+    
                 if (fixtureError) throw fixtureError;
-
+                
+                // 3. Delete predictions for these fixtures
                 if (fixtureIds && fixtureIds.length > 0) {
                     const { error: predictionsError } = await supabase
                         .from('predictions')
                         .delete()
                         .in('fixture_id', fixtureIds.map(f => f.id));
-
+    
                     if (predictionsError) throw predictionsError;
                 }
-
+                
+                // 4. Delete game week scores
+                const { error: gameWeekScoresError } = await supabase
+                    .from('game_week_scores')
+                    .delete()
+                    .in('game_week_id', gameWeekIdValues);
+    
+                if (gameWeekScoresError) throw gameWeekScoresError;
+                
+                // 5. Delete fixtures
                 const { error: fixturesError } = await supabase
                     .from('fixtures')
                     .delete()
-                    .in('game_week_id', gameWeekIds.map(gw => gw.id));
-
+                    .in('game_week_id', gameWeekIdValues);
+    
                 if (fixturesError) throw fixturesError;
             }
-
+            
+            // 6. Get and delete George Cup data
+            // 6a. First get rounds for this season
+            const { data: georgeCupRounds, error: georgeCupRoundsError } = await supabase
+                .from('george_cup_rounds')
+                .select('id')
+                .eq('season_id', selectedSeason?.id);
+                
+            if (georgeCupRoundsError) throw georgeCupRoundsError;
+            
+            if (georgeCupRounds && georgeCupRounds.length > 0) {
+                // 6b. Delete fixtures for these rounds
+                const { error: georgeCupFixturesError } = await supabase
+                    .from('george_cup_fixtures')
+                    .delete()
+                    .in('round_id', georgeCupRounds.map(r => r.id));
+                    
+                if (georgeCupFixturesError) throw georgeCupFixturesError;
+                
+                // 6c. Delete the rounds themselves
+                const { error: georgeCupRoundsDeleteError } = await supabase
+                    .from('george_cup_rounds')
+                    .delete()
+                    .eq('season_id', selectedSeason?.id);
+                    
+                if (georgeCupRoundsDeleteError) throw georgeCupRoundsDeleteError;
+            }
+            
+            // 7. Get and delete Lavery Cup data
+            // 7a. First get rounds for this season
+            const { data: laveryCupRounds, error: laveryCupRoundsError } = await supabase
+                .from('lavery_cup_rounds')
+                .select('id')
+                .eq('season_id', selectedSeason?.id);
+                
+            if (laveryCupRoundsError) throw laveryCupRoundsError;
+            
+            if (laveryCupRounds && laveryCupRounds.length > 0) {
+                // 7b. Delete selections for these rounds
+                const { error: laveryCupSelectionsError } = await supabase
+                    .from('lavery_cup_selections')
+                    .delete()
+                    .in('round_id', laveryCupRounds.map(r => r.id));
+                    
+                if (laveryCupSelectionsError) throw laveryCupSelectionsError;
+                
+                // 7c. Delete the rounds themselves
+                const { error: laveryCupRoundsDeleteError } = await supabase
+                    .from('lavery_cup_rounds')
+                    .delete()
+                    .eq('season_id', selectedSeason?.id);
+                    
+                if (laveryCupRoundsDeleteError) throw laveryCupRoundsDeleteError;
+            }
+            
+            // 8. Delete player used teams
+            const { error: usedTeamsError } = await supabase
+                .from('player_used_teams')
+                .delete()
+                .eq('season_id', selectedSeason?.id);
+                
+            if (usedTeamsError) throw usedTeamsError;
+            
+            // 9. Delete season scores
+            const { error: seasonScoresError } = await supabase
+                .from('season_scores')
+                .delete()
+                .eq('season_id', selectedSeason?.id);
+                
+            if (seasonScoresError) throw seasonScoresError;
+            
+            // 10. Delete game weeks
             const { error: gameWeeksError } = await supabase
                 .from('game_weeks')
                 .delete()
                 .eq('season_id', selectedSeason?.id);
-
+    
             if (gameWeeksError) throw gameWeeksError;
-
+    
+            // 11. Delete season players
             const { error: playersError } = await supabase
                 .from('season_players')
                 .delete()
                 .eq('season_id', selectedSeason?.id);
-
+    
             if (playersError) throw playersError;
-
+    
+            // 12. Finally delete the season
             const { error: seasonError } = await supabase
                 .from('seasons')
                 .delete()
                 .eq('id', selectedSeason?.id);
-
+    
             if (seasonError) throw seasonError;
-
+    
+            // Refresh the seasons list
+            const { data: refreshedSeasons } = await supabase
+                .from('seasons')
+                .select('id, name, start_date, end_date');
+                
+            if (refreshedSeasons) {
+                setSeasons(refreshedSeasons);
+            }
+    
             handleBackToSeasonClick();
+            
         } catch (error) {
             console.error('Error deleting season:', error);
-            setMessage('Failed to delete season');
+            setMessage('Failed to delete season. See console for details.');
         } finally {
             setIsDeleting(false);
             setShowDeleteConfirmation(false);
             setDeleteConfirmText('');
         }
     };
-
+    
     const handleSeasonClick = async (season: Season) => {
         setSelectedSeason(season);
         await fetchPlayers(season.id);

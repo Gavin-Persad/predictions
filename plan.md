@@ -222,9 +222,6 @@ rules✅
 -
 - egg on your face, make a way of alerting those who scored less than a player who did not enter scores.
 -
-- dashboard - links need to be routed to page with props, enter scores, league, george cup, lavery cup
-- dashboard - george cup tile - should show when user was knocked out
--
 - history page, seasons winners cup winners etc. needs supabase table updated by other areas(individual comps)
 - keep record of highest indivual score for a week and a game. Keep these displayed on dashboard. Winnner takes a prize.
 -
@@ -235,6 +232,9 @@ rules✅
 - season progression chart, bar chart showing points earned over game weeks
 -
 - alerts for predictions open and close, can we email players to let them know?
+-
+- dashboard - links need to be routed to page with props, enter scores, league, george cup, lavery cup
+- dashboard - george cup tile - should show when user was knocked out
 
 23. Bugs
 
@@ -249,8 +249,8 @@ rules✅
 -
 - enter scores any one who is signed up is able to enter scores, this should not be the case, only players game weeks should only show for player who are in that season on the season_players for the season that the game week is in.✅
 -
-- delete game week - errors where it deletes the fixtures but not the game week🔵
-- delete season needs correcting
+- delete game week - errors where it deletes the fixtures but not the game week✅
+- delete season needs correcting✅
 - delete account as well✅
 - Update readme to help this✅
 -
@@ -264,6 +264,8 @@ rules✅
 - page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.
 -
 - Profile Settings - Delete account button needs to be added back
+-
+- delete game week - needs to also clear lavery cup - players teams used, will need to add a new column to teams used table to link them to a game week to make this possible. This will be updated in enterscores when player makes a selection
 
 24. Prepare for beta testing
 
