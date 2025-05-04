@@ -56,47 +56,57 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
 
     const ColorKeyModal = ({ isOpen }: { isOpen: boolean }) => {
         if (!isOpen) return null;
-
+    
         return (
-            <div className="fixed bottom-20 right-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xl z-50 w-64
-                transition-opacity duration-200 ease-in-out">
-                <h3 className="text-lg font-bold mb-3 text-gray-900 dark:text-gray-100">Score Colors</h3>
-                    <div className="space-y-2">
-                        <div className="flex items-center">
-                            <div className="w-6 h-6 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded mr-2"></div>
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Incorrect Prediction</span>
-                        </div>
-                        <div className="flex items-center">
-                            <div className="w-6 h-6 bg-amber-200 dark:bg-amber-900 rounded mr-2"></div>
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Correct Result</span>
-                        </div>
-                        <div className="flex items-center">
+            <div className="fixed bottom-20 right-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-xl z-50 w-72
+                transition-opacity duration-200 ease-in-out overflow-y-auto max-h-[80vh]">
+                <h3 className="text-lg font-bold mb-3 text-gray-900 dark:text-gray-100">Score System</h3>
+                <div className="space-y-2">
+                    <div className="flex items-center">
+                        <div className="w-6 h-6 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded mr-2"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Incorrect Prediction (0 points)</span>
+                    </div>
+                    <div className="flex items-center">
+                        <div className="w-6 h-6 bg-amber-200 dark:bg-amber-900 rounded mr-2"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Correct Result (1 point)</span>
+                    </div>
+                    <div className="flex items-center">
                         <div className="w-6 h-6 bg-yellow-100 dark:bg-yellow-700 rounded mr-2"></div>
-                        <span className="text-sm text-gray-700 dark:text-gray-300">Correct Score (0-3 goals)</span>
-                        </div>
-                        <div className="flex items-center">
-                            <div className="w-6 h-6 bg-green-100 dark:bg-green-900 rounded mr-2"></div>
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Correct Score (4 goals)</span>
-                        </div>
-                        <div className="flex items-center">
-                            <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded mr-2"></div>
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Correct Score (5 goals)</span>
-                        </div>
-                        <div className="flex items-center">
-                            <div className="w-6 h-6 bg-red-100 dark:bg-red-900 rounded mr-2"></div>
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Correct Score (6+ goals)</span>
-                        </div>
-                        <div className="flex items-center">
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Correct Score (0-3 goals) (3 points)</span>
+                    </div>
+                    <div className="flex items-center">
+                        <div className="w-6 h-6 bg-green-100 dark:bg-green-900 rounded mr-2"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Correct Score (4 goals) (4 points)</span>
+                    </div>
+                    <div className="flex items-center">
+                        <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded mr-2"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Correct Score (5 goals) (5 points)</span>
+                    </div>
+                    <div className="flex items-center">
+                        <div className="w-6 h-6 bg-red-100 dark:bg-red-900 rounded mr-2"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Correct Score (6+ goals) (6+ points)</span>
+                    </div>
+                    <div className="flex items-center">
                         <div className="w-6 h-6 rounded mr-2 flex items-center justify-center relative">
                             <span className="absolute text-black rounded-full w-4 h-4"></span>
                             <span className="relative text-yellow-400">★</span>
                         </div>
-                        <span className="text-sm text-gray-700 dark:text-gray-300">Unique Correct Score</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Unique Correct Score (+2 points)</span>
+                    </div>
+                    
+                    {/* Bonus points section */}
+                    <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <h4 className="text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">Weekly Bonuses</h4>
+                        <div className="text-sm text-gray-700 dark:text-gray-300 pl-2 space-y-1">
+                            <div>4 correct scores: +1 point</div>
+                            <div>5 correct scores: +2 points</div>
+                            <div>6+ correct scores: +3 points</div>
+                        </div>
                     </div>
                 </div>
             </div>
         );
-    };  
+    }; 
 
     const getPredictionColorClass = (prediction: Prediction, fixture: Fixture): string => {
         // Fix: Check if scores are null/undefined, not falsy (which rejects zeros)
