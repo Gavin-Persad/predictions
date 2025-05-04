@@ -249,10 +249,10 @@ rules✅
 -
 - enter scores any one who is signed up is able to enter scores, this should not be the case, only players game weeks should only show for player who are in that season on the season_players for the season that the game week is in.✅
 -
-- delete game week - errors where it deletes the fixtures but not the game week
+- delete game week - errors where it deletes the fixtures but not the game week🔵
 - delete season needs correcting
-- delete account as well
-- Update readme to help this🔵
+- delete account as well✅
+- Update readme to help this✅
 -
 - white space at bottom when scrolling down in mobile view in view george cup, view lavery cup, edit george cup. Check other areas also.
 - view george cup - scroll bar for columns is just off bottom of the page, same for view lavery cup and edit george cup
@@ -262,6 +262,8 @@ rules✅
 - errors showing in console when going to my pedictions, enter scores page due to adding lavery cup selections
 -
 - page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.
+-
+- Profile Settings - Delete account button needs to be added back
 
 24. Prepare for beta testing
 

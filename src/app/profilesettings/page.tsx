@@ -71,30 +71,6 @@ export default function ProfileSettings() {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (!profile) return;
-
-    const confirmed = window.confirm('Are you sure you want to delete your account? This action cannot be undone.');
-    if (!confirmed) return;
-
-    const { error: deleteError } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', profile.id);
-
-    if (deleteError) {
-      setMessage('Error deleting account');
-    } else {
-      const { error: authError } = await supabase.auth.admin.deleteUser(profile.id);
-      if (authError) {
-        setMessage('Error deleting authentication');
-      } else {
-        setMessage('Account deleted successfully');
-        router.push('/');
-      }
-    }
-  };
-
   return (
     <div className="flex">
         <Sidebar />
@@ -147,14 +123,14 @@ export default function ProfileSettings() {
                         Update Profile
                     </button>
                 </form>
-                <button
-                    onClick={handleDeleteAccount}
-                    className="w-full mt-4 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition duration-300"
-                >
-                    Delete Account
-                </button>
+                
+                <div className="mt-8 p-4 border border-red-200 rounded bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+                    <p className="text-red-700 dark:text-red-400 text-center">
+                        To delete your account, please contact <a href="mailto:gavinapersad@gmail.com" className="underline">gavinapersad@gmail.com</a> with your request.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
-);
+  );
 }
