@@ -264,6 +264,8 @@ rules✅
 - page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.
 -
 - Profile Settings - Delete account button needs to be added back
+-
+- delete game week - needs to also clear lavery cup - players teams used, will need to add a new column to teams used table to link them to a game week to make this possible. This will be updated in enterscores when player makes a selection
 
 24. Prepare for beta testing
 

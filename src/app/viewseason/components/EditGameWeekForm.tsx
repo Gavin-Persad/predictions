@@ -149,27 +149,194 @@ export default function EditGameWeekForm({ gameWeek, onBack, onDelete }: EditGam
     const handleDelete = async () => {
         setIsSubmitting(true);
         try {
-            const { error: fixturesError } = await supabase
+            // 1. First get all fixtures for this game week (needed to find predictions)
+            const { data: fixturesData, error: fixturesQueryError } = await supabase
                 .from('fixtures')
-                .delete()
+                .select('id')
                 .eq('game_week_id', gameWeek.id);
+                
+            if (fixturesQueryError) throw fixturesQueryError;
+            
+            if (fixturesData && fixturesData.length > 0) {
+                const fixtureIds = fixturesData.map(fixture => fixture.id);
+                
+                // 2. Delete all predictions linked to these fixtures - using a different approach
+                for (const fixtureId of fixtureIds) {
+                    const { error: predictionError } = await supabase
+                        .from('predictions')
+                        .delete()
+                        .eq('fixture_id', fixtureId);
+                    
+                    if (predictionError) {
+                        throw new Error(`Error deleting predictions for fixture ${fixtureId}: ${predictionError.message}`);
+                    }
+                }
+                
+                // 3. Verify predictions were deleted
+                const { data: remainingPredictions, error: checkError } = await supabase
+                    .from('predictions')
+                    .select('fixture_id')
+                    .in('fixture_id', fixtureIds);
+                    
+                if (checkError) throw checkError;
+                
+                if (remainingPredictions && remainingPredictions.length > 0) {
+                    console.log('Remaining predictions:', remainingPredictions);
+                    throw new Error('Failed to delete all predictions. Some still remain.');
+                }
+                
+                // 4. Now delete fixtures one by one to better track errors
+                for (const fixtureId of fixtureIds) {
+                    const { error: fixtureDeleteError } = await supabase
+                        .from('fixtures')
+                        .delete()
+                        .eq('id', fixtureId);
+                        
+                    if (fixtureDeleteError) {
+                        throw new Error(`Error deleting fixture ${fixtureId}: ${fixtureDeleteError.message}`);
+                    }
+                }
+            }
+            
+            // 5. Handle George Cup data
+            const { data: georgeCupRounds, error: georgeCupRoundsError } = await supabase
+                .from('george_cup_rounds')
+                .select('id')
+                .eq('game_week_id', gameWeek.id);
+                
+            if (georgeCupRoundsError) throw georgeCupRoundsError;
 
-            if (fixturesError) throw fixturesError;
+            if (georgeCupRounds && georgeCupRounds.length > 0) {
+                const georgeCupRoundIds = georgeCupRounds.map(round => round.id);
+                
+                // Delete George Cup fixtures one by one for each round
+                for (const roundId of georgeCupRoundIds) {
+                    const { error: georgeCupFixturesError } = await supabase
+                        .from('george_cup_fixtures')
+                        .delete()
+                        .eq('round_id', roundId);
+                        
+                    if (georgeCupFixturesError) {
+                        throw new Error(`Error deleting george cup fixtures for round ${roundId}: ${georgeCupFixturesError.message}`);
+                    }
+                }
+                
+                // Verify fixtures were deleted
+                const { data: remainingFixtures, error: checkFixturesError } = await supabase
+                    .from('george_cup_fixtures')
+                    .select('round_id')
+                    .in('round_id', georgeCupRoundIds);
+                    
+                if (checkFixturesError) throw checkFixturesError;
+                
+                if (remainingFixtures && remainingFixtures.length > 0) {
+                    console.log('Remaining george cup fixtures:', remainingFixtures);
+                    throw new Error('Failed to delete all george cup fixtures. Some still remain.');
+                }
+                
+                // Now delete each round individually
+                for (const roundId of georgeCupRoundIds) {
+                    const { error: deleteRoundError } = await supabase
+                        .from('george_cup_rounds')
+                        .delete()
+                        .eq('id', roundId);
+                        
+                    if (deleteRoundError) {
+                        throw new Error(`Error deleting george cup round ${roundId}: ${deleteRoundError.message}`);
+                    }
+                }
+                
+                // Verify rounds were deleted
+                const { data: remainingRounds, error: checkRoundsError } = await supabase
+                    .from('george_cup_rounds')
+                    .select('id')
+                    .eq('game_week_id', gameWeek.id);
+                    
+                if (checkRoundsError) throw checkRoundsError;
+                
+                if (remainingRounds && remainingRounds.length > 0) {
+                    console.log('Remaining george cup rounds:', remainingRounds);
+                    throw new Error('Failed to delete all george cup rounds. Some still remain.');
+                }
+            }
 
+            // 6. Handle Lavery Cup data
+            const { data: laveryCupRounds, error: laveryCupRoundsError } = await supabase
+            .from('lavery_cup_rounds')
+            .select('id')
+            .eq('game_week_id', gameWeek.id);
+
+            if (laveryCupRoundsError) throw laveryCupRoundsError;
+
+            if (laveryCupRounds && laveryCupRounds.length > 0) {
+            const laveryCupRoundIds = laveryCupRounds.map(round => round.id);
+
+            // Delete Lavery Cup selections one by one
+            for (const roundId of laveryCupRoundIds) {
+                const { error: laveryCupSelectionsError } = await supabase
+                    .from('lavery_cup_selections')
+                    .delete()
+                    .eq('round_id', roundId);
+                    
+                if (laveryCupSelectionsError) {
+                    throw new Error(`Error deleting lavery cup selections for round ${roundId}: ${laveryCupSelectionsError.message}`);
+                }
+            }
+
+            // Verify selections were deleted
+            const { data: remainingSelections, error: checkSelectionsError } = await supabase
+                .from('lavery_cup_selections')
+                .select('round_id')
+                .in('round_id', laveryCupRoundIds);
+                
+            if (checkSelectionsError) throw checkSelectionsError;
+
+            if (remainingSelections && remainingSelections.length > 0) {
+                console.log('Remaining lavery cup selections:', remainingSelections);
+                throw new Error('Failed to delete all lavery cup selections. Some still remain.');
+            }
+
+            // Now delete each round individually
+            for (const roundId of laveryCupRoundIds) {
+                const { error: deleteRoundError } = await supabase
+                    .from('lavery_cup_rounds')
+                    .delete()
+                    .eq('id', roundId);
+                    
+                if (deleteRoundError) {
+                    throw new Error(`Error deleting lavery cup round ${roundId}: ${deleteRoundError.message}`);
+                }
+            }
+
+            // Verify rounds were deleted
+            const { data: remainingRounds, error: checkRoundsError } = await supabase
+                .from('lavery_cup_rounds')
+                .select('id')
+                .eq('game_week_id', gameWeek.id);
+                
+            if (checkRoundsError) throw checkRoundsError;
+
+            if (remainingRounds && remainingRounds.length > 0) {
+                console.log('Remaining lavery cup rounds:', remainingRounds);
+                throw new Error('Failed to delete all lavery cup rounds. Some still remain.');
+            }
+            }
+            
+            // Finally delete the game week itself
             const { error: gameWeekError } = await supabase
                 .from('game_weeks')
                 .delete()
                 .eq('id', gameWeek.id);
-
+                
             if (gameWeekError) throw gameWeekError;
-
+    
             if (onDelete) {
                 onDelete();
             }
             onBack();
         } catch (error) {
-            setMessage('Error deleting game week');
-            console.error(error);
+            setMessage(`Error deleting game week: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            console.error('Error deleting game week:', error);
         } finally {
             setIsSubmitting(false);
             setShowDeleteConfirmation(false);
