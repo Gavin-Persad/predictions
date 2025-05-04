@@ -6,6 +6,71 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../../supabaseClient';
 import { format } from 'date-fns';
 
+const linkifyText = (text: string) => {
+  // More precise regex that better handles URLs
+  const urlRegex = /(https?:\/\/[^\s\n]+)/g;
+  
+  // Split the text by newlines first to preserve line breaks
+  const lines = text.split('\n');
+  
+  return lines.map((line, lineIndex) => {
+    let lastIndex = 0;
+    const lineResult: React.ReactNode[] = [];
+    const matches = [...line.matchAll(urlRegex)];
+    
+    // No URLs in this line, just return the text
+    if (matches.length === 0) {
+      return line;
+    }
+    
+    // Process each match
+    matches.forEach((match, i) => {
+      if (!match.index) return;
+      
+      // Add text before the URL
+      if (match.index > lastIndex) {
+        lineResult.push(line.substring(lastIndex, match.index));
+      }
+      
+      // Add the URL as a link
+      lineResult.push(
+        <a 
+          key={`${lineIndex}-${i}`}
+          href={match[0]} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="text-blue-600 hover:underline dark:text-blue-400"
+        >
+          {match[0]}
+        </a>
+      );
+      
+      // Update lastIndex to after this URL
+      lastIndex = match.index + match[0].length;
+    });
+    
+    // Add any remaining text after the last URL
+    if (lastIndex < line.length) {
+      lineResult.push(line.substring(lastIndex));
+    }
+    
+    return lineResult;
+  }).reduce((acc: React.ReactNode[], line, i, arr) => {
+    // Handle both string and array types for line
+    if (typeof line === 'string') {
+      acc.push(line);
+    } else {
+      acc.push(...line);
+    }
+    
+    // Add a line break after each line except the last one
+    if (i < arr.length - 1) {
+      acc.push(<br key={`br-${i}`} />);
+    }
+    return acc;
+  }, []);
+};
+
 type Message = {
     id: string;
     content: string;
@@ -29,13 +94,11 @@ export default function MessagesPanel({ isHost }: MessagesPanelProps) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newMessageContent, setNewMessageContent] = useState('');
 
-  // Fetch messages
   useEffect(() => {
     const fetchMessages = async () => {
         try {
           setLoading(true);
           
-          // Get messages, ordered by most recent
           const { data, error } = await supabase
             .from('messages')
             .select('*, profiles:author_id(username)')
@@ -44,7 +107,6 @@ export default function MessagesPanel({ isHost }: MessagesPanelProps) {
             
           if (error) throw error;
           
-          // Transform the data to include the author_name
           const transformedMessages = data.map(msg => ({
             id: msg.id,
             content: msg.content,
@@ -63,7 +125,6 @@ export default function MessagesPanel({ isHost }: MessagesPanelProps) {
     
     fetchMessages();
     
-    // Set up subscription for real-time updates
     const messagesSubscription = supabase
       .channel('messages_changes')
       .on('postgres_changes', { 
@@ -80,7 +141,6 @@ export default function MessagesPanel({ isHost }: MessagesPanelProps) {
     };
   }, []);
 
-  // Toggle message expansion
   const toggleMessageExpansion = (id: string) => {
     const newExpandedMessages = new Set(expandedMessages);
     if (newExpandedMessages.has(id)) {
@@ -91,14 +151,12 @@ export default function MessagesPanel({ isHost }: MessagesPanelProps) {
     setExpandedMessages(newExpandedMessages);
   };
 
-  // Open edit modal
   const handleEdit = (message: Message) => {
     setCurrentMessage(message);
     setEditContent(message.content);
     setShowEditModal(true);
   };
 
-  // Save edited message
   const handleSave = async () => {
     if (!currentMessage) return;
     
@@ -112,14 +170,12 @@ export default function MessagesPanel({ isHost }: MessagesPanelProps) {
         
       if (error) throw error;
       
-      // Close modal and let the subscription handle the refresh
       setShowEditModal(false);
     } catch (error) {
       console.error('Error updating message:', error);
     }
   };
 
-  // Delete message
   const handleDelete = async () => {
     if (!currentMessage) return;
     
@@ -131,7 +187,6 @@ export default function MessagesPanel({ isHost }: MessagesPanelProps) {
         
       if (error) throw error;
       
-      // Close modal and let the subscription handle the refresh
       setShowEditModal(false);
     } catch (error) {
       console.error('Error deleting message:', error);
@@ -139,15 +194,32 @@ export default function MessagesPanel({ isHost }: MessagesPanelProps) {
   };
 
   const truncateMessage = (content: string, isExpanded: boolean) => {
-    if (isExpanded) return content;
-    return content.length > 150 ? `${content.substring(0, 150)}...` : content;
+    if (isExpanded) return linkifyText(content);
+    
+    // For truncated content, preserve the first 150 characters
+    // but make sure we don't cut in the middle of a URL
+    if (content.length > 150) {
+      let truncated = content.substring(0, 150);
+      // If we cut in the middle of a URL, find the last space before the cut
+      const lastHttpIndex = truncated.lastIndexOf('http');
+      if (lastHttpIndex > -1 && !truncated.includes(' ', lastHttpIndex)) {
+        // Find the last space before the URL
+        const lastSpaceBeforeUrl = truncated.lastIndexOf(' ', lastHttpIndex);
+        if (lastSpaceBeforeUrl > -1) {
+          truncated = truncated.substring(0, lastSpaceBeforeUrl);
+        }
+      }
+      return linkifyText(truncated + '...');
+    }
+    
+    return linkifyText(content);
   };
+
 
   const handleAddMessage = async () => {
     if (!newMessageContent.trim()) return;
     
     try {
-      // Get current user ID
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) return;
@@ -161,11 +233,9 @@ export default function MessagesPanel({ isHost }: MessagesPanelProps) {
         
       if (error) throw error;
       
-      // Close modal and reset form
       setShowAddModal(false);
       setNewMessageContent('');
       
-      // Data will refresh via the subscription
     } catch (error) {
       console.error('Error adding message:', error);
     }
