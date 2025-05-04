@@ -33,9 +33,16 @@ export default function ManagerOfTheWeekModal({ gameWeekId, seasonId, onClose }:
     const [loading, setLoading] = useState(true);
     const [sortField, setSortField] = useState<'position' | 'username' | 'correct_scores' | 'points'>('points');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
 
     useEffect(() => {
-        const fetchScores = async () => {
+        const fetchData = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                setCurrentUserId(user.id);
+            }
+            
             const { data: seasonPlayers, error: playersError } = await supabase
                 .from('season_players')
                 .select('player_id')
@@ -92,9 +99,9 @@ export default function ManagerOfTheWeekModal({ gameWeekId, seasonId, onClose }:
             setLoading(false);
         };
 
-        fetchScores();
+        fetchData();
     }, [gameWeekId, seasonId]);
-
+    
     const handleSort = (field: typeof sortField) => {
         if (field === sortField) {
             setSortDirection(current => current === 'asc' ? 'desc' : 'asc');
@@ -156,28 +163,40 @@ export default function ManagerOfTheWeekModal({ gameWeekId, seasonId, onClose }:
                                             Points
                                         </span>
                                     </th>
-                                </tr>
+                                    </tr>
                             </thead>
                             <tbody>
-                                {sortedScores.map((score) => (
-                                    <tr 
-                                        key={score.player_id} 
-                                        className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                                    >
-                                        <td className="px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">
-                                            {score.position}
-                                        </td>
-                                        <td className="px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100">
-                                            {score.username}
-                                        </td>
-                                        <td className="px-4 py-2 text-center text-gray-900 dark:text-gray-100">
-                                            {score.correct_scores}
-                                        </td>
-                                        <td className="px-4 py-2 text-center text-gray-900 dark:text-gray-100">
-                                            {score.points}
-                                        </td>
-                                    </tr>
-                                ))}
+                            {sortedScores.map((score) => (
+                                <tr 
+                                    key={score.player_id} 
+                                    className={`
+                                        hover:bg-gray-50 dark:hover:bg-gray-700
+                                        ${score.player_id === currentUserId 
+                                            ? 'bg-blue-100 dark:bg-blue-900 font-semibold' 
+                                            : ''}
+                                        ${score.position === 1 
+                                            ? 'relative outline outline-2 outline-yellow-500 dark:outline-yellow-400' 
+                                            : ''}
+                                    `}
+                                >
+                                    <td className={`px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100 
+                                        ${score.position === 1 ? 'font-bold' : 'border-b dark:border-gray-700'}`}>
+                                        {score.position}
+                                    </td>
+                                    <td className={`px-4 py-2 text-left font-medium text-gray-900 dark:text-gray-100 
+                                        ${score.position === 1 ? 'font-bold' : 'border-b dark:border-gray-700'}`}>
+                                        {score.username}
+                                    </td>
+                                    <td className={`px-4 py-2 text-center text-gray-900 dark:text-gray-100 
+                                        ${score.position === 1 ? 'font-bold' : 'border-b dark:border-gray-700'}`}>
+                                        {score.correct_scores}
+                                    </td>
+                                    <td className={`px-4 py-2 text-center text-gray-900 dark:text-gray-100 
+                                        ${score.position === 1 ? 'font-bold' : 'border-b dark:border-gray-700'}`}>
+                                        {score.points}
+                                    </td>
+                                </tr>
+                            ))}
                             </tbody>
                         </table>
                     </div>
