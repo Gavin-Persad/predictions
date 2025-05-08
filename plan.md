@@ -254,9 +254,10 @@ rules✅
 - delete account as well✅
 - Update readme to help this✅
 -
+- george cup tile is blank✅
+-
 - white space at bottom when scrolling down in mobile view in view george cup, view lavery cup, edit george cup. Check other areas also.
 - view george cup - scroll bar for columns is just off bottom of the page, same for view lavery cup and edit george cup
-- george cup tile is blank✅
 -
 - message panel - dashboard needs refreshed to show changes when adding deleting or editing messages
 -
