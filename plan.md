@@ -254,6 +254,8 @@ rules✅
 - delete account as well✅
 - Update readme to help this✅
 -
+- george cup tile is blank✅
+-
 - white space at bottom when scrolling down in mobile view in view george cup, view lavery cup, edit george cup. Check other areas also.
 - view george cup - scroll bar for columns is just off bottom of the page, same for view lavery cup and edit george cup
 -
@@ -267,12 +269,14 @@ rules✅
 -
 - delete game week - needs to also clear lavery cup - players teams used, will need to add a new column to teams used table to link them to a game week to make this possible. This will be updated in enterscores when player makes a selection
 
-24. Prepare for beta testing
+- George cup - bye vs bye both show as progressed, fixture should be hidden if no players involved.
 
-25. Test thoroughly with 20 player and 20 host
+24. Prepare for beta testing✅
 
-- two lists of players from auth, actual players and those who have signed up but don't usually take part.
+25. Test thoroughly with 20 player and 20 host✅
 
-26. Update ReadMe and announce on LinkedIn
+- two lists of players from auth, actual players and those who have signed up but don't usually take part.✅
 
-27. Receive feedback and fix bugs/make improvements
+26. Update ReadMe and announce on LinkedIn✅
+
+27. Receive feedback and fix bugs/make improvements✅
