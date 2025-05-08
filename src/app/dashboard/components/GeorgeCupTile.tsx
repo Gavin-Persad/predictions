@@ -1,6 +1,6 @@
 //src/app/dashboard/components/GeorgeCupTile.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../../supabaseClient';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -43,6 +43,8 @@ export default function GeorgeCupTile() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [eliminatedInfo, setEliminatedInfo] = useState<{round: string, date: string} | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [gameWeeks, setGameWeeks] = useState<{[key: string]: any}>({});
   
   // Get current user
   useEffect(() => {
@@ -59,6 +61,7 @@ export default function GeorgeCupTile() {
     const fetchGeorgeCupData = async () => {
       try {
         setLoading(true);
+        setError(null);
         
         // First, get the current season
         const { data: seasons, error: seasonError } = await supabase
@@ -67,14 +70,34 @@ export default function GeorgeCupTile() {
           .order('start_date', { ascending: false })
           .limit(1);
           
-        if (seasonError || !seasons || seasons.length === 0) {
-          console.error('Error fetching current season:', seasonError);
+        if (seasonError) throw new Error(`Error fetching season: ${seasonError.message}`);
+        if (!seasons || seasons.length === 0) {
+          // No seasons found is a valid state, not an error
           setLoading(false);
           return;
         }
         
         const currentSeason = seasons[0];
         setCurrentSeason(currentSeason);
+  
+        // Fetch all game weeks for this season first
+        let gameWeeksMap: {[key: string]: {live_start: string, week_number: number, id: string}} = {}; 
+
+        const { data: gameWeeksData, error: gameWeeksError } = await supabase
+          .from('game_weeks')
+          .select('id, week_number, predictions_open, predictions_close, live_start, live_end')
+          .eq('season_id', currentSeason.id);
+          
+        if (gameWeeksError) {
+          console.error('Error fetching game weeks:', gameWeeksError);
+        } else if (gameWeeksData) {
+          // Create a map of game week IDs to game week data
+          gameWeeksMap = gameWeeksData.reduce((acc: {[key: string]: any}, gw) => {
+            acc[gw.id] = gw;
+            return acc;
+          }, {});
+          setGameWeeks(gameWeeksMap);
+        }
         
         // Fetch players for this season
         const { data: playersData, error: playersError } = await supabase
@@ -97,49 +120,34 @@ export default function GeorgeCupTile() {
         
         // Fetch all rounds for this season
         const { data: roundsData, error: roundsError } = await supabase
-          .from('george_cup_rounds')
-          .select(`
-            *,
-            george_cup_fixtures!george_cup_fixtures_round_id_fkey (
-              id,
-              round_id,
-              fixture_number,
-              player1_id,
-              player2_id,
-              winner_id
-            )
-          `)
-          .eq('season_id', currentSeason.id)
-          .order('round_number', { ascending: true });
+        .from('george_cup_rounds')
+        .select(`
+          *,
+          george_cup_fixtures!george_cup_fixtures_round_id_fkey (
+            id,
+            round_id,
+            fixture_number,
+            player1_id,
+            player2_id,
+            winner_id
+          )
+        `)
+        .eq('season_id', currentSeason.id)
+        .order('round_number', { ascending: true });
       
-        if (roundsError) throw roundsError;
+        if (roundsError) throw new Error(`Error fetching rounds: ${roundsError.message}`);
         
-        // Get game week dates
-        const gameWeekIds = roundsData
-          .map(round => round.game_week_id)
-          .filter(id => id !== null);
-        
-        let gameWeeks: Record<string, any> = {};
-        
-        if (gameWeekIds.length > 0) {
-          const { data: gameWeeksData } = await supabase
-            .from('game_weeks')
-            .select('id, live_start')
-            .in('id', gameWeekIds);
-            
-          if (gameWeeksData) {
-            gameWeeks = gameWeeksData.reduce((acc, gw) => {
-              acc[gw.id] = gw;
-              return acc;
-            }, {} as Record<string, any>);
-          }
+        if (!roundsData || roundsData.length === 0) {
+          console.log('No George Cup rounds found');
+          setLoading(false);
+          return;
         }
         
         // Process rounds with game week dates
         const processedRounds = roundsData.map(round => ({
           ...round,
-          game_week_start_date: round.game_week_id && gameWeeks[round.game_week_id] ? 
-                              gameWeeks[round.game_week_id].live_start : null,
+          game_week_start_date: round.game_week_id && gameWeeksMap[round.game_week_id as string] ? 
+                                gameWeeksMap[round.game_week_id as string].live_start : null,
           fixtures: round.george_cup_fixtures || []
         }));
         
@@ -201,8 +209,9 @@ export default function GeorgeCupTile() {
           }
         }
         
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching George Cup data:', error);
+        setError(error.message);
       } finally {
         setLoading(false);
       }
@@ -213,7 +222,7 @@ export default function GeorgeCupTile() {
   
   // Determine which round to display - either the most recent active or the final if completed
   const determineDisplayRound = () => {
-    if (!rounds.length) return null;
+    if (!rounds.length || !currentUserId) return null;
     
     // If we have a final round with a winner, display that
     const finalRound = rounds.find(r => r.round_name === 'Final');
@@ -221,16 +230,37 @@ export default function GeorgeCupTile() {
       return finalRound;
     }
     
-    // Otherwise, find the most recent active round
-    const activeRounds = rounds.filter(r => !r.is_complete);
-    if (activeRounds.length > 0) {
-      return activeRounds.reduce((latest, round) => 
-        latest.round_number > round.round_number ? latest : round, activeRounds[0]
+    // Find the latest round where the current user has a fixture
+    // Start from the latest rounds and work backward
+    const sortedRounds = [...rounds].sort((a, b) => b.round_number - a.round_number);
+    
+    // First, try to find an active round where the user is participating
+    for (const round of sortedRounds) {
+      const userFixture = round.fixtures.find(f => 
+        (f.player1_id === currentUserId || f.player2_id === currentUserId) &&
+        !f.winner_id
       );
+      
+      if (userFixture) return round;
+    }
+    
+    // If user is not in any active fixture, show the round where they were last involved
+    for (const round of sortedRounds) {
+      const userFixture = round.fixtures.find(f => 
+        f.player1_id === currentUserId || f.player2_id === currentUserId
+      );
+      
+      if (userFixture) return round;
+    }
+    
+    // If user is not in any fixture at all, just show the most recent active round
+    const activeRounds = sortedRounds.filter(r => !r.is_complete);
+    if (activeRounds.length > 0) {
+      return activeRounds[0];
     }
     
     // If all rounds are complete but no final winner (shouldn't happen), show the last round
-    return rounds[rounds.length - 1];
+    return sortedRounds[0];
   };
   
   // Get the winner if final round is complete
@@ -248,6 +278,14 @@ export default function GeorgeCupTile() {
     return (
       <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded min-h-[150px] flex items-center justify-center">
         <div className="animate-pulse text-gray-600 dark:text-gray-400">Loading George Cup...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded min-h-[150px] flex items-center justify-center">
+        <p className="text-red-600 dark:text-red-400 text-center">Error loading George Cup</p>
       </div>
     );
   }
@@ -291,7 +329,7 @@ export default function GeorgeCupTile() {
               )}
             </div>
             
-            <div className="space-y-2 max-h-[100px] overflow-y-auto">
+            <div className="space-y-1 max-h-[130px]">
               {displayRound.fixtures.map((fixture: FixtureState) => {
                 const isUserInFixture = fixture.player1_id === currentUserId || fixture.player2_id === currentUserId;
                 
@@ -301,36 +339,49 @@ export default function GeorgeCupTile() {
                 return (
                   <div 
                     key={fixture.id} 
-                    className={`p-2 rounded ${isUserInFixture ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800' : 'bg-gray-100 dark:bg-gray-800'}`}
+                    className={`p-1 rounded ${isUserInFixture ? 'bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700' : 'bg-gray-100 dark:bg-gray-800'}`}
                   >
-                    <div className="flex justify-between text-sm">
-                      <div className={`${fixture.winner_id === fixture.player1_id ? 'font-medium text-green-600 dark:text-green-400' : 
-                                      fixture.winner_id && fixture.player1_id === fixture.player1_id ? 'line-through text-red-600 dark:text-red-400' : ''}`}>
-                        {fixture.player1_id ? 
-                          players.find(p => p.id === fixture.player1_id)?.username : 
-                          'BYE'}
+                    {/* Player 1 Box */}
+                    <div className="p-1 rounded bg-gray-50 dark:bg-gray-700">
+                      <div className="flex justify-between text-sm">
+                        <div className={`text-gray-900 dark:text-gray-100 ${
+                          fixture.winner_id === fixture.player1_id ? 'font-medium text-green-600 dark:text-green-400' : 
+                          fixture.winner_id && fixture.player1_id === fixture.player1_id ? 'line-through text-red-600 dark:text-red-400' : ''
+                        }`}>
+                          {fixture.player1_id ? 
+                            players.find(p => p.id === fixture.player1_id)?.username : 
+                            'BYE'}
+                        </div>
+                        {fixtureScores[fixture.id]?.player1_score !== undefined && (
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                            {fixtureScores[fixture.id]?.player1_score}
+                            <span className="text-xs text-gray-500 dark:text-gray-400">({fixtureScores[fixture.id]?.player1_correct_scores})</span>
+                          </span>
+                        )}
                       </div>
-                      {fixtureScores[fixture.id]?.player1_score !== undefined && (
-                        <span className="font-medium">
-                          {fixtureScores[fixture.id]?.player1_score}
-                          <span className="text-xs ml-1 text-gray-500">({fixtureScores[fixture.id]?.player1_correct_scores})</span>
-                        </span>
-                      )}
                     </div>
                     
-                    <div className="flex justify-between text-sm">
-                      <div className={`${fixture.winner_id === fixture.player2_id ? 'font-medium text-green-600 dark:text-green-400' : 
-                                      fixture.winner_id && fixture.player2_id ? 'line-through text-red-600 dark:text-red-400' : ''}`}>
-                        {fixture.player2_id ? 
-                          players.find(p => p.id === fixture.player2_id)?.username : 
-                          'BYE'}
+                    {/* VS Divider */}
+                    <div className="text-center text-xs text-gray-500 dark:text-gray-400 my-0.5">vs</div>
+                    
+                    {/* Player 2 Box */}
+                    <div className="p-1 rounded bg-gray-50 dark:bg-gray-700">
+                      <div className="flex justify-between text-sm">
+                        <div className={`text-gray-900 dark:text-gray-100 ${
+                          fixture.winner_id === fixture.player2_id ? 'font-medium text-green-600 dark:text-green-400' : 
+                          fixture.winner_id && fixture.player2_id ? 'line-through text-red-600 dark:text-red-400' : ''
+                        }`}>
+                          {fixture.player2_id ? 
+                            players.find(p => p.id === fixture.player2_id)?.username : 
+                            'BYE'}
+                        </div>
+                        {fixtureScores[fixture.id]?.player2_score !== undefined && (
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                            {fixtureScores[fixture.id]?.player2_score}
+                            <span className="text-xs text-gray-500 dark:text-gray-400">({fixtureScores[fixture.id]?.player2_correct_scores})</span>
+                          </span>
+                        )}
                       </div>
-                      {fixtureScores[fixture.id]?.player2_score !== undefined && (
-                        <span className="font-medium">
-                          {fixtureScores[fixture.id]?.player2_score}
-                          <span className="text-xs ml-1 text-gray-500">({fixtureScores[fixture.id]?.player2_correct_scores})</span>
-                        </span>
-                      )}
                     </div>
                   </div>
                 );
