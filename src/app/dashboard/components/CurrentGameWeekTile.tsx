@@ -127,7 +127,14 @@ export default function CurrentGameWeekTile() {
   };
 
   const getLinkText = () => {
-    return "Enter Scores";
+    switch (gameWeekStatus) {
+      case 'predictions':
+        return "Enter your scores";
+      case 'completed':
+        return "See your points breakdown";
+      default:
+        return "Go to My Predictions";
+    }
   };
 
   if (loading) {
