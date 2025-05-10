@@ -263,120 +263,125 @@ useEffect(() => {
     };
     
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-6xl w-full">
-                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Game Week Scores</h2>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-6xl w-full my-6">
+                <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100 sticky top-0">Game Week Scores</h2>
                 
                 {loading ? (
                     <p className="text-gray-900 dark:text-gray-100">Loading...</p>
                 ) : canViewScores ? (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full border-collapse">
-                            <thead>
-                                <tr>
-                                    <th className="px-4 py-2 text-left border-b dark:border-gray-700"> </th>
-                                    {fixtures.map(fixture => (
-                                        <th 
-                                            key={fixture.id} 
-                                            onClick={() => handleFixtureClick(fixture.id)}
-                                            className={`px-4 py-2 text-center border-b cursor-pointer transition-colors
-                                                ${selectedFixture === fixture.id ? 
-                                                    'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' : 
-                                                    'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'}
-                                                border-gray-700`}
-                                        >
-                                            {fixture.home_team}<br/>vs<br/>{fixture.away_team}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr className="bg-gray-200 dark:bg-gray-700">
-                                    <td className="px-4 py-2 font-medium border-b dark:text-gray-100 border-gray-700">
-                                        Correct Scores
-                                    </td>
-                                    {fixtures.map(fixture => (
-                                        <td 
-                                            key={fixture.id}
-                                            className={`px-4 py-2 text-center border-b dark:text-gray-100 border-gray-700
-                                                ${selectedFixture === fixture.id ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
-                                        >
-                                            {hostHasEnteredScores
-                                                ? (fixture.home_score !== null && fixture.away_score !== null
-                                                    ? `${fixture.home_score}-${fixture.away_score}`
-                                                    : '-')
-                                                : 'Waiting for host'
-                                            }
-                                        </td>
-                                    ))}
-                                </tr>
-                                {players.map(player => (
-                                    <tr key={player.id}>
-                                        <td 
-                                            onClick={() => handlePlayerClick(player.id)}
-                                            className={`px-4 py-2 font-medium border-b cursor-pointer transition-colors
-                                                ${selectedPlayer === player.id ? 
-                                                    'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' : 
-                                                    'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'}
-                                                border-gray-700`}
-                                        >
-                                            {player.username}
-                                        </td>
-                                        {fixtures.map(fixture => {
-                                            const prediction = predictions.find(
-                                                p => p.user_id === player.id && p.fixture_id === fixture.id
-                                            );
-                                            return (
-                                                <td 
-                                                    key={fixture.id}
-                                                    onClick={() => prediction && handleCellClick(player.id, fixture.id)}
-                                                    className={`px-4 py-2 text-center border-b transition-colors border-gray-700 relative
-                                                        ${(selectedPlayer === player.id || 
-                                                        selectedFixture === fixture.id ||
-                                                        (selectedCell.playerId === player.id && selectedCell.fixtureId === fixture.id)) 
-                                                            ? 'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' 
-                                                            : prediction 
-                                                                ? getPredictionColorClass(prediction, fixture) + ' dark:text-gray-100' 
-                                                                : 'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
-                                                        }
-                                                        ${prediction ? 'cursor-pointer' : ''}`}
-                                                >
-                                                {prediction ? `${prediction.home_prediction}-${prediction.away_prediction}` : '-'}
-                                                    {prediction && isUniqueCorrectScore(prediction, fixture) && (
-                                                        <span className="absolute top-1 right-1 z-10">
-                                                            <span className="text-yellow-400 text-xs">★</span>
-                                                        </span>
-                                                    )}
-                                                </td>
-                                            );
-                                        })}
+                    <div className="overflow-y-auto max-h-[calc(100vh-200px)]">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full border-collapse">
+                                <thead>
+                                    <tr>
+                                        <th className="px-4 py-2 text-left border-b dark:border-gray-700"> </th>
+                                        {fixtures.map(fixture => (
+                                            <th 
+                                                key={fixture.id} 
+                                                onClick={() => handleFixtureClick(fixture.id)}
+                                                className={`px-4 py-2 text-center border-b cursor-pointer transition-colors
+                                                    ${selectedFixture === fixture.id ? 
+                                                        'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' : 
+                                                        'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'}
+                                                    border-gray-700`}
+                                            >
+                                                {fixture.home_team}<br/>vs<br/>{fixture.away_team}
+                                            </th>
+                                        ))}
                                     </tr>
-                                ))}
-                            </tbody>
+                                </thead>
+                                <tbody>
+                                    <tr className="bg-gray-200 dark:bg-gray-700">
+                                        <td className="px-4 py-2 font-medium border-b dark:text-gray-100 border-gray-700">
+                                            Correct Scores
+                                        </td>
+                                        {fixtures.map(fixture => (
+                                            <td 
+                                                key={fixture.id}
+                                                className={`px-4 py-2 text-center border-b dark:text-gray-100 border-gray-700
+                                                    ${selectedFixture === fixture.id ? 'bg-blue-100 dark:bg-blue-900' : ''}`}
+                                            >
+                                                {hostHasEnteredScores
+                                                    ? (fixture.home_score !== null && fixture.away_score !== null
+                                                        ? `${fixture.home_score}-${fixture.away_score}`
+                                                        : '-')
+                                                    : 'Waiting for host'
+                                                }
+                                            </td>
+                                        ))}
+                                    </tr>
+                                    {players.map(player => (
+                                        <tr key={player.id}>
+                                            <td 
+                                                onClick={() => handlePlayerClick(player.id)}
+                                                className={`px-4 py-2 font-medium border-b cursor-pointer transition-colors
+                                                    ${selectedPlayer === player.id ? 
+                                                        'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' : 
+                                                        'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'}
+                                                    border-gray-700`}
+                                            >
+                                                {player.username}
+                                            </td>
+                                            {fixtures.map(fixture => {
+                                                const prediction = predictions.find(
+                                                    p => p.user_id === player.id && p.fixture_id === fixture.id
+                                                );
+                                                return (
+                                                    <td 
+                                                        key={fixture.id}
+                                                        onClick={() => prediction && handleCellClick(player.id, fixture.id)}
+                                                        className={`px-4 py-2 text-center border-b transition-colors border-gray-700 relative
+                                                            ${(selectedPlayer === player.id || 
+                                                            selectedFixture === fixture.id ||
+                                                            (selectedCell.playerId === player.id && selectedCell.fixtureId === fixture.id)) 
+                                                                ? 'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' 
+                                                                : prediction 
+                                                                    ? getPredictionColorClass(prediction, fixture) + ' dark:text-gray-100' 
+                                                                    : 'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                                            }
+                                                            ${prediction ? 'cursor-pointer' : ''}`}
+                                                    >
+                                                    {prediction ? `${prediction.home_prediction}-${prediction.away_prediction}` : '-'}
+                                                        {prediction && isUniqueCorrectScore(prediction, fixture) && (
+                                                            <span className="absolute top-1 right-1 z-10">
+                                                                <span className="text-yellow-400 text-xs">★</span>
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
                             </table>
+                    </div>
                 </div>
             ) : (
                 <p className="text-center text-gray-900 dark:text-gray-100">
                     Scores will be visible after predictions close
                 </p>
             )}
-            <button
-                onClick={() => setShowColorKey(!showColorKey)}
-                className="fixed bottom-4 right-4 p-3 bg-gray-800 text-white rounded-full hover:bg-gray-700 shadow-lg"
-                title="Toggle color key"
-            >
-                🎨
-            </button>
-
-            <ColorKeyModal isOpen={showColorKey} />
-
-            <button
-                onClick={onClose}
-                className="mt-6 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-            >
-                Close
-            </button>
+            
+            <div className="mt-6 sticky bottom-0 pt-4 bg-white dark:bg-gray-800">
+                <button
+                    onClick={onClose}
+                    className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                >
+                    Close
+                </button>
+            </div>
         </div>
+
+        <button
+            onClick={() => setShowColorKey(!showColorKey)}
+            className="fixed bottom-4 right-4 p-3 bg-gray-800 text-white rounded-full hover:bg-gray-700 shadow-lg"
+            title="Toggle color key"
+        >
+            🎨
+        </button>
+
+        <ColorKeyModal isOpen={showColorKey} />
     </div>
 );
 }
