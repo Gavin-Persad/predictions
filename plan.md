@@ -270,6 +270,9 @@ rules✅
 - delete game week - needs to also clear lavery cup - players teams used, will need to add a new column to teams used table to link them to a game week to make this possible. This will be updated in enterscores when player makes a selection
 
 - George cup - bye vs bye both show as progressed, fixture should be hidden if no players involved.
+-
+- all game lists - not working off of time, but off of date, this means host has to wait until midnight on the day of the last fixture to update the scores. I will need to ensure all logic is run through the utils/gameWeekStatus file for conformity and have this run on time rather than date.
+-
 
 24. Prepare for beta testing✅
 
