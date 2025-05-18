@@ -5,7 +5,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
-import { Player } from '../../types/players';
 import Sidebar from '../../components/Sidebar';
 import DarkModeToggle from '../../components/darkModeToggle';
 import ViewGameWeeks from './components/ViewGameWeeks';

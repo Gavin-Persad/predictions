@@ -134,59 +134,59 @@ const sortedScores = [...scores].sort((a, b) => {
 return (
   <div className="flex">
       <Sidebar />
-      <div className="flex-grow flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-          <div className="absolute top-4 right-4">
-              <DarkModeToggle />
-          </div>
-          <div className="w-full max-w-4xl mx-auto p-4">
-              <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">League Table</h2>
-              <button
-                  onClick={onClose}
-                  className="mb-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
-              >
-                  Back
-              </button>
+        <div className="flex-grow flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+            <div className="absolute top-4 right-4">
+                <DarkModeToggle />
+            </div>
+            <div className="w-full max-w-4xl mx-auto px-[5%]">
+                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">League Table</h2>
+                <button
+                    onClick={onClose}
+                    className="mb-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+                >
+                    Back
+                </button>
 
-              <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow">
-                  <table className="min-w-full">
-                      <thead>
-                          <tr className="border-b border-gray-200 dark:border-gray-700">
-                              <th 
-                                  onClick={() => handleSort('position')}
-                                  className="px-6 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-                              >
-                                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                      Position
-                                  </span>
-                              </th>
-                              <th 
-                                  onClick={() => handleSort('username')}
-                                  className="px-6 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-                              >
-                                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                      Player
-                                  </span>
-                              </th>
-                              <th 
-                                  onClick={() => handleSort('correct_scores')}
-                                  className="px-6 py-3 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-                              >
-                                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                      Correct Scores
-                                  </span>
-                              </th>
-                              <th 
-                                  onClick={() => handleSort('points')}
-                                  className="px-6 py-3 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-                              >
-                                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                      Points
-                                  </span>
-                              </th>
-                          </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                            {sortedScores.map((score) => (
+            <div className="overflow-x-auto bg-white dark:bg-gray-800 rounded-lg shadow w-full">
+                <table className="min-w-full table-fixed">
+                    <thead>
+                        <tr className="border-b border-gray-200 dark:border-gray-700">
+                            <th 
+                                onClick={() => handleSort('position')}
+                                className="w-[15%] px-2 sm:px-3 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                            >
+                                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Pos
+                                </span>
+                            </th>
+                            <th 
+                                onClick={() => handleSort('username')}
+                                className="w-[40%] px-2 sm:px-4 py-3 text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                            >
+                                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Player
+                                </span>
+                            </th>
+                            <th 
+                                onClick={() => handleSort('correct_scores')}
+                                className="w-[20%] px-2 sm:px-3 py-3 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                            >
+                                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    CS
+                                </span>
+                            </th>
+                            <th 
+                                onClick={() => handleSort('points')}
+                                className="w-[25%] px-2 sm:px-3 py-3 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                            >
+                                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Pts
+                                </span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                        {sortedScores.map((score) => (
                             <tr 
                                 key={score.player_id}
                                 className={`hover:bg-gray-50 dark:hover:bg-gray-700 
@@ -194,23 +194,23 @@ return (
                                     ? 'bg-blue-100 dark:bg-blue-900 font-semibold' 
                                     : ''}`}
                             >
-                                  <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                      {score.position}
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">
-                                      {score.username}
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-center text-gray-900 dark:text-gray-100">
-                                      {score.correct_scores}
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-center text-gray-900 dark:text-gray-100">
-                                      {score.points}
-                                  </td>
-                              </tr>
-                          ))}
-                      </tbody>
-                  </table>
-              </div>
+                                <td className="px-2 sm:px-3 py-4 text-gray-900 dark:text-gray-100">
+                                    {score.position}
+                                </td>
+                                <td className="px-2 sm:px-4 py-4 truncate text-gray-900 dark:text-gray-100">
+                                    {score.username}
+                                </td>
+                                <td className="px-2 sm:px-3 py-4 text-center text-gray-900 dark:text-gray-100">
+                                    {score.correct_scores}
+                                </td>
+                                <td className="px-2 sm:px-3 py-4 text-center text-gray-900 dark:text-gray-100">
+                                    {score.points}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
           </div>
       </div>
   </div>
