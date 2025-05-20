@@ -1,0 +1,21 @@
+echo "🔍 Running linting checks..."
+npm run lint
+LINT_EXIT_CODE=$?
+
+if [ $LINT_EXIT_CODE -ne 0 ]; then
+  echo "❌ Linting failed! Please fix the issues before committing."
+  exit 1
+fi
+
+echo "✅ Linting passed!"
+echo "🔨 Building project to verify there are no errors..."
+npm run build
+BUILD_EXIT_CODE=$?
+
+if [ $BUILD_EXIT_CODE -ne 0 ]; then
+  echo "❌ Build failed! Please fix the issues before committing."
+  exit 1
+fi
+
+echo "✅ Build successful!"
+echo "🚀 Proceeding with commit..."

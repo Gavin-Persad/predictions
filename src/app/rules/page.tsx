@@ -165,6 +165,7 @@ export default function Rules() {
                   <li>If all players are eliminated in a round, the tournament is reset</li>
                   <li>The last player remaining after all rounds is the winner</li>
                   <li>If predictions window is missed and no selections are made, the players is eliminated</li>
+                  <li>If a player selects a team that is not playing in the current game week, this counts as an incorrect guess and will result in elimination</li>
                 </ul>
               </div>
               
@@ -190,7 +191,16 @@ export default function Rules() {
                 <li>Late predictions will not be counted</li>
                 <li>Default prediction is 0-0 if no prediction is made</li>
               </ul>
-              
+
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mt-4">Match Results</h3>
+              <p className="text-gray-700 dark:text-gray-300">
+                All game scores will be taken from the results at 90 minutes (plus stoppage time):
+              </p>
+              <ul className="list-disc ml-5 text-gray-700 dark:text-gray-300">
+                <li>Extra time and penalties are not counted in the final score</li>
+                <li>Only the regulation time result is used for predictions and scoring</li>
+              </ul>
+                            
               <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mt-4">Fair Play</h3>
               <p className="text-gray-700 dark:text-gray-300">
                 Players are expected to make their own predictions independently. Any form of collusion or manipulation will result in disqualification.

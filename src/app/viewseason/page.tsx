@@ -5,7 +5,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
-import { Player } from '../../types/players';
 import Sidebar from '../../components/Sidebar';
 import DarkModeToggle from '../../components/darkModeToggle';
 import ViewGameWeeks from './components/ViewGameWeeks';
@@ -28,6 +27,12 @@ type UserProfile = {
     id: string;
     username: string;
     is_host: boolean;
+};
+
+type Player = {
+    id: string;
+    username: string;
+    club?: string;
 };
 
 export default function ViewSeason() {
@@ -59,7 +64,8 @@ export default function ViewSeason() {
                 .select(`
                     profiles (
                         id,
-                        username
+                        username,
+                        club
                     )
                 `)
                 .eq('season_id', seasonId);
@@ -73,10 +79,12 @@ export default function ViewSeason() {
                 profiles: {
                     id: string;
                     username: string;
+                    club?: string;
                 };
             }>).map(sp => ({
                 id: sp.profiles.id,
-                username: sp.profiles.username
+                username: sp.profiles.username,
+                club: sp.profiles.club
             }));
 
             setPlayers(formattedPlayers);
@@ -393,6 +401,11 @@ export default function ViewSeason() {
                                     >
                                         <span className="text-gray-900 dark:text-gray-100">
                                             {player.username}
+                                            {player.club && (
+                                                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                                                    ({player.club})
+                                                </span>
+                                            )}
                                         </span>
                                     </div>
                                 ))}
