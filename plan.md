@@ -273,8 +273,9 @@ rules✅
 -
 - all game lists - not working off of time, but off of date, this means host has to wait until midnight on the day of the last fixture to update the scores. I will need to ensure all logic is run through the utils/gameWeekStatus file for conformity and have this run on time rather than date.
 -
-- enterscores - check that players change lavery cup selections when editing there scores.
+- enterscores - check that players change lavery cup selections when editing there scores. This creates multiple rows on the database and show when getting to host enter scores,
 -
+- edit george cup, needs fixing, this live is currently broken
 
 24. Prepare for beta testing✅
 
