@@ -17,6 +17,7 @@ export type RoundState = {
 
 export type FixtureState = {
   id: string;
+  round_id: string;
   player1_id: string | null;
   player2_id: string | null;
   winner_id: string | null;
@@ -46,98 +47,112 @@ export class GeorgeCupService {
         username: p.profiles.username
         }));
 
-        // Check for existing rounds
-        const { data: existingRounds, error: checkError } = await supabase
-        .from('george_cup_rounds')
-        .select(`
-            *,
-            george_cup_fixtures!george_cup_fixtures_round_id_fkey (
-            id,
-            round_id,
-            fixture_number,
-            player1_id,
-            player2_id,
-            winner_id
-            )
-        `)
-        .eq('season_id', seasonId)
-        .order('round_number', { ascending: true });
-
-        if (checkError) throw checkError;
-        
-        // If rounds don't exist, create them
-        if (!existingRounds || existingRounds.length === 0) {
+        // IMPORTANT: Always call createRoundsIfNeeded which will handle checking
+        // whether rounds exist and only create what's needed
         return await this.createRoundsIfNeeded(seasonId, players);
-        }
-        
-        // Format existing rounds
-        const rounds = existingRounds.map(round => ({
-        ...round,
-        fixtures: round.george_cup_fixtures || []
-        })) as RoundState[];
-        
-        return { rounds, players };
     }
 
     static async createRoundsIfNeeded(seasonId: string, players: Player[]): Promise<{
         rounds: RoundState[],
         players: Player[]
-        }> {
+    }> {
         // Calculate required rounds based on player count
         const requiredRounds = TournamentLogic.calculateRequiredRounds(players.length);
-        const rounds: RoundState[] = [];
+        
+        // CRITICAL CHANGE: Fetch existing rounds with full data first
+        const { data: existingRounds, error: fetchError } = await supabase
+            .from('george_cup_rounds')
+            .select(`
+                *,
+                george_cup_fixtures!george_cup_fixtures_round_id_fkey (
+                    id,
+                    round_id,
+                    fixture_number,
+                    player1_id,
+                    player2_id,
+                    winner_id
+                )
+            `)
+            .eq('season_id', seasonId)
+            .order('round_number', { ascending: true });
+        
+        if (fetchError) throw fetchError;
+        
+        // If we already have all required rounds, just return them
+        if (existingRounds && existingRounds.length >= requiredRounds) {
+            return {
+                rounds: existingRounds.map(round => ({
+                    ...round,
+                    fixtures: round.george_cup_fixtures || []
+                })) as RoundState[],
+                players
+            };
+        }
         
         // Define round names based on tournament size
         const roundNames = this.getRoundNames(requiredRounds);
         
-        // Insert rounds into database
+        // Track which round numbers we already have
+        const existingRoundNumbers = new Set((existingRounds || []).map(r => r.round_number));
+        
+        // Create array to hold rounds we need to create
+        const roundsToCreate = [];
+        
+        // Insert rounds into database (only if they don't already exist)
         for (let i = 1; i <= requiredRounds; i++) {
+            // Skip if this round number already exists
+            if (existingRoundNumbers.has(i)) continue;
+            
             const totalFixtures = Math.ceil(players.length / Math.pow(2, i));
             
-            const { data, error } = await supabase
-            .from('george_cup_rounds')
-            .insert({
+            roundsToCreate.push({
                 id: crypto.randomUUID(),
                 season_id: seasonId,
                 round_number: i,
                 round_name: roundNames[i - 1],
                 total_fixtures: totalFixtures,
                 is_complete: false,
-                status: i === 1 ? 'not_started' : 'not_started',
+                status: 'not_started',
                 created_at: new Date().toISOString()
-            })
-            .select()
-            .single();
-            
-            if (error) throw error;
-            
-            // Add empty fixtures list for now
-            rounds.push({
-            ...data,
-            fixtures: []
             });
         }
         
-        return { rounds, players };
-        }
-
-        // Helper method to get round names based on number of rounds
-        private static getRoundNames(totalRounds: number): string[] {
-        // Always have semifinals, final
-        const names = ['Final', 'Semi Finals'];
-        
-        // Add quarter finals for larger tournaments
-        if (totalRounds >= 3) names.push('Quarter Finals');
-        
-        // Add round of 16, 32, etc. for even larger tournaments
-        for (let i = 4; i <= totalRounds; i++) {
-            const roundSize = Math.pow(2, i);
-            names.push(`Round of ${roundSize}`);
+        // Only do an insert if we have rounds to create
+        if (roundsToCreate.length > 0) {
+            const { error: insertError } = await supabase
+                .from('george_cup_rounds')
+                .insert(roundsToCreate);
+                
+            if (insertError) throw insertError;
         }
         
-        // Reverse the order so Round 1 is first
-        return names.reverse().slice(0, totalRounds);
-        }
+        // Finally fetch ALL rounds to ensure we return a complete set
+        const { data: allRounds, error: finalFetchError } = await supabase
+            .from('george_cup_rounds')
+            .select(`
+                *,
+                george_cup_fixtures!george_cup_fixtures_round_id_fkey (
+                    id,
+                    round_id,
+                    fixture_number,
+                    player1_id,
+                    player2_id,
+                    winner_id
+                )
+            `)
+            .eq('season_id', seasonId)
+            .order('round_number', { ascending: true });
+        
+        if (finalFetchError) throw finalFetchError;
+        
+        return {
+            rounds: (allRounds || []).map(round => ({
+                ...round,
+                fixtures: round.george_cup_fixtures || []
+            })) as RoundState[],
+            players
+        };
+    }
 
     static getRoundNames(totalRounds: number): string[] {
         if (totalRounds <= 1) return ["Final"];
@@ -156,31 +171,32 @@ export class GeorgeCupService {
         }
 
     static async drawRound(
-        roundId: string, 
-        gameWeekId: string, 
-        players: Player[], 
-        roundNumber: number, 
-        previousRoundId?: string
-        ): Promise<RoundState> {
-        try {
-            // 1. Update round with game week and change status
-            const { data: updatedRound, error: updateError } = await supabase
-            .from('george_cup_rounds')
-            .update({ 
-                game_week_id: gameWeekId, 
-                status: 'active' 
-            })
-            .eq('id', roundId)
-            .select()
-            .single();
-            
-            if (updateError) throw updateError;
-            
-            // 2. Handle different fixture creation based on round number
-            let fixtures = [];
-            
-            if (roundNumber === 1) {
-            // First round - create fixtures based on players with appropriate BYEs
+    roundId: string, 
+    gameWeekId: string, 
+    players: Player[], 
+    roundNumber: number, 
+    previousRoundId?: string
+): Promise<RoundState> {
+    try {
+        // 1. Update round with game week and change status
+        const { data: updatedRound, error: updateError } = await supabase
+        .from('george_cup_rounds')
+        .update({ 
+            game_week_id: gameWeekId, 
+            status: 'active' 
+        })
+        .eq('id', roundId)
+        .select()
+        .single();
+        
+        if (updateError) throw updateError;
+        
+        // 2. Handle different fixture creation based on round number
+        type DbFixture = FixtureState & { created_at: string };
+        let fixtures: DbFixture[] = [];
+        
+        if (roundNumber === 1) {
+        // First round - create fixtures based on players with appropriate BYEs
             const byesNeeded = TournamentLogic.calculateByesNeeded(players.length);
             const slots = TournamentLogic.distributeByes(players, byesNeeded);
             
@@ -517,10 +533,10 @@ export class GeorgeCupService {
             
             // 2. Extract winners from the completed round
             const winners = (fromRound.george_cup_fixtures || [])
-            .filter(f => f.winner_id)
-            .sort((a, b) => a.fixture_number - b.fixture_number)
-            .map(f => f.winner_id)
-            .filter((id): id is string => id !== null);
+                .filter((f: FixtureState) => f.winner_id)
+                .sort((a: FixtureState, b: FixtureState) => a.fixture_number - b.fixture_number)
+                .map((f: FixtureState) => f.winner_id)
+                .filter((id: string | null): id is string => id !== null);
             
             // 3. Place winners in the next round's fixtures
             for (let i = 0; i < winners.length; i += 2) {

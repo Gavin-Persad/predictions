@@ -37,6 +37,9 @@ export function determineWinner(
   if (player1 && !player2) return player1.id;
   if (!player1 && !player2) return null;
   
+  // Add this explicit guard to assure TypeScript that both players exist
+  if (!player1 || !player2) return null; // This is technically unreachable but helps TypeScript
+  
   // Since both players exist now, compare scores
   if (player1.score > player2.score) return player1.id;
   if (player2.score > player1.score) return player2.id;

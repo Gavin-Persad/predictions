@@ -56,52 +56,58 @@ This project was initiated to help a valued member of our community who has been
 ## Project Structure
 
 ```
-src/
-  app/ (Next.js app router pages)
-    dashboard/
-      components/
-        CurrentGameWeekTile.tsx (Shows status of current game week)
-        LeagueTableTile.tsx (Displays league standings summary)
-        GeorgeCupTile.tsx (Shows George Cup status for current user)
-        LaveryCupTile.tsx (Shows Lavery Cup status for current user)
-        RulesTile.tsx (Displays rules summary)
-        MessagesPanel.tsx (Shows announcements and messages)
-      page.tsx (Main dashboard)
-    enterscores/
-      components/
-        PredictionsDisplay.tsx (Shows submitted predictions)
-        PredictionsForm.tsx (Form for entering match predictions)
-      page.tsx (Predictions entry page)
-    viewseason/
-      components/
-        georgeCup/
-          EditGeorgeCup.tsx (Admin interface for managing the cup)
-          viewGeorgeCup.tsx (Tournament bracket view)
-          editGeorgeCupLayout.ts (Layout styling for edit view)
-          viewGeorgeCupLayout.ts (Layout styling for tournament view)
-        laveryCup/
-          editLaveryCup.tsx (Admin interface for managing selections)
-          viewLaveryCup.tsx (Team selections tournament view)
-          viewLaveryCupLayout.ts (Layout styling for view)
-        EnterScoresForm.tsx (Admin form for entering match results)
-        EnterScoresGameWeekList.tsx (List of game weeks for score entry)
-        GameWeekDetail.tsx (Detailed view of a game week)
-        leagueTable.tsx (Complete league standings)
-        ManagerOfTheWeekModal.tsx (Weekly top performers)
-        ScoresModal.tsx (Detailed view of all predictions and scores)
-        ViewGameWeeks.tsx (List view of all game weeks)
-      page.tsx (Season management page)
-    rules/
-      page.tsx (Competition rules page)
-  components/ (Shared components)
-    Sidebar.tsx (Navigation sidebar)
-    darkModeToggle.tsx (Theme switcher)
-  types/ (TypeScript type definitions)
-    players.ts (Player-related types)
-    gameWeek.ts (Game week related types)
-  utils/
-    scoreCalculator.ts (Points calculation logic)
-    gameWeekStatus.ts (Status determination for game weeks)
+  src/
+    app/ (Next.js app router pages)
+      dashboard/
+        components/
+          CurrentGameWeekTile.tsx (Shows status of current game week)
+          LeagueTableTile.tsx (Displays league standings summary)
+          GeorgeCupTile.tsx (Shows George Cup status for current user)
+          LaveryCupTile.tsx (Shows Lavery Cup status for current user)
+          RulesTile.tsx (Displays rules summary)
+          MessagesPanel.tsx (Shows announcements and messages)
+        page.tsx (Main dashboard)
+      enterscores/
+        components/
+          PredictionsDisplay.tsx (Shows submitted predictions)
+          PredictionsForm.tsx (Form for entering match predictions)
+        page.tsx (Predictions entry page)
+      viewseason/
+        components/
+          georgeCup/
+            EditGeorgeCup.tsx (Admin interface for managing the cup)
+            viewGeorgeCup.tsx (Tournament bracket view)
+            GeorgeCupService.ts (Database operations for George Cup management)
+            TournamentLogic.ts (Tournament utility functions for brackets and scoring)
+            editGeorgeCupLayout.ts (Layout styling for edit view)
+            viewGeorgeCupLayout.ts (Layout styling for tournament view)
+            components/
+              DrawModal.tsx (Confirmation dialog for cup round draws)
+          laveryCup/
+            editLaveryCup.tsx (Admin interface for managing selections)
+            viewLaveryCup.tsx (Team selections tournament view)
+            viewLaveryCupLayout.ts (Layout styling for view)
+          EnterScoresForm.tsx (Admin form for entering match results)
+          EnterScoresGameWeekList.tsx (List of game weeks for score entry)
+          GameWeekDetail.tsx (Detailed view of a game week)
+          leagueTable.tsx (Complete league standings)
+          ManagerOfTheWeekModal.tsx (Weekly top performers)
+          ScoresModal.tsx (Detailed view of all predictions and scores)
+          ViewGameWeeks.tsx (List view of all game weeks)
+        page.tsx (Season management page)
+      rules/
+        page.tsx (Competition rules page)
+    components/ (Shared components)
+      Sidebar.tsx (Navigation sidebar)
+      darkModeToggle.tsx (Theme switcher)
+      ui/
+        Spinner.tsx (Loading indicator component)
+    types/ (TypeScript type definitions)
+      players.ts (Player-related types)
+      gameWeek.ts (Game week related types)
+    utils/
+      scoreCalculator.ts (Points calculation logic)
+      gameWeekStatus.ts (Status determination for game weeks)
 ```
 
 ## Game Rules and Scoring

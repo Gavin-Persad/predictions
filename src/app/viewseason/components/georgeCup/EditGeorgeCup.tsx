@@ -329,17 +329,17 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props): JSX.Element
       <div className={Layout.container}>
         {/* Players column */}
         <div className={Layout.playerColumn}>
-          <h3 className={Layout.columnTitle}>Players</h3>
-          <div className={Layout.playersList}>
+        <h3 className={Layout.columnTitle}>Players</h3>
+        <div className={`${Layout.scrollContainer} ${Layout.playersList}`}>
             {players.map(player => (
-              <div 
+            <div 
                 key={player.id} 
                 className={`${Layout.playerItem} ${eliminatedSet.has(player.id) ? Layout.playerEliminated : ''}`}
-              >
+            >
                 {player.username}
-              </div>
+            </div>
             ))}
-          </div>
+        </div>
         </div>
 
         {/* Round columns */}

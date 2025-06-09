@@ -236,9 +236,9 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
                 <div className={Layout.container}>
                     {/* Players Column */}
                     <div className={Layout.column}>
-                        <h3 className={Layout.roundTitle}>Players</h3>
-                        <div className={Layout.scrollContainer}>
-                            {players.map(player => {
+                    <h3 className={Layout.roundTitle}>Players</h3>
+                    <div className={Layout.scrollContainer}>
+                        {players.map(player => {
                                 const isEliminated = rounds.some(round => 
                                     round.fixtures.some(fixture => 
                                         (fixture.player1_id === player.id || fixture.player2_id === player.id) &&
