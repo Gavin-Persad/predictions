@@ -268,28 +268,7 @@ rules✅
 - delete game week - needs to also clear lavery cup - players teams used, will need to add a new column to teams used table to link them to a game week to make this possible. This will be updated in enterscores when player makes a selection
 -
 - edit george cup, needs fixing, this live is currently broken
-- page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.
-
-Separate Data and UI:
-
-Create a dedicated tournament service class that handles all database operations
-Keep UI components focused purely on rendering
-Use a State Machine:
-
-Define clear tournament states: "not_drawn," "in_progress," "complete"
-Only allow specific transitions between states
-Transactional Operations:
-
-Wrap related database operations in transactions
-Create atomic operations for "draw round," "complete round"
-Simplify Effects:
-
-Reduce the number of useEffects
-Create a single data fetching function that loads the complete tournament state
-Optimistic UI Updates:
-
-Update UI immediately, then confirm with database
-Roll back UI changes if database operations fail
+- page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.⌛
 
 -
 - George cup - bye vs bye both show as progressed, fixture should be hidden if no players involved.
