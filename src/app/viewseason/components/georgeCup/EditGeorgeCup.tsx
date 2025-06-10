@@ -26,7 +26,8 @@ const Layout = {
     winner: "bg-green-100 dark:bg-green-900 font-bold",
     loser: "bg-red-50 dark:bg-red-900 text-gray-500 dark:text-gray-300",
     bye: "bg-gray-100 dark:bg-gray-700 italic text-gray-500 dark:text-gray-400",
-    score: "text-sm font-mono"
+    score: "text-sm font-mono ml-auto pl-2 flex-shrink-0",
+    playerName: "truncate flex-grow"
   },
   buttonBar: "flex space-x-2 mt-4",
   button: {
@@ -195,42 +196,47 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props): JSX.Element
     }
   }, [rounds, coinFlipResults]);
 
-  // Render helper for fixture
-  const renderFixture = useCallback((fixture: FixtureState) => {
+    // Render helper for fixture
+    const renderFixture = useCallback((fixture: FixtureState) => {
     const scores = fixtureScores[fixture.id] || {};
     
+    // Skip rendering completely if both players are BYE
+    if (!fixture.player1_id && !fixture.player2_id) {
+        return null;
+    }
+    
     return (
-      <div key={fixture.id} className={Layout.fixtureBox}>
+        <div key={fixture.id} className={Layout.fixtureBox}>
         {/* Player 1 */}
         <div className={`${Layout.playerBox.base} ${
-          fixture.winner_id === fixture.player1_id ? Layout.playerBox.winner :
-          fixture.winner_id && fixture.player1_id && fixture.winner_id !== fixture.player1_id ? Layout.playerBox.loser :
-          !fixture.player1_id ? Layout.playerBox.bye : ''
+            fixture.winner_id === fixture.player1_id ? Layout.playerBox.winner :
+            fixture.winner_id && fixture.player1_id && fixture.winner_id !== fixture.player1_id ? Layout.playerBox.loser :
+            !fixture.player1_id ? Layout.playerBox.bye : ''
         }`}>
-          <div>
-            {fixture.player1_id 
-              ? players.find(p => p.id === fixture.player1_id)?.username || 'Unknown' 
-              : 'BYE'}
-          </div>
-          {scores.player1_score !== undefined && (
-            <span className={Layout.playerBox.score}>
-              {scores.player1_score}
-              {scores.player1_correct_scores !== undefined && ` (${scores.player1_correct_scores})`}
-            </span>
-          )}
+            <div className={Layout.playerBox.playerName}>
+                {fixture.player1_id 
+                ? players.find(p => p.id === fixture.player1_id)?.username || 'Unknown' 
+                : 'BYE'}
+            </div>
+            {scores.player1_score !== undefined && (
+                <span className={Layout.playerBox.score}>
+                {scores.player1_score}
+                {scores.player1_correct_scores !== undefined && ` (${scores.player1_correct_scores})`}
+                </span>
+            )}
         </div>
         
         {/* Player 2 */}
         <div className={`${Layout.playerBox.base} ${
-          fixture.winner_id === fixture.player2_id ? Layout.playerBox.winner :
-          fixture.winner_id && fixture.player2_id && fixture.winner_id !== fixture.player2_id ? Layout.playerBox.loser :
-          !fixture.player2_id ? Layout.playerBox.bye : ''
+            fixture.winner_id === fixture.player2_id ? Layout.playerBox.winner :
+            fixture.winner_id && fixture.player2_id && fixture.winner_id !== fixture.player2_id ? Layout.playerBox.loser :
+            !fixture.player2_id ? Layout.playerBox.bye : ''
         }`}>
-          <div>
+        <div className={Layout.playerBox.playerName}>
             {fixture.player2_id 
-              ? players.find(p => p.id === fixture.player2_id)?.username || 'Unknown' 
-              : 'BYE'}
-          </div>
+            ? players.find(p => p.id === fixture.player2_id)?.username || 'Unknown' 
+            : 'BYE'}
+        </div>
           {scores.player2_score !== undefined && (
             <span className={Layout.playerBox.score}>
               {scores.player2_score}
@@ -238,52 +244,47 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props): JSX.Element
             </span>
           )}
         </div>
-      </div>
+        </div>
     );
-  }, [fixtureScores, players]);
+    }, [fixtureScores, players]);
 
-  // Get list of eliminated players
-  const eliminatedPlayers = useCallback(() => {
-    const winnerIds = new Set<string>();
-    const playerIds = new Set(players.map(p => p.id));
+    // Get list of eliminated players
+    const eliminatedPlayers = useCallback(() => {
+    if (!rounds.length) return new Set<string>();
     
-    // Find all winners from rounds
+    // Find all active players (players who are in any active round or are winners)
+    const activePlayers = new Set<string>();
+    
+    // First, add all players who have won at least one match
     rounds.forEach(round => {
-      round.fixtures?.forEach(fixture => {
+        round.fixtures?.forEach(fixture => {
         if (fixture.winner_id) {
-          winnerIds.add(fixture.winner_id);
+            activePlayers.add(fixture.winner_id);
         }
-      });
+        });
     });
     
-    // Find latest round with fixtures
-    const activeRounds = rounds.filter(r => 
-      r.fixtures && r.fixtures.length > 0 && r.fixtures.some(f => f.player1_id || f.player2_id)
-    );
+    // Next, add players in the latest active round (one that's not complete)
+    const activeRound = [...rounds].sort((a, b) => b.round_number - a.round_number)
+        .find(r => !r.is_complete && r.game_week_id);
+        
+    if (activeRound) {
+        activeRound.fixtures?.forEach(fixture => {
+        if (fixture.player1_id) activePlayers.add(fixture.player1_id);
+        if (fixture.player2_id) activePlayers.add(fixture.player2_id);
+        });
+    }
     
-    if (activeRounds.length === 0) return new Set<string>();
-    
-    const latestRound = activeRounds.reduce((latest, round) => 
-      round.round_number > latest.round_number ? round : latest
-    );
-    
-    // Get players in latest round
-    const playersInLatestRound = new Set<string>();
-    latestRound.fixtures?.forEach(fixture => {
-      if (fixture.player1_id) playersInLatestRound.add(fixture.player1_id);
-      if (fixture.player2_id) playersInLatestRound.add(fixture.player2_id);
-    });
-    
-    // Players who aren't in the latest round and aren't winners are eliminated
+    // Any player not in the active set is eliminated
     const eliminated = new Set<string>();
-    playerIds.forEach(id => {
-      if (!playersInLatestRound.has(id) && !winnerIds.has(id)) {
-        eliminated.add(id);
-      }
+    players.forEach(player => {
+        if (!activePlayers.has(player.id)) {
+        eliminated.add(player.id);
+        }
     });
     
     return eliminated;
-  }, [rounds, players]);
+    }, [rounds, players]);
 
   const eliminatedSet = eliminatedPlayers();
 
