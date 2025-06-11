@@ -181,7 +181,7 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props): JSX.Element
     } finally {
       setProcessingAction(false);
     }
-  }, [rounds, coinFlipResults]);
+  }, [coinFlipResults]);
 
     // Render helper for fixture
     const renderFixture = useCallback((fixture: FixtureState) => {
