@@ -175,19 +175,6 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props): JSX.Element
         )
       );
       
-      // If round is complete, check if we should progress winners
-      if (roundComplete) {
-        const completedRound = rounds.find(r => r.id === roundId);
-        if (completedRound && completedRound.round_number < rounds.length) {
-          const nextRound = rounds.find(r => r.round_number === completedRound.round_number + 1);
-          if (nextRound) {
-            const updatedNextRound = await GeorgeCupService.progressWinners(roundId, nextRound.id);
-            setRounds(prevRounds => 
-              prevRounds.map(r => r.id === nextRound.id ? updatedNextRound : r)
-            );
-          }
-        }
-      }
     } catch (error) {
       console.error('Error determining winners:', error);
       setError('Failed to determine winners');
