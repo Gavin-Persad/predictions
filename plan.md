@@ -263,19 +263,22 @@ rules✅
 -
 - errors showing in console when going to my pedictions, enter scores page due to adding lavery cup selections
 -
-- page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.
+- enterscores - check that players change lavery cup selections when editing there scores. This creates multiple rows on the database and show when getting to host enter scores,'⌛
+-
+- delete game week - needs to also clear lavery cup - players teams used, will need to add a new column to teams used table to link them to a game week to make this possible. This will be updated in enterscores when player makes a selection
+-
+- edit george cup, needs fixing, this live is currently broken
+- page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.✅
+- need to fix view george cup, also further rounds to not seem to be randomly drawn✅
+
+-
+- George cup - bye vs bye both show as progressed, fixture should be hidden if no players involved.✅
 -
 - Profile Settings - Delete account button needs to be added back
 -
-- delete game week - needs to also clear lavery cup - players teams used, will need to add a new column to teams used table to link them to a game week to make this possible. This will be updated in enterscores when player makes a selection
-
-- George cup - bye vs bye both show as progressed, fixture should be hidden if no players involved.
--
 - all game lists - not working off of time, but off of date, this means host has to wait until midnight on the day of the last fixture to update the scores. I will need to ensure all logic is run through the utils/gameWeekStatus file for conformity and have this run on time rather than date.
+
 -
-- enterscores - check that players change lavery cup selections when editing there scores. This creates multiple rows on the database and show when getting to host enter scores,
--
-- edit george cup, needs fixing, this live is currently broken
 
 24. Prepare for beta testing✅
 

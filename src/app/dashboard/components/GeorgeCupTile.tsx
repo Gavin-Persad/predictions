@@ -138,7 +138,6 @@ export default function GeorgeCupTile() {
         if (roundsError) throw new Error(`Error fetching rounds: ${roundsError.message}`);
         
         if (!roundsData || roundsData.length === 0) {
-          console.log('No George Cup rounds found');
           setLoading(false);
           return;
         }
