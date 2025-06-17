@@ -274,17 +274,18 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
                                 )}
                             </h3>
                             
-                            {/* Fixtures */}
                             <div className={Layout.scrollContainer}>
                                 <div className="space-y-2">
-                                    {round.fixtures.map(fixture => (
-                                        <div key={fixture.id} className={Layout.fixtureBox}>
-                                            {/* Player 1 */}
-                                            <div className={`${Layout.playerBox.base} ${
-                                                fixture.winner_id === fixture.player1_id ? Layout.playerBox.winner :
-                                                fixture.winner_id && fixture.player1_id ? Layout.playerBox.loser :
-                                                !fixture.player1_id ? Layout.playerBox.bye : ''
-                                                } ${fixture.player1_id === currentUserId ? Layout.playerBox.currentUser : ''}`}>
+                                    {round.fixtures
+                                        .filter(fixture => fixture.player1_id !== null || fixture.player2_id !== null)
+                                        .map(fixture => (
+                                            <div key={fixture.id} className={Layout.fixtureBox}>
+                                                {/* Player 1 */}
+                                                <div className={`${Layout.playerBox.base} ${
+                                                    fixture.winner_id === fixture.player1_id ? Layout.playerBox.winner :
+                                                    fixture.winner_id && fixture.player1_id ? Layout.playerBox.loser :
+                                                    !fixture.player1_id ? Layout.playerBox.bye : ''
+                                                    } ${fixture.player1_id === currentUserId ? Layout.playerBox.currentUser : ''}`}>
                                                 <div className="flex justify-between w-full">
                                                     <span>
                                                         {fixture.player1_id ? 
