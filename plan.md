@@ -263,16 +263,16 @@ rules✅
 -
 - errors showing in console when going to my pedictions, enter scores page due to adding lavery cup selections
 -
-- enterscores - check that players change lavery cup selections when editing there scores. This creates multiple rows on the database and show when getting to host enter scores,
+- enterscores - check that players change lavery cup selections when editing there scores. This creates multiple rows on the database and show when getting to host enter scores,'⌛
 -
 - delete game week - needs to also clear lavery cup - players teams used, will need to add a new column to teams used table to link them to a game week to make this possible. This will be updated in enterscores when player makes a selection
 -
 - edit george cup, needs fixing, this live is currently broken
 - page flickers and needs refresh when draw second round of cup. Loop issue in the perform draw function.This rerendering is causing lots of rest api calls this could become a big issue.✅
-- need to fix view george cup, also further rounds to not seem to be randomly drawn
+- need to fix view george cup, also further rounds to not seem to be randomly drawn✅
 
 -
-- George cup - bye vs bye both show as progressed, fixture should be hidden if no players involved.
+- George cup - bye vs bye both show as progressed, fixture should be hidden if no players involved.✅
 -
 - Profile Settings - Delete account button needs to be added back
 -

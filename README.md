@@ -342,6 +342,7 @@ create table george_cup_rounds (
   round_number integer,
   round_name text,
   total_fixtures integer,
+  status text default 'not_started',
   is_available boolean,
   created_at timestamp with time zone default timezone('utc'::text, now()),
   is_complete boolean,
