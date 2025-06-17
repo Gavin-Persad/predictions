@@ -213,8 +213,8 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
     };
 
     return (
-        <div className="flex flex-col h-full">
-            <div className="flex flex-col mb-6">
+        <div className="flex flex-col h-screen">
+            <div className="flex flex-col p-4 pb-2">
                 <div className="mb-2">
                     <button
                         onClick={onClose}
@@ -229,7 +229,7 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
             </div>
 
             {loading ? (
-                <div className="flex justify-center items-center">
+                <div className="flex justify-center items-center flex-grow">
                     <p className="text-gray-900 dark:text-gray-100">Loading...</p>
                 </div>
             ) : (
