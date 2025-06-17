@@ -200,7 +200,7 @@ export class GeorgeCupService {
             let fixtures: DbFixture[] = [];
             
             if (roundNumber === 1) {
-            // First round - create fixtures based on players with appropriate BYEs
+                // First round - create fixtures based on players with appropriate BYEs
                 const byesNeeded = TournamentLogic.calculateByesNeeded(players.length);
                 const slots = TournamentLogic.distributeByes(players, byesNeeded);
                 
@@ -211,73 +211,95 @@ export class GeorgeCupService {
                     const player2 = slots[i + 1];
                     
                     fixtures.push({
-                    id: crypto.randomUUID(),
-                    round_id: roundId,
-                    fixture_number: (i / 2) + 1,
-                    player1_id: player1 === 'BYE' ? null : player1.id,
-                    player2_id: player2 === 'BYE' ? null : player2.id,
-                    winner_id: null,
-                    created_at: new Date().toISOString()
+                        id: crypto.randomUUID(),
+                        round_id: roundId,
+                        fixture_number: (i / 2) + 1,
+                        player1_id: player1 === 'BYE' ? null : player1.id,
+                        player2_id: player2 === 'BYE' ? null : player2.id,
+                        winner_id: null,
+                        created_at: new Date().toISOString()
                     });
                 }
-                } else if (previousRoundId) {
-                // For later rounds, create empty fixtures
-                const { data: roundData } = await supabase
-                    .from('george_cup_rounds')
-                    .select('total_fixtures')
-                    .eq('id', roundId)
-                    .single();
+            } else if (previousRoundId) {
+                // For later rounds, get winners from previous round
+                const { data: previousRound, error: prevError } = await supabase
+                .from('george_cup_rounds')
+                .select(`
+                    id,
+                    george_cup_fixtures!george_cup_fixtures_round_id_fkey (
+                        id,
+                        fixture_number,
+                        player1_id,
+                        player2_id,
+                        winner_id
+                    )
+                `)
+                .eq('id', previousRoundId)
+                .single();
                     
-                if (!roundData) throw new Error('Round not found');
+                if (prevError) throw prevError;
+                                
+                // Create fixtures based on previous round's winners
+                const winners = (previousRound.george_cup_fixtures || [])
+                    .filter(f => f.winner_id)
+                    .sort((a, b) => a.fixture_number - b.fixture_number)
+                    .map(f => f.winner_id);
+
                 
-                fixtures = Array(roundData.total_fixtures).fill(null).map((_, index) => ({
-                    id: crypto.randomUUID(),
-                    round_id: roundId,
-                    fixture_number: index + 1,
-                    player1_id: null,
-                    player2_id: null,
-                    winner_id: null,
-                    created_at: new Date().toISOString()
-                }));
+                // Create new fixtures with winners paired against each other
+                fixtures = [];
+                for (let i = 0; i < winners.length; i += 2) {
+                    fixtures.push({
+                        id: crypto.randomUUID(),
+                        round_id: roundId,
+                        fixture_number: Math.floor(i/2) + 1,
+                        player1_id: winners[i] || null,
+                        player2_id: (i+1 < winners.length) ? winners[i+1] : null,
+                        winner_id: null,
+                        created_at: new Date().toISOString()
+                    });
                 }
                 
-                // 3. Insert fixtures
-                if (fixtures.length > 0) {
+                // If there are an odd number of winners, the last player gets a bye
+            }
+                
+            // 3. Insert fixtures
+            if (fixtures.length > 0) {
                 const { error: fixturesError } = await supabase
                     .from('george_cup_fixtures')
                     .insert(fixtures);
                     
                 if (fixturesError) throw fixturesError;
-                }
-                
-                // 4. Fetch the round with its newly created fixtures
-                const { data: completeRound, error: fetchError } = await supabase
-                .from('george_cup_rounds')
-                .select(`
-                    *,
-                    george_cup_fixtures!george_cup_fixtures_round_id_fkey (
+            }
+            
+            // 4. Fetch the round with its newly created fixtures
+            const { data: completeRound, error: fetchError } = await supabase
+            .from('george_cup_rounds')
+            .select(`
+                *,
+                george_cup_fixtures!george_cup_fixtures_round_id_fkey (
                     id,
                     round_id,
                     fixture_number,
                     player1_id,
                     player2_id,
                     winner_id
-                    )
-                `)
-                .eq('id', roundId)
-                .single();
-                
-                if (fetchError) throw fetchError;
-                
-                return {
+                )
+            `)
+            .eq('id', roundId)
+            .single();
+            
+            if (fetchError) throw fetchError;
+            
+            return {
                 ...completeRound,
                 fixtures: completeRound.george_cup_fixtures || []
-                };
-            } catch (error) {
-                console.error('Error in drawRound:', error);
-                throw error;
-            }
+            };
+        } catch (error) {
+            console.error('Error in drawRound:', error);
+            throw error;
         }
+    }
 
     static async fetchScores(gameWeekIds: string[]): Promise<Record<string, {
         player1_score?: number,
@@ -620,7 +642,6 @@ export class GeorgeCupService {
             
             // 4. Delete the duplicates if any were found
             if (idsToDelete.length > 0) {
-            console.log(`Cleaning up ${idsToDelete.length} duplicate rounds`);
             
             // Delete the duplicates
             const { error: deleteError } = await supabase

@@ -102,52 +102,59 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props): JSX.Element
 }, [seasonId]);
 
   // Handle game week selection
-  const handleGameWeekSelect = useCallback((roundId: string, gameWeekId: string) => {
-    setSelectedRoundId(roundId);
-    setSelectedGameWeekId(gameWeekId);
-    setShowDrawModal(true);
-  }, []);
-
-  // Handle draw confirmation
   const handleConfirmDraw = useCallback(async () => {
-    if (!selectedRoundId || !selectedGameWeekId) return;
+  if (!selectedRoundId || !selectedGameWeekId) return;
+  
+  try {
+    setProcessingAction(true);
     
-    try {
-      setProcessingAction(true);
+    // Find round info
+    const selectedRound = rounds.find(r => r.id === selectedRoundId);
+    if (!selectedRound) throw new Error('Round not found');
+    
+    // IMPORTANT: Find the previous round ID for rounds after round 1
+    let previousRoundId: string | undefined;
+    if (selectedRound.round_number > 1) {
+      const previousRound = rounds.find(r => r.round_number === selectedRound.round_number - 1);
       
-      const round = rounds.find(r => r.id === selectedRoundId);
-      if (!round) throw new Error('Round not found');
+      // Ensure previous round exists and is complete
+      if (!previousRound) {
+        throw new Error('Previous round not found');
+      }
       
-      // Draw the round
-      const previousRound = round.round_number > 1 
-        ? rounds.find(r => r.round_number === round.round_number - 1)?.id 
-        : undefined;
-        
-      const updatedRound = await GeorgeCupService.drawRound(
-        selectedRoundId,
-        selectedGameWeekId,
-        players,
-        round.round_number,
-        previousRound
-      );
+      if (!previousRound.is_complete) {
+        setError('Previous round must be complete before drawing this round');
+        return;
+      }
       
-      // Update rounds state with the new round
-      setRounds(prevRounds => 
-        prevRounds.map(r => r.id === selectedRoundId ? updatedRound : r)
-      );
-      
-      // Clear selection
-      setShowDrawModal(false);
-      setSelectedRoundId(null);
-      setSelectedGameWeekId(null);
-      
-    } catch (error) {
-      console.error('Error drawing round:', error);
-      setError('Failed to draw fixtures');
-    } finally {
-      setProcessingAction(false);
+      previousRoundId = previousRound.id;
     }
-  }, [selectedRoundId, selectedGameWeekId, rounds, players]);
+
+    // Draw the round with the previousRoundId parameter
+    const updatedRound = await GeorgeCupService.drawRound(
+      selectedRoundId,
+      selectedGameWeekId,
+      players,
+      selectedRound.round_number,
+      previousRoundId
+    );
+    
+    // Update rounds state with new round
+    setRounds(prevRounds => 
+      prevRounds.map(r => r.id === selectedRoundId ? updatedRound : r)
+    );
+    
+    setSelectedRoundId(null);
+    setSelectedGameWeekId(null);
+    
+  } catch (error) {
+    console.error('Error drawing round:', error);
+    setError('Failed to draw round');
+  } finally {
+    setProcessingAction(false);
+    setShowDrawModal(false);
+  }
+}, [selectedRoundId, selectedGameWeekId, rounds, players]);
 
   // Handle cancel
   const handleCancelDraw = useCallback(() => {
@@ -157,31 +164,46 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props): JSX.Element
   }, []);
 
   // Determine winners for a round
-  const handleDetermineWinners = useCallback(async (roundId: string) => {
-    try {
-      setProcessingAction(true);
-      
-      const { fixtures, roundComplete } = await GeorgeCupService.determineWinners(
-        roundId, 
-        coinFlipResults
-      );
-      
-      // Update rounds with winners
-      setRounds(prevRounds => 
-        prevRounds.map(r => 
-          r.id === roundId 
-            ? { ...r, fixtures, is_complete: roundComplete, status: roundComplete ? 'completed' : r.status } 
-            : r
-        )
-      );
-      
-    } catch (error) {
-      console.error('Error determining winners:', error);
-      setError('Failed to determine winners');
-    } finally {
-      setProcessingAction(false);
-    }
-  }, [coinFlipResults]);
+    const handleDetermineWinners = useCallback(async (roundId: string) => {
+        try {
+            setProcessingAction(true);
+            
+            const { fixtures, roundComplete } = await GeorgeCupService.determineWinners(
+            roundId, 
+            coinFlipResults
+            );
+            
+            // CHANGE: Always update the database to mark the round as complete
+            // when the user clicks "Determine Winners"
+            await supabase
+            .from('george_cup_rounds')
+            .update({ 
+                is_complete: true,  // Always true
+                status: 'completed' 
+            })
+            .eq('id', roundId);
+            
+            // Update rounds with winners in local state
+            setRounds(prevRounds => 
+            prevRounds.map(r => 
+                r.id === roundId 
+                ? { 
+                    ...r, 
+                    fixtures, 
+                    is_complete: true,  // Always true
+                    status: 'completed' 
+                    } 
+                : r
+            )
+            );
+            
+        } catch (error) {
+            console.error('Error determining winners:', error);
+            setError('Failed to determine winners');
+        } finally {
+            setProcessingAction(false);
+        }
+        }, [coinFlipResults]);
 
     // Render helper for fixture
     const renderFixture = useCallback((fixture: FixtureState) => {
@@ -273,7 +295,13 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props): JSX.Element
     return eliminated;
     }, [rounds, players]);
 
-  const eliminatedSet = eliminatedPlayers();
+    const eliminatedSet = eliminatedPlayers();
+
+    const handleGameWeekSelect = useCallback((roundId: string, gameWeekId: string) => {
+        setSelectedRoundId(roundId);
+        setSelectedGameWeekId(gameWeekId);
+        setShowDrawModal(true);
+        }, []);
 
   // Main render
   if (loading) {
@@ -339,12 +367,12 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props): JSX.Element
             }`}
           >
             <h3 className={Layout.columnTitle}>
-              {round.round_name}
-              {round.game_week_id && (
-                <div className="text-sm text-gray-500">
-                  Game Week: {gameWeeks.find(gw => gw.id === round.game_week_id)?.week_number || '?'}
+            {round.round_name}
+            {round.game_week_id && (
+                <div className="text-sm text-gray-500 mt-1">
+                Game Week: {gameWeeks.find(gw => gw.id === round.game_week_id)?.week_number || '?'}
                 </div>
-              )}
+            )}
             </h3>
             
             {!round.game_week_id && (
