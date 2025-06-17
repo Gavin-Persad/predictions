@@ -245,22 +245,26 @@ export class GeorgeCupService {
                     .sort((a, b) => a.fixture_number - b.fixture_number)
                     .map(f => f.winner_id);
 
-                
-                // Create new fixtures with winners paired against each other
+                // ADD SHUFFLING HERE TOO:
+                const shuffledWinners = [...winners];
+                for (let i = shuffledWinners.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffledWinners[i], shuffledWinners[j]] = [shuffledWinners[j], shuffledWinners[i]]; 
+                }
+
+                // Create new fixtures with winners paired against each other (using shuffledWinners)
                 fixtures = [];
-                for (let i = 0; i < winners.length; i += 2) {
+                for (let i = 0; i < shuffledWinners.length; i += 2) {
                     fixtures.push({
                         id: crypto.randomUUID(),
                         round_id: roundId,
                         fixture_number: Math.floor(i/2) + 1,
-                        player1_id: winners[i] || null,
-                        player2_id: (i+1 < winners.length) ? winners[i+1] : null,
+                        player1_id: shuffledWinners[i] || null,
+                        player2_id: (i+1 < shuffledWinners.length) ? shuffledWinners[i+1] : null,
                         winner_id: null,
                         created_at: new Date().toISOString()
                     });
                 }
-                
-                // If there are an odd number of winners, the last player gets a bye
             }
                 
             // 3. Insert fixtures
@@ -557,27 +561,34 @@ export class GeorgeCupService {
             
             if (toError) throw toError;
             
-            // 2. Extract winners from the completed round
-            const winners = (fromRound.george_cup_fixtures || [])
-                .filter((f: FixtureState) => f.winner_id)
-                .sort((a: FixtureState, b: FixtureState) => a.fixture_number - b.fixture_number)
-                .map((f: FixtureState) => f.winner_id)
-                .filter((id: string | null): id is string => id !== null);
-            
-            // 3. Place winners in the next round's fixtures
-            for (let i = 0; i < winners.length; i += 2) {
+              // 2. Extract winners from the completed round
+        const winners = (fromRound.george_cup_fixtures || [])
+            .filter((f: FixtureState) => f.winner_id)
+            .sort((a: FixtureState, b: FixtureState) => a.fixture_number - b.fixture_number)
+            .map((f: FixtureState) => f.winner_id)
+            .filter((id: string | null): id is string => id !== null);
+        
+        // ADD THIS: Shuffle the winners array to randomize matchups
+        const shuffledWinners = [...winners];
+        for (let i = shuffledWinners.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledWinners[i], shuffledWinners[j]] = [shuffledWinners[j], shuffledWinners[i]]; // Swap elements
+        }
+        
+        // 3. Place winners in the next round's fixtures (use shuffledWinners instead of winners)
+        for (let i = 0; i < shuffledWinners.length; i += 2) {
             const targetFixtureNumber = Math.floor(i/2) + 1;
             const { error: updateError } = await supabase
                 .from('george_cup_fixtures')
                 .update({
-                player1_id: winners[i],
-                player2_id: winners[i + 1] || null
+                    player1_id: shuffledWinners[i],
+                    player2_id: shuffledWinners[i + 1] || null
                 })
                 .eq('round_id', toRoundId)
                 .eq('fixture_number', targetFixtureNumber);
                 
             if (updateError) throw updateError;
-            }
+        }
             
             // 4. Fetch the updated target round
             const { data: updatedRound, error: fetchError } = await supabase
