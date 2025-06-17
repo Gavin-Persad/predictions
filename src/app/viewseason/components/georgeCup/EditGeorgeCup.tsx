@@ -259,40 +259,35 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props): JSX.Element
 
     // Get list of eliminated players
     const eliminatedPlayers = useCallback(() => {
-    if (!rounds.length) return new Set<string>();
-    
-    // Find all active players (players who are in any active round or are winners)
-    const activePlayers = new Set<string>();
-    
-    // First, add all players who have won at least one match
-    rounds.forEach(round => {
-        round.fixtures?.forEach(fixture => {
-        if (fixture.winner_id) {
-            activePlayers.add(fixture.winner_id);
-        }
-        });
-    });
-    
-    // Next, add players in the latest active round (one that's not complete)
-    const activeRound = [...rounds].sort((a, b) => b.round_number - a.round_number)
-        .find(r => !r.is_complete && r.game_week_id);
+        if (!rounds.length) return new Set<string>();
         
-    if (activeRound) {
-        activeRound.fixtures?.forEach(fixture => {
-        if (fixture.player1_id) activePlayers.add(fixture.player1_id);
-        if (fixture.player2_id) activePlayers.add(fixture.player2_id);
+        // Start with all players as potentially active
+        const activePlayers = new Set<string>(players.map(p => p.id));
+        
+        // Remove players who have lost in any round
+        rounds.forEach(round => {
+            round.fixtures?.forEach(fixture => {
+                // If fixture has a winner and two players
+                if (fixture.winner_id && fixture.player1_id && fixture.player2_id) {
+                    // The loser is the player who is not the winner
+                    const loserId = fixture.player1_id === fixture.winner_id ? 
+                        fixture.player2_id : fixture.player1_id;
+                        
+                    // Remove loser from active players
+                    activePlayers.delete(loserId);
+                }
+            });
         });
-    }
-    
-    // Any player not in the active set is eliminated
-    const eliminated = new Set<string>();
-    players.forEach(player => {
-        if (!activePlayers.has(player.id)) {
-        eliminated.add(player.id);
-        }
-    });
-    
-    return eliminated;
+        
+        // Any player not in the active set is eliminated
+        const eliminated = new Set<string>();
+        players.forEach(player => {
+            if (!activePlayers.has(player.id)) {
+                eliminated.add(player.id);
+            }
+        });
+        
+        return eliminated;
     }, [rounds, players]);
 
     const eliminatedSet = eliminatedPlayers();
