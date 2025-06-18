@@ -235,6 +235,12 @@ rules✅
 -
 - dashboard - links need to be routed to page with props, enter scores, league, george cup, lavery cup
 - dashboard - george cup tile - should show when user was knocked out
+-
+- message panel - dashboard needs refreshed to show changes when adding deleting or editing messages
+-
+- Profile Settings - Delete account button needs to be added back
+-
+- all game lists - not working off of time, but off of date, this means host has to wait until midnight on the day of the last fixture to update the scores. I will need to ensure all logic is run through the utils/gameWeekStatus file for conformity and have this run on time rather than date.
 
 23. Bugs
 
@@ -259,8 +265,6 @@ rules✅
 - white space at bottom when scrolling down in mobile view in view george cup, view lavery cup, edit george cup. Check other areas also.✅
 - view george cup - scroll bar for columns is just off bottom of the page, same for view lavery cup and edit george cup✅
 -
-- message panel - dashboard needs refreshed to show changes when adding deleting or editing messages
--
 - errors showing in console when going to my pedictions, enter scores page due to adding lavery cup selections
 -
 - enterscores - check that players change lavery cup selections when editing there scores. This creates multiple rows on the database and show when getting to host enter scores,'✅ Needs testing
@@ -273,11 +277,6 @@ rules✅
 
 -
 - George cup - bye vs bye both show as progressed, fixture should be hidden if no players involved.✅
--
-- Profile Settings - Delete account button needs to be added back
--
-- all game lists - not working off of time, but off of date, this means host has to wait until midnight on the day of the last fixture to update the scores. I will need to ensure all logic is run through the utils/gameWeekStatus file for conformity and have this run on time rather than date.
-
 -
 
 24. Prepare for beta testing✅
