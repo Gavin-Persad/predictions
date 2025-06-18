@@ -60,7 +60,7 @@ export class GeorgeCupService {
         // Calculate required rounds based on player count
         const requiredRounds = TournamentLogic.calculateRequiredRounds(players.length);
         
-        // CRITICAL CHANGE: Fetch existing rounds with full data first
+        // Fetch existing rounds with full data first
         const { data: existingRounds, error: fetchError } = await supabase
             .from('george_cup_rounds')
             .select(`
@@ -515,11 +515,26 @@ export class GeorgeCupService {
 
     // Helper method to update fixture winner
     private static async updateFixtureWinner(fixtureId: string, winnerId: string | null): Promise<void> {
-    await supabase
-        .from('george_cup_fixtures')
-        .update({ winner_id: winnerId })
-        .eq('id', fixtureId);
-    }
+    // Get fixture first to validate
+        if (winnerId) {
+            const { data: fixture } = await supabase
+                .from('george_cup_fixtures')
+                .select('player1_id, player2_id')
+                .eq('id', fixtureId)
+                .single();
+                
+            // Ensure winner is actually in this fixture
+            if (fixture && winnerId !== fixture.player1_id && winnerId !== fixture.player2_id) {
+                console.error('Invalid winner: player is not in this fixture');
+                return;
+            }
+        }
+
+        await supabase
+            .from('george_cup_fixtures')
+            .update({ winner_id: winnerId })
+            .eq('id', fixtureId);
+        }
 
     static async progressWinners(fromRoundId: string, toRoundId: string): Promise<RoundState> {
         try {
@@ -582,7 +597,8 @@ export class GeorgeCupService {
                 .from('george_cup_fixtures')
                 .update({
                     player1_id: shuffledWinners[i],
-                    player2_id: shuffledWinners[i + 1] || null
+                    player2_id: shuffledWinners[i + 1] || null,
+                    winner_id: null
                 })
                 .eq('round_id', toRoundId)
                 .eq('fixture_number', targetFixtureNumber);
