@@ -86,7 +86,7 @@ export default function EditPlayers({ seasonId, onClose }: EditPlayersProps) {
   return (
     <div>
         <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
-            Edit Players
+            {activePlayers.length} Players
         </h2>
         <button
             onClick={onClose}
