@@ -217,8 +217,8 @@ rules✅
 -
 - Forgot password
 -
-- about me
-- small page, add to side menu, that has information about me and the project, git hub links etc. Also add this to side bar menu.
+- about me✅
+- small page, add to side menu, that has information about me and the project, git hub links etc. Also add this to side bar menu.✅
 -
 - egg on your face, make a way of alerting those who scored less than a player who did not enter scores.
 -
