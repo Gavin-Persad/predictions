@@ -213,7 +213,7 @@ export default function ViewGeorgeCup({ seasonId, onClose }: Props): JSX.Element
     };
 
     return (
-        <div className="flex flex-col h-screen">
+        <div className="flex flex-col h-screen overflow-hidden">
             <div className="flex flex-col p-4 pb-2">
                 <div className="mb-2">
                     <button
