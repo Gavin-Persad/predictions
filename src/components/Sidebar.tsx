@@ -102,6 +102,11 @@ export default function Sidebar() {
                             </Link>
                         </li>
                         <li>
+                            <Link href="/about">
+                                <span className="block px-4 py-2 hover:bg-gray-700 rounded">About</span>
+                            </Link>
+                        </li>
+                        <li>
                             <button
                                 onClick={async () => {
                                     await supabase.auth.signOut();
