@@ -23,7 +23,7 @@ type LayoutStyles = {
 }
 
 export const Layout: LayoutStyles = {
-    container: "flex flex-row space-x-4 overflow-x-auto p-4 pb-0 h-[calc(100vh-120px)]",
+    container: "flex flex-row space-x-4 overflow-x-auto p-4 pb-0 h-[calc(100vh-140px)]",
     column: "min-w-[250px] flex-shrink-0 flex flex-col h-full",
     roundTitle: "text-lg font-bold mb-2 text-gray-900 dark:text-gray-100 sticky top-0 bg-white dark:bg-gray-800 py-2 z-10",
     fixtureBox: "border rounded p-3 mb-2 bg-gray-200 dark:bg-gray-700",

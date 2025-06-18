@@ -221,6 +221,7 @@ export default function PredictionsPage() {
             if (data.laveryCup) {
                 const { team1, team2, roundId } = data.laveryCup;
                 
+                // Check for existing selections first - THIS IS THE KEY ADDITION
                 const { data: existingSelections, error: checkError } = await supabase
                     .from('lavery_cup_selections')
                     .select('id')
@@ -233,10 +234,14 @@ export default function PredictionsPage() {
                     return;
                 }
                 
+                // Get season ID for used teams tracking
+                const seasonId = gameWeeks.find(gw => gw.id === selectedGameWeek)?.season_id;
+                if (!seasonId) {
+                    console.error('Could not find season ID');
+                    return;
+                }
+                
                 const laveryCupData = {
-                    id: existingSelections?.id || uuidv4(),
-                    round_id: roundId,
-                    player_id: user.id,
                     team1_name: team1,
                     team2_name: team2,
                     team1_won: null,
@@ -244,25 +249,63 @@ export default function PredictionsPage() {
                     advanced: false
                 };
                 
-                const { error: laveryCupError } = await supabase
-                    .from('lavery_cup_selections')
-                    .upsert(laveryCupData);
+                // If we have existing selections, update them
+                if (existingSelections) {
+                    // 1. Delete old used teams entries
+                    const { data: oldSelections } = await supabase
+                        .from('lavery_cup_selections')
+                        .select('team1_name, team2_name')
+                        .eq('id', existingSelections.id)
+                        .single();
+                        
+                    if (oldSelections) {
+                        // Remove old teams from player_used_teams
+                        await supabase
+                            .from('player_used_teams')
+                            .delete()
+                            .eq('player_id', user.id)
+                            .eq('season_id', seasonId)
+                            .in('team_name', [oldSelections.team1_name, oldSelections.team2_name]);
+                    }
                     
-                if (laveryCupError) {
-                    console.error('Error saving Lavery Cup selections:', laveryCupError);
-                    return;
+                    // 2. Update the existing selection
+                    const { error: updateError } = await supabase
+                        .from('lavery_cup_selections')
+                        .update(laveryCupData)
+                        .eq('id', existingSelections.id);
+                        
+                    if (updateError) {
+                        console.error('Error updating Lavery Cup selections:', updateError);
+                        return;
+                    }
+                } else {
+                    // Create new selection if none exists
+                    const { error: laveryCupError } = await supabase
+                        .from('lavery_cup_selections')
+                        .insert({
+                            id: uuidv4(),
+                            round_id: roundId,
+                            player_id: user.id,
+                            ...laveryCupData
+                        });
+                        
+                    if (laveryCupError) {
+                        console.error('Error saving Lavery Cup selections:', laveryCupError);
+                        return;
+                    }
                 }
                 
+                // Always add new teams to used teams table
                 const teamsToTrack = [
                     {
                         id: uuidv4(),
-                        season_id: gameWeeks.find(gw => gw.id === selectedGameWeek)?.season_id,
+                        season_id: seasonId,
                         player_id: user.id,
                         team_name: team1
                     },
                     {
                         id: uuidv4(),
-                        season_id: gameWeeks.find(gw => gw.id === selectedGameWeek)?.season_id,
+                        season_id: seasonId,
                         player_id: user.id,
                         team_name: team2
                     }

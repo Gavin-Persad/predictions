@@ -392,7 +392,9 @@ export default function ViewSeason() {
                             >
                                 Back
                             </button>
-                            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Players</h2>
+                            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+                                {players.length} Players
+                            </h2>
                             <div className="space-y-2">
                                 {players.map(player => (
                                     <div
