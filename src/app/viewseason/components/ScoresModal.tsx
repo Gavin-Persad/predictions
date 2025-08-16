@@ -275,31 +275,33 @@ useEffect(() => {
                     </div>
                 ) : canViewScores ? (
                     <div className="flex-grow flex flex-col overflow-hidden p-6 pt-0">
-                        <div className="relative flex-grow overflow-y-auto" style={{ overflowX: 'scroll', scrollbarWidth: 'auto' }}>
-                            <table className="min-w-full border-collapse">
-                                <thead className="sticky top-0 z-10 bg-white dark:bg-gray-800">
-                                    <tr>
-                                        <th className="px-4 py-2 text-left border-b dark:border-gray-700 sticky left-0 z-20 bg-white dark:bg-gray-800"> </th>
-                                        {fixtures.map(fixture => (
-                                            <th 
-                                                key={fixture.id} 
-                                                onClick={() => handleFixtureClick(fixture.id)}
-                                                className={`px-4 py-2 text-center border-b cursor-pointer transition-colors
-                                                    ${selectedFixture === fixture.id ? 
-                                                        'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' : 
-                                                        'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'}
-                                                    border-gray-700`}
-                                            >
-                                                {fixture.home_team}<br/>vs<br/>{fixture.away_team}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr className="bg-gray-200 dark:bg-gray-700">
-                                        <td className="px-4 py-2 font-medium border-b dark:text-gray-100 border-gray-700 sticky left-0 z-10 bg-gray-200 dark:bg-gray-700">
-                                            Correct Scores
-                                        </td>
+                        <div className="relative flex-grow overflow-y-auto overflow-x-auto">
+                        <table className="min-w-full border-collapse">
+                            <thead className="sticky top-0 z-10 bg-white dark:bg-gray-800">
+                                <tr>
+                                    <th className="px-4 py-2 text-left border-b dark:border-gray-700 sticky left-0 z-20 bg-white dark:bg-gray-800 w-[25%] max-w-[100px]">
+                                        Player
+                                    </th>
+                                    {fixtures.map(fixture => (
+                                        <th 
+                                            key={fixture.id} 
+                                            onClick={() => handleFixtureClick(fixture.id)}
+                                            className={`px-4 py-2 text-center border-b cursor-pointer transition-colors min-w-[100px]
+                                                ${selectedFixture === fixture.id ? 
+                                                    'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' : 
+                                                    'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'}
+                                                border-gray-700`}
+                                        >
+                                            {fixture.home_team}<br/>vs<br/>{fixture.away_team}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr className="bg-gray-200 dark:bg-gray-700">
+                                    <td className="px-4 py-2 font-medium border-b dark:text-gray-100 border-gray-700 sticky left-0 z-10 bg-gray-200 dark:bg-gray-700 w-[25%] max-w-[100px]">
+                                        Correct Scores
+                                    </td>
                                         {fixtures.map(fixture => (
                                             <td 
                                                 key={fixture.id}
@@ -314,19 +316,20 @@ useEffect(() => {
                                                 }
                                             </td>
                                         ))}
-                                    </tr>
-                                    {players.map(player => (
-                                        <tr key={player.id}>
-                                            <td 
-                                                onClick={() => handlePlayerClick(player.id)}
-                                                className={`px-4 py-2 font-medium border-b cursor-pointer transition-colors
-                                                    ${selectedPlayer === player.id ? 
-                                                        'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' : 
-                                                        'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'}
-                                                    border-gray-700 sticky left-0 z-10 bg-white dark:bg-gray-800`}
-                                            >
-                                                {player.username}
-                                            </td>
+                                        </tr>
+                                        {players.map(player => (
+                                            <tr key={player.id}>
+                                                <td 
+                                                    onClick={() => handlePlayerClick(player.id)}
+                                                    title={player.username}
+                                                    className={`px-4 py-2 font-medium border-b cursor-pointer transition-colors w-[25%] max-w-[100px] truncate
+                                                        ${selectedPlayer === player.id ? 
+                                                            'bg-blue-100 dark:bg-blue-900 dark:text-gray-100' : 
+                                                            'dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'}
+                                                        border-gray-700 sticky left-0 z-10 bg-white dark:bg-gray-800`}
+                                                >
+                                                    {player.username}
+                                                </td>
                                             {fixtures.map(fixture => {
                                                 const prediction = predictions.find(
                                                     p => p.user_id === player.id && p.fixture_id === fixture.id
