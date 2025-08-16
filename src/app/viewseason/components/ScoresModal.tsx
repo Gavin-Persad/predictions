@@ -279,7 +279,7 @@ useEffect(() => {
                         <table className="min-w-full border-collapse">
                             <thead className="sticky top-0 z-10 bg-white dark:bg-gray-800">
                                 <tr>
-                                    <th className="px-4 py-2 text-left border-b dark:border-gray-700 sticky left-0 z-20 bg-white dark:bg-gray-800 w-[25%] max-w-[100px]">
+                                    <th className="px-4 py-2 text-left border-b dark:border-gray-700 sticky left-0 z-20 bg-white dark:bg-gray-800 w-[25%] max-w-[100px] text-gray-900 dark:text-gray-100">
                                         Player
                                     </th>
                                     {fixtures.map(fixture => (
