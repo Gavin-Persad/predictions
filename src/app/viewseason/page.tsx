@@ -15,6 +15,8 @@ import ViewGeorgeCup from './components/georgeCup/viewGeorgeCup';
 import EditGeorgeCup from './components/georgeCup/EditGeorgeCup';
 import ViewLaveryCup from './components/laveryCup/viewLaveryCup';
 import EditLaveryCup from './components/laveryCup/editLaveryCup';
+import ViewAwardWinners from './components/ViewAwardWinners';
+import EditAwardWinners from './components/EditAwardWinners';
 
 type Season = {
     id: string;
@@ -55,6 +57,8 @@ export default function ViewSeason() {
     const [editGeorgeCup, setEditGeorgeCup] = useState(false);
     const [editLaveryCup, setEditLaveryCup] = useState(false);
     const [loadingSeasons, setLoadingSeasons] = useState(true);
+    const [showViewAwardWinners, setShowViewAwardWinners] = useState(false);
+    const [showEditAwardWinners, setShowEditAwardWinners] = useState(false);
 
 
     const fetchPlayers = async (seasonId: string) => {
@@ -413,6 +417,16 @@ export default function ViewSeason() {
                                 ))}
                             </div>
                         </div>
+                    ) : showViewAwardWinners ? (
+                        <ViewAwardWinners
+                            seasonId={selectedSeason.id}
+                            onClose={() => setShowViewAwardWinners(false)}
+                        />
+                    ) : showEditAwardWinners ? (
+                        <EditAwardWinners
+                            seasonId={selectedSeason.id}
+                            onClose={() => setShowEditAwardWinners(false)}
+                        />
                     ) : viewGameWeek ? (
                         <ViewGameWeeks
                             seasonId={selectedSeason.id}
@@ -462,6 +476,12 @@ export default function ViewSeason() {
 
                                 <div className="flex flex-col gap-4">
                                     <button
+                                        onClick={() => setShowViewAwardWinners(true)}
+                                        className="px-4 py-2 w-full text-sm sm:text-base bg-yellow-600 text-white rounded hover:bg-yellow-700 transition duration-300"
+                                    >
+                                        View Award Winners
+                                    </button>
+                                    <button
                                         onClick={handleViewPlayersClick}
                                         className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
                                     >
@@ -495,6 +515,12 @@ export default function ViewSeason() {
 
                                 {profile?.is_host && (
                                     <div className="flex flex-col gap-4">
+                                        <button
+                                            onClick={() => setShowEditAwardWinners(true)}
+                                            className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                        >
+                                            Edit Award Winners
+                                        </button>
                                         <button
                                             onClick={handleEditPlayersClick}
                                             className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
