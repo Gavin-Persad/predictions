@@ -11,19 +11,18 @@ import { useRouter } from 'next/navigation';
 const FOOTBALL_TEAMS = {
   "Premier League": [
     "Arsenal", "Aston Villa", "Bournemouth", "Brentford", 
-    "Brighton & Hove Albion", "Chelsea", "Crystal Palace", 
-    "Everton", "Fulham", "Ipswich Town", "Leicester City", 
-    "Liverpool", "Manchester City", "Manchester United", 
-    "Newcastle United", "Nottingham Forest", "Southampton", 
+    "Brighton & Hove Albion", "Burnley", "Chelsea", "Crystal Palace", 
+    "Everton", "Fulham","Leeds United","Liverpool", "Manchester City", "Manchester United", 
+    "Newcastle United", "Nottingham Forest", "Sunderland",
     "Tottenham Hotspur", "West Ham United", "Wolverhampton Wanderers"
   ],
   "EFL Championship": [
-    "Blackburn Rovers", "Bristol City", "Burnley", "Cardiff City", 
-    "Coventry City", "Derby County", "Hull City", "Leeds United", 
-    "Luton Town", "Middlesbrough", "Millwall", "Norwich City", 
-    "Oxford United", "Plymouth Argyle", "Portsmouth", "Preston North End", 
-    "Queens Park Rangers", "Sheffield United", "Sheffield Wednesday", 
-    "Stoke City", "Sunderland", "Swansea City", "Watford", "West Bromwich Albion"
+    "Birmingham City", "Blackburn Rovers", "Bristol City", "Charlton Athletic", 
+    "Coventry City", "Derby County", "Hull City", "Ipswich Town", "Leicester City",
+    "Middlesbrough", "Millwall", "Norwich City", 
+    "Oxford United", "Portsmouth", "Preston North End", 
+    "Queens Park Rangers", "Sheffield United", "Sheffield Wednesday", "Southampton",
+    "Stoke City", "Swansea City", "Watford", "West Bromwich Albion", "Wrexham"
   ]
 };
 
