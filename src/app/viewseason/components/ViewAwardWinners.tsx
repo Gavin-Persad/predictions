@@ -48,7 +48,6 @@ export default function ViewAwardWinners({ seasonId, onClose }: Props) {
         .order("group_key", { ascending: true })
         .order("sequence", { ascending: true })
         .order("created_at", { ascending: true });
-        // .order("position", { ascending: true }) // remove to avoid API error if column not present
 
       if (error) {
         console.error("season_awards fetch error:", error);
