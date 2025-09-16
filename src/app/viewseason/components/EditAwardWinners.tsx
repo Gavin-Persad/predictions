@@ -16,6 +16,7 @@ type ExistingAward = {
   active: boolean;
   prize: number | null;
   winner_id: string | null;
+  sequence?: number | null;
 };
 
 type LeagueRow = {
@@ -40,10 +41,11 @@ type CupRow = {
 type MotmRow = {
   tempId: string;
   awardId?: string;
-  monthLabel: string; // e.g. "September 2025/26"
+  monthLabel: string;
   prize?: number;
   winner_id?: string | null;
   active: boolean;
+  sequence?: number;
 };
 
 type SpecialRow = {
@@ -95,13 +97,15 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
     setPlayers(list);
   }, [seasonId]);
 
-  const fetchExistingAwards = useCallback(async () => {
+    const fetchExistingAwards = useCallback(async () => {
     const { data, error } = await supabase
-      .from("season_awards")
-      .select("*")
-      .eq("season_id", seasonId)
-      .order("category")
-      .order("position");
+        .from("season_awards")
+        .select("*")
+        .eq("season_id", seasonId)
+        .order("category", { ascending: true })
+        .order("sequence", { ascending: true, nullsFirst: false })
+        .order("created_at", { ascending: true })
+        .order("position", { ascending: true });  
 
     if (error) return;
 
@@ -153,15 +157,19 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
     // MOTM
     const motm = awards.filter(a => a.category === "motm");
     setMotmRows(
-      motm.map(m => ({
-        tempId: uuid(),
-        awardId: m.id,
-        monthLabel: m.group_key || "",
-        prize: m.prize || undefined,
-        winner_id: m.winner_id,
-        active: m.active
-      }))
+        motm
+        .sort((a, b) => (a.sequence ?? 9999) - (b.sequence ?? 9999) || (a.group_key || "").localeCompare(b.group_key || ""))
+        .map(m => ({
+            tempId: uuid(),
+            awardId: m.id,
+            monthLabel: m.group_key || "",
+            prize: m.prize || undefined,
+            winner_id: m.winner_id,
+            active: m.active,
+            sequence: m.sequence ?? undefined,
+        }))
     );
+
 
     // Special
     const specials = awards.filter(a => a.category === "special");
@@ -316,21 +324,23 @@ useEffect(() => {
         });
       });
 
-      motmRows.forEach(r => {
+        const motmWithSeq = motmRows.map((r, idx) => ({ ...r, sequence: idx + 1 }));
+        motmWithSeq.forEach(r => {
         if (!r.monthLabel.trim()) return;
         payload.push({
-          id: r.awardId,
-          season_id: seasonId,
-          category: "motm",
-          sub_type: null,
-          group_key: r.monthLabel.trim(),
-          position: null,
-          active: r.active,
-          prize: r.prize ?? null,
-          winner_id: r.winner_id || null
+            id: r.awardId,
+            season_id: seasonId,
+            category: "motm",
+            sub_type: null,
+            group_key: r.monthLabel.trim(),
+            position: null,
+            active: r.active,
+            prize: r.prize ?? null,
+            winner_id: r.winner_id || null,
+            sequence: r.sequence,
         });
-      });
-
+        });
+    
       specialRows.forEach(r => {
         if (!r.title.trim()) return;
         payload.push({
