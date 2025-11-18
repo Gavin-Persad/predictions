@@ -55,60 +55,67 @@ This project was initiated to help a valued member of our community who has been
 
 ## Project Structure
 
+```text
+src/
+  app/ (Next.js app router pages)
+    dashboard/
+      components/
+        - CurrentGameWeekTile.tsx — Shows status of current game week
+        - LeagueTableTile.tsx — Displays league standings summary
+        - GeorgeCupTile.tsx — Shows George Cup status for current user
+        - LaveryCupTile.tsx — Shows Lavery Cup status for current user
+        - RulesTile.tsx — Displays rules summary
+        - MessagesPanel.tsx — Shows announcements and messages
+      page.tsx — Main dashboard
+
+    enterscores/
+      components/
+        - PredictionsDisplay.tsx — Shows submitted predictions
+        - PredictionsForm.tsx — Form for entering match predictions
+      page.tsx — Predictions entry page
+
+    viewseason/
+      components/
+        awards/
+          - EditAwardWinners.tsx — Admin interface to create/edit season awards (MOTM, cups, specials, league positions)
+          - ViewAwardWinners.tsx — Read-only display of configured awards (uses sequence for stable MOTM ordering)
+        georgeCup/
+          - EditGeorgeCup.tsx — Admin interface for managing the cup
+          - viewGeorgeCup.tsx — Tournament bracket view
+          - GeorgeCupService.ts — DB operations for George Cup management
+          - TournamentLogic.ts — Tournament utility functions for brackets and scoring
+          - editGeorgeCupLayout.ts — Layout styling for edit view
+          - viewGeorgeCupLayout.ts — Layout styling for tournament view
+          components/
+            - DrawModal.tsx — Confirmation dialog for cup round draws
+        laveryCup/
+          - editLaveryCup.tsx — Admin interface for managing selections
+          - viewLaveryCup.tsx — Team selections tournament view
+          - viewLaveryCupLayout.ts — Layout styling for view
+        - EnterScoresForm.tsx — Admin form for entering match results
+        - EnterScoresGameWeekList.tsx — List of game weeks for score entry
+        - GameWeekDetail.tsx — Detailed view of a game week
+        - leagueTable.tsx — Complete league standings
+        - ManagerOfTheWeekModal.tsx — Weekly top performers
+        - ScoresModal.tsx — Detailed view of all predictions and scores
+        - ViewGameWeeks.tsx — List view of all game weeks
+      page.tsx — Season management page
+
+  components/ (Shared components)
+    - Sidebar.tsx — Navigation sidebar
+    - darkModeToggle.tsx — Theme switcher
+    ui/
+      - Spinner.tsx — Loading indicator component
+
+  types/ (TypeScript type definitions)
+    - players.ts — Player-related types
+    - gameWeek.ts — Game week related types
+
+  utils/
+    - scoreCalculator.ts — Points calculation logic
+    - gameWeekStatus.ts — Status determination for game weeks
 ```
-  src/
-    app/ (Next.js app router pages)
-      dashboard/
-        components/
-          CurrentGameWeekTile.tsx (Shows status of current game week)
-          LeagueTableTile.tsx (Displays league standings summary)
-          GeorgeCupTile.tsx (Shows George Cup status for current user)
-          LaveryCupTile.tsx (Shows Lavery Cup status for current user)
-          RulesTile.tsx (Displays rules summary)
-          MessagesPanel.tsx (Shows announcements and messages)
-        page.tsx (Main dashboard)
-      enterscores/
-        components/
-          PredictionsDisplay.tsx (Shows submitted predictions)
-          PredictionsForm.tsx (Form for entering match predictions)
-        page.tsx (Predictions entry page)
-      viewseason/
-        components/
-          georgeCup/
-            EditGeorgeCup.tsx (Admin interface for managing the cup)
-            viewGeorgeCup.tsx (Tournament bracket view)
-            GeorgeCupService.ts (Database operations for George Cup management)
-            TournamentLogic.ts (Tournament utility functions for brackets and scoring)
-            editGeorgeCupLayout.ts (Layout styling for edit view)
-            viewGeorgeCupLayout.ts (Layout styling for tournament view)
-            components/
-              DrawModal.tsx (Confirmation dialog for cup round draws)
-          laveryCup/
-            editLaveryCup.tsx (Admin interface for managing selections)
-            viewLaveryCup.tsx (Team selections tournament view)
-            viewLaveryCupLayout.ts (Layout styling for view)
-          EnterScoresForm.tsx (Admin form for entering match results)
-          EnterScoresGameWeekList.tsx (List of game weeks for score entry)
-          GameWeekDetail.tsx (Detailed view of a game week)
-          leagueTable.tsx (Complete league standings)
-          ManagerOfTheWeekModal.tsx (Weekly top performers)
-          ScoresModal.tsx (Detailed view of all predictions and scores)
-          ViewGameWeeks.tsx (List view of all game weeks)
-        page.tsx (Season management page)
-      rules/
-        page.tsx (Competition rules page)
-    components/ (Shared components)
-      Sidebar.tsx (Navigation sidebar)
-      darkModeToggle.tsx (Theme switcher)
-      ui/
-        Spinner.tsx (Loading indicator component)
-    types/ (TypeScript type definitions)
-      players.ts (Player-related types)
-      gameWeek.ts (Game week related types)
-    utils/
-      scoreCalculator.ts (Points calculation logic)
-      gameWeekStatus.ts (Status determination for game weeks)
-```
+
 
 ## Game Rules and Scoring
 
@@ -414,6 +421,25 @@ create table messages (
   content text not null,
   created_at timestamp with time zone default timezone('utc'::text, now()),
   author_id uuid references profiles on delete cascade
+);
+```
+
+### season_awards
+
+```sql
+create table public.season_awards (
+  id uuid default uuid_generate_v4() primary key,
+  season_id uuid references public.seasons on delete cascade,
+  category text not null,
+  sub_type text,
+  group_key text,
+  position integer,
+  active boolean default true,
+  prize numeric,
+  winner_id uuid references public.profiles on delete set null,
+  created_at timestamptz default timezone('utc', now()),
+  updated_at timestamptz default timezone('utc', now()),
+  sequence integer
 );
 ```
 
