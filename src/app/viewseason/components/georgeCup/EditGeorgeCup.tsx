@@ -167,11 +167,14 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props): JSX.Element
     const handleDetermineWinners = useCallback(async (roundId: string) => {
         try {
             setProcessingAction(true);
-            
-            const { fixtures, roundComplete } = await GeorgeCupService.determineWinners(
-            roundId, 
-            coinFlipResults
+
+            const { fixtures, roundComplete, coinFlipResults: newFlips } = await GeorgeCupService.determineWinners(
+                roundId,
+                coinFlipResults
             );
+
+            // Persist flips into component state so future calls reuse them
+            setCoinFlipResults(newFlips);
             
             // CHANGE: Always update the database to mark the round as complete
             // when the user clicks "Determine Winners"
@@ -203,7 +206,7 @@ export default function EditGeorgeCup({ seasonId, onClose }: Props): JSX.Element
         } finally {
             setProcessingAction(false);
         }
-        }, [coinFlipResults]);
+    }, [coinFlipResults]);
 
     // Render helper for fixture
     const renderFixture = useCallback((fixture: FixtureState) => {
