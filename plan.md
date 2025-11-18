@@ -1,7 +1,6 @@
 # Project Plan
 
 ## In Action
-- George Cup: review/redo bye system (consistency and fairness).
 - Lavery Cup: selection issues when players change picks (ensure single source of truth and no duplicate rows).
 
 ## Pending
@@ -24,3 +23,4 @@
 - Numerous UI/UX fixes: responsive layout, spacing, readability, buttons/labels, dark-mode improvements.
 - History and records: season winners, highest weekly/game scores, MOTW history, season winners page.
 - George/Lavery Cups: stabilize UI after actions (avoid flicker/rerender loops when drawing rounds).
+- George Cup: review/redo bye system (consistency and fairness).
