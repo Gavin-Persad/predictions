@@ -2,6 +2,8 @@
 
 ## In Action
 - Lavery Cup: selection issues when players change picks (ensure single source of truth and no duplicate rows).
+- my predictions: Not showing unique bonuses to all players. (maybe only hosts see this)
+- View Awards: Show manager of the month table
 
 ## Pending
 - Auth: Forgot password flow.
