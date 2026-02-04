@@ -1,9 +1,11 @@
 # Project Plan
 
 ## In Action
+
 - Lavery Cup: selection issues when players change picks (ensure single source of truth and no duplicate rows).
 
 ## Pending
+
 - Auth: Forgot password flow.
 - Notifications: email alerts for predictions open/close.
 - Dashboard routing and tiles: ensure deep links pass season context (league, George Cup, Lavery Cup, Enter Scores).
@@ -12,8 +14,10 @@
 - Time logic: unify all game lists to use time (not date) via shared utils.
 - “Egg on your face” feature (players scoring below non-entrant).
 - Clean-up: deletion flows (season, game week) ensure related tables are properly cleared.
+- my predictions: Not showing unique bonuses to all players. (maybe only hosts see this)
 
 ## Completed (summary)
+
 - Manual fixture entry and testing end-to-end.
 - Edit/View Game Week components connected to Supabase.
 - Enter scores workflow (forms, modals, scoring updates).
@@ -24,3 +28,4 @@
 - History and records: season winners, highest weekly/game scores, MOTW history, season winners page.
 - George/Lavery Cups: stabilize UI after actions (avoid flicker/rerender loops when drawing rounds).
 - George Cup: review/redo bye system (consistency and fairness).
+- View Awards: Show manager of the month table
