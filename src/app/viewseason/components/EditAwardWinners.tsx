@@ -16,7 +16,6 @@ type ExistingAward = {
   active: boolean;
   prize: number | null;
   winner_id: string | null;
-  sequence?: number | null;
 };
 
 type LeagueRow = {
@@ -41,11 +40,10 @@ type CupRow = {
 type MotmRow = {
   tempId: string;
   awardId?: string;
-  monthLabel: string;
+  monthLabel: string; // e.g. "September 2025/26"
   prize?: number;
   winner_id?: string | null;
   active: boolean;
-  sequence?: number;
 };
 
 type SpecialRow = {
@@ -55,6 +53,7 @@ type SpecialRow = {
   prize?: number;
   winner_id?: string | null;
   active: boolean;
+  note?: string;
 };
 
 interface Props {
@@ -97,15 +96,13 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
     setPlayers(list);
   }, [seasonId]);
 
-    const fetchExistingAwards = useCallback(async () => {
+  const fetchExistingAwards = useCallback(async () => {
     const { data, error } = await supabase
-        .from("season_awards")
-        .select("*")
-        .eq("season_id", seasonId)
-        .order("category", { ascending: true })
-        .order("sequence", { ascending: true, nullsFirst: false })
-        .order("created_at", { ascending: true })
-        .order("position", { ascending: true });  
+      .from("season_awards")
+      .select("*")
+      .eq("season_id", seasonId)
+      .order("category")
+      .order("position");
 
     if (error) return;
 
@@ -157,22 +154,34 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
     // MOTM
     const motm = awards.filter(a => a.category === "motm");
     setMotmRows(
-        motm
-        .sort((a, b) => (a.sequence ?? 9999) - (b.sequence ?? 9999) || (a.group_key || "").localeCompare(b.group_key || ""))
-        .map(m => ({
-            tempId: uuid(),
-            awardId: m.id,
-            monthLabel: m.group_key || "",
-            prize: m.prize || undefined,
-            winner_id: m.winner_id,
-            active: m.active,
-            sequence: m.sequence ?? undefined,
-        }))
+      motm.map(m => ({
+        tempId: uuid(),
+        awardId: m.id,
+        monthLabel: m.group_key || "",
+        prize: m.prize || undefined,
+        winner_id: m.winner_id,
+        active: m.active
+      }))
     );
-
 
     // Special
     const specials = awards.filter(a => a.category === "special");
+    
+    // Fetch notes for special awards
+    let notesMap: Record<string, string> = {};
+    if (specials.length > 0) {
+      const { data: notesData } = await supabase
+        .from("special_award_notes")
+        .select("award_id, note")
+        .in("award_id", specials.map(s => s.id));
+      
+      if (notesData) {
+        notesData.forEach((n: any) => {
+          notesMap[n.award_id] = n.note;
+        });
+      }
+    }
+    
     setSpecialRows(
       specials.map(s => ({
         tempId: uuid(),
@@ -180,7 +189,8 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
         title: s.group_key || "",
         prize: s.prize || undefined,
         winner_id: s.winner_id,
-        active: s.active
+        active: s.active,
+        note: notesMap[s.id] || ""
       }))
     );
   }, [seasonId]);
@@ -262,11 +272,12 @@ useEffect(() => {
   };
 
   const addSpecial = () => {
-    setSpecialRows(prev => [...prev, {
-      tempId: uuid(),
-      title: "",
-      active: true
-    }]);
+      setSpecialRows(prev => [...prev, {
+          tempId: uuid(),
+          title: "",
+          note: "",
+          active: true
+      }]);
   };
 
   const removeSpecial = (tempId: string) => {
@@ -324,23 +335,21 @@ useEffect(() => {
         });
       });
 
-        const motmWithSeq = motmRows.map((r, idx) => ({ ...r, sequence: idx + 1 }));
-        motmWithSeq.forEach(r => {
+      motmRows.forEach(r => {
         if (!r.monthLabel.trim()) return;
         payload.push({
-            id: r.awardId,
-            season_id: seasonId,
-            category: "motm",
-            sub_type: null,
-            group_key: r.monthLabel.trim(),
-            position: null,
-            active: r.active,
-            prize: r.prize ?? null,
-            winner_id: r.winner_id || null,
-            sequence: r.sequence,
+          id: r.awardId,
+          season_id: seasonId,
+          category: "motm",
+          sub_type: null,
+          group_key: r.monthLabel.trim(),
+          position: null,
+          active: r.active,
+          prize: r.prize ?? null,
+          winner_id: r.winner_id || null
         });
-        });
-    
+      });
+
       specialRows.forEach(r => {
         if (!r.title.trim()) return;
         payload.push({
@@ -399,6 +408,12 @@ useEffect(() => {
       }
 
       if (removedAwardIds.length) {
+        // Delete notes for removed awards first
+        await supabase
+          .from("special_award_notes")
+          .delete()
+          .in("award_id", removedAwardIds);
+        
         const { error: delErr } = await supabase
           .from("season_awards")
           .delete()
@@ -406,6 +421,56 @@ useEffect(() => {
         if (delErr) {
           console.error("Delete error:", delErr);
           throw new Error(delErr.message);
+        }
+      }
+
+      // Save special award notes
+      const specialAwardsWithNotes = specialRows.filter(r => r.note && r.note.trim() !== "");
+      if (specialAwardsWithNotes.length > 0) {
+        // First, delete all existing notes for these awards
+        const awardIds = specialAwardsWithNotes
+          .filter(r => r.awardId)
+          .map(r => r.awardId!);
+        
+        if (awardIds.length > 0) {
+          await supabase
+            .from("special_award_notes")
+            .delete()
+            .in("award_id", awardIds);
+        }
+        
+        // Get the actual award IDs (including newly created ones)
+        const finalAwardIds: string[] = [];
+        for (const row of specialAwardsWithNotes) {
+          if (row.awardId) {
+            finalAwardIds.push(row.awardId);
+          } else {
+            // Find the newly created award by matching title
+            const matchingAward = toInsertWithIds.find(
+              p => p.category === "special" && p.group_key === row.title.trim()
+            );
+            if (matchingAward) {
+              finalAwardIds.push(matchingAward.id);
+            }
+          }
+        }
+        
+        // Insert new notes
+        const notesToInsert = specialAwardsWithNotes
+          .map((row, idx) => ({
+            award_id: finalAwardIds[idx],
+            note: row.note!
+          }))
+          .filter(n => n.award_id); // Only include if we have an award_id
+        
+        if (notesToInsert.length > 0) {
+          const { error: notesErr } = await supabase
+            .from("special_award_notes")
+            .insert(notesToInsert);
+          if (notesErr) {
+            console.error("Error saving notes:", notesErr);
+            throw new Error(notesErr.message);
+          }
         }
       }
 
@@ -690,14 +755,17 @@ useEffect(() => {
         )}
         <div className="space-y-2">
           {specialRows.map(row => {
-            const disabled = !row.active;
-            return (
-              <div
-                key={row.tempId}
-                className={`flex items-center gap-3 p-2 rounded border dark:border-gray-600 ${
-                  disabled ? "opacity-50" : ""
-                }`}
-              >
+              const disabled = !row.active;
+              return (
+                  <div key={row.tempId} className={`flex items-center gap-3 p-2 rounded border dark:border-gray-600 ${disabled ? "opacity-50" : ""}`}>
+                      <input
+                          type="text"
+                          disabled={disabled}
+                          value={row.note}
+                          onChange={e => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, note: e.target.value } : r))}
+                          placeholder="Note"
+                          className="flex-grow p-1 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                      />
                 <input
                 type="checkbox"
                 checked={row.active}
