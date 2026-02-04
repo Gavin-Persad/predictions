@@ -53,6 +53,7 @@ type SpecialRow = {
   prize?: number;
   winner_id?: string | null;
   active: boolean;
+  note?: string;
 };
 
 interface Props {
@@ -165,6 +166,22 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
 
     // Special
     const specials = awards.filter(a => a.category === "special");
+    
+    // Fetch notes for special awards
+    let notesMap: Record<string, string> = {};
+    if (specials.length > 0) {
+      const { data: notesData } = await supabase
+        .from("special_award_notes")
+        .select("award_id, note")
+        .in("award_id", specials.map(s => s.id));
+      
+      if (notesData) {
+        notesData.forEach((n: any) => {
+          notesMap[n.award_id] = n.note;
+        });
+      }
+    }
+    
     setSpecialRows(
       specials.map(s => ({
         tempId: uuid(),
@@ -172,7 +189,8 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
         title: s.group_key || "",
         prize: s.prize || undefined,
         winner_id: s.winner_id,
-        active: s.active
+        active: s.active,
+        note: notesMap[s.id] || ""
       }))
     );
   }, [seasonId]);
@@ -254,11 +272,12 @@ useEffect(() => {
   };
 
   const addSpecial = () => {
-    setSpecialRows(prev => [...prev, {
-      tempId: uuid(),
-      title: "",
-      active: true
-    }]);
+      setSpecialRows(prev => [...prev, {
+          tempId: uuid(),
+          title: "",
+          note: "",
+          active: true
+      }]);
   };
 
   const removeSpecial = (tempId: string) => {
@@ -389,6 +408,12 @@ useEffect(() => {
       }
 
       if (removedAwardIds.length) {
+        // Delete notes for removed awards first
+        await supabase
+          .from("special_award_notes")
+          .delete()
+          .in("award_id", removedAwardIds);
+        
         const { error: delErr } = await supabase
           .from("season_awards")
           .delete()
@@ -396,6 +421,56 @@ useEffect(() => {
         if (delErr) {
           console.error("Delete error:", delErr);
           throw new Error(delErr.message);
+        }
+      }
+
+      // Save special award notes
+      const specialAwardsWithNotes = specialRows.filter(r => r.note && r.note.trim() !== "");
+      if (specialAwardsWithNotes.length > 0) {
+        // First, delete all existing notes for these awards
+        const awardIds = specialAwardsWithNotes
+          .filter(r => r.awardId)
+          .map(r => r.awardId!);
+        
+        if (awardIds.length > 0) {
+          await supabase
+            .from("special_award_notes")
+            .delete()
+            .in("award_id", awardIds);
+        }
+        
+        // Get the actual award IDs (including newly created ones)
+        const finalAwardIds: string[] = [];
+        for (const row of specialAwardsWithNotes) {
+          if (row.awardId) {
+            finalAwardIds.push(row.awardId);
+          } else {
+            // Find the newly created award by matching title
+            const matchingAward = toInsertWithIds.find(
+              p => p.category === "special" && p.group_key === row.title.trim()
+            );
+            if (matchingAward) {
+              finalAwardIds.push(matchingAward.id);
+            }
+          }
+        }
+        
+        // Insert new notes
+        const notesToInsert = specialAwardsWithNotes
+          .map((row, idx) => ({
+            award_id: finalAwardIds[idx],
+            note: row.note!
+          }))
+          .filter(n => n.award_id); // Only include if we have an award_id
+        
+        if (notesToInsert.length > 0) {
+          const { error: notesErr } = await supabase
+            .from("special_award_notes")
+            .insert(notesToInsert);
+          if (notesErr) {
+            console.error("Error saving notes:", notesErr);
+            throw new Error(notesErr.message);
+          }
         }
       }
 
@@ -680,14 +755,17 @@ useEffect(() => {
         )}
         <div className="space-y-2">
           {specialRows.map(row => {
-            const disabled = !row.active;
-            return (
-              <div
-                key={row.tempId}
-                className={`flex items-center gap-3 p-2 rounded border dark:border-gray-600 ${
-                  disabled ? "opacity-50" : ""
-                }`}
-              >
+              const disabled = !row.active;
+              return (
+                  <div key={row.tempId} className={`flex items-center gap-3 p-2 rounded border dark:border-gray-600 ${disabled ? "opacity-50" : ""}`}>
+                      <input
+                          type="text"
+                          disabled={disabled}
+                          value={row.note}
+                          onChange={e => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, note: e.target.value } : r))}
+                          placeholder="Note"
+                          className="flex-grow p-1 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                      />
                 <input
                 type="checkbox"
                 checked={row.active}

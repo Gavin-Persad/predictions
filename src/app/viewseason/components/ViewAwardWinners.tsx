@@ -18,11 +18,13 @@ type Award = {
   prize: number | null;
   winner_id: string | null;
   winner_profile?: { username: string | null } | null;
+  sequence?: number | null;
 };
 
 export default function ViewAwardWinners({ seasonId, onClose }: Props) {
   const [awards, setAwards] = useState<Award[]>([]);
   const [loading, setLoading] = useState(true);
+  const [notesMap, setNotesMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     (async () => {
@@ -37,12 +39,14 @@ export default function ViewAwardWinners({ seasonId, onClose }: Props) {
           position,
           prize,
           winner_id,
+          sequence,
           winner_profile:profiles ( username )
         `)
         .eq("season_id", seasonId)
         .eq("active", true)
         .order("category")
-        .order("position");
+        .order("position")
+        .order("sequence");
 
       if (!error && data) {
         // Ensure winner_profile is a single object (sometimes Supabase can yield an array if relation not resolved)
@@ -59,7 +63,8 @@ export default function ViewAwardWinners({ seasonId, onClose }: Props) {
             position: row.position,
             prize: row.prize,
             winner_id: row.winner_id,
-            winner_profile
+            winner_profile,
+            sequence: row.sequence
           } as Award;
         });
         setAwards(normalized);
@@ -67,6 +72,25 @@ export default function ViewAwardWinners({ seasonId, onClose }: Props) {
       setLoading(false);
     })();
   }, [seasonId]);
+
+  useEffect(() => {
+    if (awards.length === 0) return;
+    
+    (async () => {
+      const { data: notesData } = await supabase
+        .from("special_award_notes")
+        .select("award_id, note")
+        .in("award_id", awards.map(a => a.id));
+
+      if (notesData) {
+        const newNotesMap: Record<string, string> = {};
+        notesData.forEach((note: any) => {
+          newNotesMap[note.award_id] = note.note;
+        });
+        setNotesMap(newNotesMap);
+      }
+    })();
+  }, [awards]);
 
   if (loading) {
     return (
@@ -84,7 +108,7 @@ export default function ViewAwardWinners({ seasonId, onClose }: Props) {
 
   const league = awards.filter(a => a.category === "league_position");
   const cups = awards.filter(a => a.category === "cup");
-  const motm = awards.filter(a => a.category === "motm");
+  const motm = awards.filter(a => a.category === "motm").sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
   const specials = awards.filter(a => a.category === "special");
 
   return (
@@ -193,18 +217,20 @@ export default function ViewAwardWinners({ seasonId, onClose }: Props) {
           <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">
             Special Awards
           </h3>
-          <div className="space-y-1 dark:text-gray-100">
+          <div className="space-y-2 dark:text-gray-100">
             {specials.map(s => (
-              <div
-                key={s.id}
-                className="flex justify-between p-2 rounded bg-gray-100 dark:bg-gray-700 text-sm"
-              >
-                <span>{s.group_key}</span>
-                <span>{s.winner_profile?.username || "—"}</span>
-                <span>
-                  {s.prize != null ? `£${s.prize.toFixed(2)}` : "—"}
-                </span>
-              </div>
+                <div key={s.id}>
+                    <div className="flex justify-between p-2 rounded bg-gray-100 dark:bg-gray-700 text-sm">
+                        <span>{s.group_key}</span>
+                        <span>{s.winner_profile?.username || "—"}</span>
+                        <span>{s.prize != null ? `£${s.prize.toFixed(2)}` : "—"}</span>
+                    </div>
+                    {notesMap[s.id] && (
+                        <div className="px-2 py-1 bg-gray-50 dark:bg-gray-800 text-xs text-gray-600 dark:text-gray-400 rounded-b">
+                            {notesMap[s.id]}
+                        </div>
+                    )}
+                </div>
             ))}
           </div>
         </section>
