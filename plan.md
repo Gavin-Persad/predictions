@@ -222,12 +222,12 @@ rules✅
 -
 - egg on your face, make a way of alerting those who scored less than a player who did not enter scores.
 -
-- history page, seasons winners cup winners etc. needs supabase table updated by other areas(individual comps)
-- keep record of highest indivual score for a week and a game. Keep these displayed on dashboard. Winnner takes a prize.
+- history page, seasons winners cup winners etc. needs supabase table updated by other areas(individual comps)✅
+- keep record of highest indivual score for a week and a game. Keep these displayed on dashboard. Winnner takes a prize.✅
 -
-- manager of the week history - somewhere that lists the manager of the weeks
+- manager of the week history - somewhere that lists the manager of the weeks✅
 - enterscores - when host enters scores this updates manager or the week table to keep track of winners, this is can be displayed in a season winners page. And also created a message for the message board on the dashboard
-- create seasons winners page
+- create seasons winners page✅
 -
 - season progression chart, bar chart showing points earned over game weeks
 -
