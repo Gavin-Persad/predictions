@@ -14,7 +14,10 @@
 - Time logic: unify all game lists to use time (not date) via shared utils.
 - “Egg on your face” feature (players scoring below non-entrant).
 - Clean-up: deletion flows (season, game week) ensure related tables are properly cleared.
+
 - my predictions: Not showing unique bonuses to all players. (maybe only hosts see this)
+- add some data projects to the app
+- admin view of how many players have entered and enter their scores for them
 
 ## Completed (summary)
 
