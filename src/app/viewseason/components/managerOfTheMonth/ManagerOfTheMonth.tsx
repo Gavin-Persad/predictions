@@ -7,7 +7,7 @@ type Props = {
   onClose: () => void;
 };
 
-export default function ManagerOfTheMonth({ seasonId, onClose }: Props) {
+export default function EditManagerOfTheMonth({ seasonId, onClose }: Props) {
   return (
     <div className="flex">
       <Sidebar />

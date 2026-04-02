@@ -17,8 +17,8 @@ import ViewLaveryCup from './components/laveryCup/viewLaveryCup';
 import EditLaveryCup from './components/laveryCup/editLaveryCup';
 import ViewAwardWinners from './components/ViewAwardWinners';
 import EditAwardWinners from './components/EditAwardWinners';
-import ViewManagerOfTheMonth from './components/managerOfTheMonth/ViewManagerOfTheMonth';
-import ManagerOfTheMonth from './components/managerOfTheMonth/ManagerOfTheMonth';
+import ViewManagerOfTheMonth from './components/managerOfTheMonth/EditManagerOfTheMonth';
+import EditManagerOfTheMonth from './components/managerOfTheMonth/ManagerOfTheMonth';
 
 type Season = {
     id: string;
@@ -366,7 +366,7 @@ export default function ViewSeason() {
 
     if (showEditManagerOfMonth && selectedSeason) {
         return (
-            <ManagerOfTheMonth
+            <EditManagerOfTheMonth
                 seasonId={selectedSeason.id}
                 onClose={() => setShowEditManagerOfMonth(false)}
             />
