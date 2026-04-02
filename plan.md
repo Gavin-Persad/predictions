@@ -12,12 +12,12 @@
 - Message panel: dashboard auto-refresh after add/edit/delete.
 - Profile settings: restore “Delete account” and verify delete flows (season/game week/cup clean-up).
 - Time logic: unify all game lists to use time (not date) via shared utils.
-- “Egg on your face” feature (players scoring below non-entrant).
 - Clean-up: deletion flows (season, game week) ensure related tables are properly cleared.
 
 - my predictions: Not showing unique bonuses to all players. (maybe only hosts see this)
 - add some data projects to the app
 - admin view of how many players have entered and enter their scores for them
+- george cup first round if not power of 2 draws next rounds fixtures with passing players.
 
 ## Completed (summary)
 
