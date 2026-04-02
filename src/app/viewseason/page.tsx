@@ -17,8 +17,8 @@ import ViewLaveryCup from './components/laveryCup/viewLaveryCup';
 import EditLaveryCup from './components/laveryCup/editLaveryCup';
 import ViewAwardWinners from './components/ViewAwardWinners';
 import EditAwardWinners from './components/EditAwardWinners';
-import ViewManagerOfTheMonth from './components/managerOfTheMonth/EditManagerOfTheMonth';
-import EditManagerOfTheMonth from './components/managerOfTheMonth/ManagerOfTheMonth';
+import ViewManagerOfTheMonth from './components/managerOfTheMonth/ManagerOfTheMonth';
+import EditManagerOfTheMonth from './components/managerOfTheMonth/EditManagerOfTheMonth';
 
 type Season = {
     id: string;
