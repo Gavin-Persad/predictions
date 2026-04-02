@@ -15,7 +15,7 @@
 - Clean-up: deletion flows (season, game week) ensure related tables are properly cleared.
 
 - my predictions: Not showing unique bonuses to all players. (maybe only hosts see this)
-- add some data projects to the app
+- add some data projects to the app (league progression and personal tables)
 - admin view of how many players have entered and enter their scores for them
 - george cup first round if not power of 2 draws next rounds fixtures with passing players.
 

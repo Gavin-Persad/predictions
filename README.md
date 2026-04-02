@@ -116,7 +116,6 @@ src/
     - gameWeekStatus.ts — Status determination for game weeks
 ```
 
-
 ## Game Rules and Scoring
 
 ### Match Predictions
@@ -323,6 +322,48 @@ create table game_week_scores (
   weekly_bonus integer default 0,
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
+```
+
+### manager_months
+
+```sql
+create table manager_months (
+  id uuid default uuid_generate_v4() primary key,
+  season_id uuid references seasons on delete cascade,
+  month_start date not null,
+  month_label text not null,
+  created_at timestamptz default timezone('utc', now()),
+  updated_at timestamptz default timezone('utc', now()),
+  unique (season_id, month_start)
+);
+```
+
+### manager_month_game_weeks
+
+```sql
+create table manager_month_game_weeks (
+  id uuid default uuid_generate_v4() primary key,
+  manager_month_id uuid references manager_months on delete cascade,
+  game_week_id uuid references game_weeks on delete cascade,
+  created_at timestamptz default timezone('utc', now()),
+  unique (game_week_id)
+);
+```
+
+Optional: use a trigger to keep `updated_at` current on `manager_months`:
+
+```sql
+create function trigger_set_timestamp()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger set_timestamp
+before update on manager_months
+for each row execute procedure trigger_set_timestamp();
 ```
 
 ### season_scores
