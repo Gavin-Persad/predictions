@@ -17,6 +17,8 @@ import ViewLaveryCup from './components/laveryCup/viewLaveryCup';
 import EditLaveryCup from './components/laveryCup/editLaveryCup';
 import ViewAwardWinners from './components/ViewAwardWinners';
 import EditAwardWinners from './components/EditAwardWinners';
+import ViewManagerOfTheMonth from './components/managerOfTheMonth/ManagerOfTheMonth';
+import EditManagerOfTheMonth from './components/managerOfTheMonth/EditManagerOfTheMonth';
 
 type Season = {
     id: string;
@@ -59,6 +61,8 @@ export default function ViewSeason() {
     const [loadingSeasons, setLoadingSeasons] = useState(true);
     const [showViewAwardWinners, setShowViewAwardWinners] = useState(false);
     const [showEditAwardWinners, setShowEditAwardWinners] = useState(false);
+    const [showManagerOfMonth, setShowManagerOfMonth] = useState(false);
+    const [showEditManagerOfMonth, setShowEditManagerOfMonth] = useState(false);
 
 
     const fetchPlayers = async (seasonId: string) => {
@@ -351,6 +355,24 @@ export default function ViewSeason() {
         />;
     }
 
+    if (showManagerOfMonth && selectedSeason) {
+        return (
+            <ViewManagerOfTheMonth
+                seasonId={selectedSeason.id}
+                onClose={() => setShowManagerOfMonth(false)}
+            />
+        );
+    }
+
+    if (showEditManagerOfMonth && selectedSeason) {
+        return (
+            <EditManagerOfTheMonth
+                seasonId={selectedSeason.id}
+                onClose={() => setShowEditManagerOfMonth(false)}
+            />
+        );
+    }
+
     return (
         <div className="flex">
             <Sidebar />
@@ -500,6 +522,12 @@ export default function ViewSeason() {
                                         League Table
                                     </button>
                                     <button
+                                        onClick={() => setShowManagerOfMonth(true)}
+                                        className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                                    >
+                                        Manager of the Month
+                                    </button>
+                                    <button
                                         onClick={() => setShowGeorgeCup(true)}
                                         className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
                                     >
@@ -536,6 +564,12 @@ export default function ViewSeason() {
 
                                         <div className="h-3"></div>
                                         <div className="h-3"></div>
+                                        <button
+                                            onClick={() => setShowEditManagerOfMonth(true)}
+                                            className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
+                                        >
+                                            Edit Manager of the Month
+                                        </button>
                                         <button
                                             onClick={() => setEditGeorgeCup(true)}
                                             className="px-4 py-2 w-full text-sm sm:text-base bg-green-600 text-white rounded hover:bg-green-700 transition duration-300"
@@ -610,6 +644,8 @@ export default function ViewSeason() {
                     </div>
                 </div>
             )}
+
+            
         </div>
     );
 }
