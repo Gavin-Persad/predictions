@@ -14,7 +14,8 @@
 - Time logic: unify all game lists to use time (not date) via shared utils.
 - Clean-up: deletion flows (season, game week) ensure related tables are properly cleared.
 
-- my predictions: Not showing unique bonuses to all players. (maybe only hosts see this)
+- URGENT, update scores not correctly updating season score, game weeks seems fine but not season scores. Check why this is and fix.
+
 - add some data projects to the app (league progression and personal tables)
 - admin view of how many players have entered and enter their scores for them
 - george cup first round if not power of 2 draws next rounds fixtures with passing players.
