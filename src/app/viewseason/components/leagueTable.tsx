@@ -108,6 +108,54 @@ export default function LeagueTable({ seasonId, onClose }: LeagueTableProps) {
         };
 
         fetchScores();
+
+        // Listen for immediate updates from the EnterScoresForm RPC
+        const handler = (e: any) => {
+            try {
+                const updated: any[] = e.detail || [];
+                // Map RPC format to PlayerScore and recalc positions
+                const mapped: PlayerScore[] = updated
+                    .filter(r => typeof r.player_id === 'string')
+                    .map((r: any) => ({
+                        player_id: r.player_id,
+                        username: '',
+                        correct_scores: Number(r.correct_scores) || 0,
+                        points: Number(r.points) || 0,
+                        position: 0
+                    }));
+
+                // Only update if the event corresponds to the current season
+                if (mapped.length > 0 && updated[0].season_id === seasonId) {
+                    // Fetch usernames for mapping
+                    (async () => {
+                        const ids = mapped.map(m => m.player_id);
+                        const { data: profiles } = await supabase
+                            .from('profiles')
+                            .select('id, username')
+                            .in('id', ids);
+
+                        const nameById: Record<string, string> = {};
+                        (profiles || []).forEach((p: any) => { nameById[p.id] = p.username; });
+
+                        const withNames = mapped.map(m => ({ ...m, username: nameById[m.player_id] || '' }));
+                        const sorted = withNames.sort((a, b) => {
+                            if (b.points !== a.points) return b.points - a.points;
+                            return b.correct_scores - a.correct_scores;
+                        }).map((s, i) => ({ ...s, position: i + 1 }));
+
+                        setScores(sorted);
+                    })();
+                }
+            } catch (err) {
+                // ignore
+            }
+        };
+
+        window.addEventListener('season_scores_updated', handler as EventListener);
+
+        return () => {
+            window.removeEventListener('season_scores_updated', handler as EventListener);
+        };
   }, [seasonId]);
 
   const handleSort = (field: typeof sortField) => {
