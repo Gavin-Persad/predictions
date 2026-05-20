@@ -437,13 +437,7 @@ const LaveryCupConfirmModal = ({
             // Combine existing and default predictions
             const allPredictions = [...(existingPredictions || []), ...defaultPredictions];
     
-            // 5. Delete existing scores for this game week to prevent double counting
-            const { error: deleteError } = await supabase
-                .from('game_week_scores')
-                .delete()
-                .eq('game_week_id', gameWeekId);
-    
-            if (deleteError) throw deleteError;
+            // 5. (Removed) client-side delete of `game_week_scores` — server RPC will perform atomic upsert
 
             // 6. Calculate scores with bonuses
             const playerScores: Record<string, { correct_scores: number, points: number }> = {};
@@ -502,64 +496,71 @@ const LaveryCupConfirmModal = ({
                 points: scores.points
             }));
 
-            const { error: gameWeekScoresError } = await supabase
-                .from('game_week_scores')
-                .upsert(gameWeekScores, {
-                    onConflict: 'game_week_id,player_id',
-                    ignoreDuplicates: false
-                });
+            // 6-7. Skip client-side upsert/verification — server RPC will be the single writer
 
-            if (gameWeekScoresError) throw gameWeekScoresError;
+            // 8. Recalculate ALL season scores via server-side atomic endpoint
+            // Use service-role RPC to upsert game_week_scores and rebuild season_scores
+            try {
+                // Retry on 409 (lock not acquired) with exponential backoff
+                const maxAttemptsRpc = 5;
+                let attemptRpc = 0;
+                let saved = false;
+                let lastErr: any = null;
 
-            // 8. Recalculate ALL season scores from scratch
-            // First, get all game weeks for this season
-            const { data: seasonGameWeeks, error: gameWeeksError } = await supabase
-            .from('game_weeks')
-            .select('id')
-            .eq('season_id', seasonId);
+                while (attemptRpc < maxAttemptsRpc && !saved) {
+                    // Include current user's access token so the server can validate caller
+                    const { data: { session } = {} } = await supabase.auth.getSession();
+                    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+                    if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
 
-            if (gameWeeksError) throw gameWeeksError;
+                    const resp = await fetch('/api/save-week-scores', {
+                            method: 'POST',
+                            headers,
+                            body: JSON.stringify({
+                                season_id: seasonId,
+                                game_week_id: gameWeekId,
+                                scores: gameWeekScores.map(g => ({
+                                    player_id: g.player_id,
+                                    points: g.points,
+                                    correct_scores: g.correct_scores
+                                }))
+                            })
+                        });
 
-            // Fetch all game week scores for all weeks in the season
-            const { data: allGameWeekScores, error: allScoresError } = await supabase
-            .from('game_week_scores')
-            .select('player_id, correct_scores, points')
-            .in('game_week_id', seasonGameWeeks.map(gw => gw.id));
+                    const json = await resp.json().catch(() => ({}));
 
-            if (allScoresError) throw allScoresError;
+                    if (resp.ok) {
+                        saved = true;
+                        try {
+                            if (typeof window !== 'undefined') {
+                                window.dispatchEvent(new CustomEvent('season_scores_updated', { detail: json.season_scores }));
+                            }
+                        } catch (e) {
+                            // ignore
+                        }
+                        break;
+                    }
 
-            // Sum up all scores by player
-            const totalScoresByPlayer: Record<string, { correct_scores: number, points: number }> = {};
+                    // If lock not acquired, retry with backoff
+                    if (resp.status === 409 || (json && json.error === 'lock_not_acquired')) {
+                        attemptRpc++;
+                        const delayMs = Math.min(2000, 200 * Math.pow(2, attemptRpc));
+                        await new Promise(res => setTimeout(res, delayMs));
+                        continue;
+                    }
 
-            allGameWeekScores.forEach(score => {
-            if (!totalScoresByPlayer[score.player_id]) {
-                totalScoresByPlayer[score.player_id] = { correct_scores: 0, points: 0 };
+                    // other errors: bail
+                    lastErr = json?.error || `status ${resp.status}`;
+                    break;
+                }
+
+                if (!saved) {
+                    throw new Error(lastErr || 'Could not save week scores due to lock contention; try again');
+                }
+            } catch (err) {
+                console.error('Error saving week scores via server endpoint:', err);
+                throw err;
             }
-
-            totalScoresByPlayer[score.player_id].correct_scores += score.correct_scores;
-            totalScoresByPlayer[score.player_id].points += score.points;
-            });
-
-            // Create the updated season scores to save
-            const seasonScores = Object.entries(totalScoresByPlayer).map(([player_id, scores]) => ({
-            season_id: seasonId,
-            player_id,
-            correct_scores: scores.correct_scores,
-            points: scores.points
-            }));
-
-            // Clear existing season scores first to avoid any staleness
-            await supabase
-            .from('season_scores')
-            .delete()
-            .eq('season_id', seasonId);
-
-            // Then insert the freshly calculated totals
-            const { error: seasonUpdateError } = await supabase
-            .from('season_scores')
-            .insert(seasonScores);
-
-            if (seasonUpdateError) throw seasonUpdateError;
             
             // 9. If there's a Lavery Cup round, update those selections
             if (laveryCupRound && laveryCupSelections.length > 0) {
