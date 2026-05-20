@@ -14,18 +14,14 @@
 - Time logic: unify all game lists to use time (not date) via shared utils.
 - Clean-up: deletion flows (season, game week) ensure related tables are properly cleared.
 
-- URGENT, update scores not correctly updating season score, game weeks seems fine but not season scores. Check why this is and fix.
-
 - add some data projects to the app (league progression and personal tables)
 - admin view of how many players have entered and enter their scores for them
-- george cup first round if not power of 2 draws next rounds fixtures with passing players.
 - add new table to DB "Teams" make team selection when creating game weeks dropdown options, when a new team is added it adds to the table, when we click the drop down we get all previous options to use.
 
 - change 0-0 for no entries to 88-88.
 - Change teams for lavery cup selection
 - Change unique score bonus to unique result bonus
-
-
+- george cup first round if not power of 2 draws next rounds fixtures with passing players.
 
 ## Completed (summary)
 
@@ -40,3 +36,4 @@
 - George/Lavery Cups: stabilize UI after actions (avoid flicker/rerender loops when drawing rounds).
 - George Cup: review/redo bye system (consistency and fairness).
 - View Awards: Show manager of the month table
+- URGENT, update scores not correctly updating season score, game weeks seems fine but not season scores. Check why this is and fix.
