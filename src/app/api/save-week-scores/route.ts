@@ -54,6 +54,33 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'auth validation failed' }, { status: 401 });
     }
 
+    // Validate each score item shape
+    if (!Array.isArray(scores) || scores.some((s: any) => !s || typeof s.player_id !== 'string' || Number.isNaN(Number(s.points)) || Number.isNaN(Number(s.correct_scores)))) {
+      return NextResponse.json({ error: 'invalid_payload_items' }, { status: 400 });
+    }
+
+    // Validate that player_ids belong to the season to prevent malicious/malformed writes
+    try {
+      const { data: seasonPlayers, error: seasonPlayersErr } = await supabaseAdmin
+        .from('season_players')
+        .select('player_id')
+        .eq('season_id', season_id);
+
+      if (seasonPlayersErr) {
+        return NextResponse.json({ error: 'failed_fetch_season_players' }, { status: 500 });
+      }
+
+      const validIds = new Set((seasonPlayers || []).map((p: any) => p.player_id));
+      const uniqueSubmitted = Array.from(new Set((scores as any[]).map(s => s.player_id)));
+      const invalidIds = uniqueSubmitted.filter(id => !validIds.has(id));
+
+      if (invalidIds.length > 0) {
+        return NextResponse.json({ error: 'invalid_player_ids', invalid_ids: invalidIds }, { status: 400 });
+      }
+    } catch (e: any) {
+      return NextResponse.json({ error: 'player_validation_failed' }, { status: 500 });
+    }
+
     // Call the DB RPC
     // Pass the scores array directly so it's treated as JSON/JSONB by the RPC
     const { data, error } = await supabaseAdmin.rpc('save_week_scores', {
