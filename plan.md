@@ -23,7 +23,6 @@
 - Change unique score bonus to unique result bonus
 - george cup first round if not power of 2 draws next rounds fixtures with passing players.
 - add to view manager of the month a list of the game weeks included that month
-- add manager of the month section to /rules
 - make awards pages able to have split winners
 
 ## Completed (summary)
@@ -40,3 +39,4 @@
 - George Cup: review/redo bye system (consistency and fairness).
 - View Awards: Show manager of the month table
 - URGENT, update scores not correctly updating season score, game weeks seems fine but not season scores. Check why this is and fix.
+- add manager of the month section to /rules
