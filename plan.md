@@ -22,6 +22,9 @@
 - Change teams for lavery cup selection
 - Change unique score bonus to unique result bonus
 - george cup first round if not power of 2 draws next rounds fixtures with passing players.
+- add to view manager of the month a list of the game weeks included that month
+- add manager of the month section to /rules
+- make awards pages able to have split winners
 
 ## Completed (summary)
 

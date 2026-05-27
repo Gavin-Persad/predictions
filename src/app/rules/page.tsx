@@ -60,7 +60,7 @@ export default function Rules() {
             </h2>
             
             <p className="text-gray-700 dark:text-gray-300">
-              Each game week consists of 10 fixtures. You must log in and enter your predictions before midnight on the day before the first game of the game week. Once all matches are completed, the host will update the scores and alert everyone. You can then log in to see the updated scores, league standings, cups, and awards.
+              Each game week consists of 10 fixtures. You must log in and enter your predictions before 11PM on the day before the first game of the game week. Once all matches are completed, the host will update the scores and alert everyone. You can then log in to see the updated scores, league standings, cups, and awards.
             </p>
           </section>
           
@@ -88,7 +88,7 @@ export default function Rules() {
                     </ul>
                   </li>
                   <li><strong>Correct Result:</strong> 1 point - When you predict the correct outcome (home win, away win, or draw) but not the exact score</li>
-                  <li><strong>Unique Correct Score:</strong> 2 bonus points - When you&apos;re the only player to predict the exact score</li>
+                  <li><strong>Unique Correct Result:</strong> 2 bonus points - When you&apos;re the only player to predict the result of a game. Win, Loss or Draw</li>
                   <li><strong>Weekly Bonuses:</strong>
                     <ul className="list-circle ml-5 mt-1">
                       <li>4 correct scores in one week: +1 point</li>
@@ -106,6 +106,32 @@ export default function Rules() {
               </p>
               <ul className="list-disc ml-5 space-y-1 text-gray-700 dark:text-gray-300">
                 <li>Most correct scores predicted</li>
+                <li>If still tied, the winner is decided by a coin toss (automated by the app)</li>
+              </ul>
+            </div>
+          </section>
+
+          {/* Manager of the Month */}
+          <section className="mb-10 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+              Manager of the Month
+            </h2>
+
+            <div className="space-y-4">
+              <p className="text-gray-700 dark:text-gray-300">
+                Manager of the Month is awarded based on all game weeks that fall within the calendar month. If the 1st of the month falls on a weekend, that weekend is treated as the start of the month for the purposes of this award.
+              </p>
+
+              <p className="text-gray-700 dark:text-gray-300">
+                Players are judged by total points accumulated across the included game weeks. The player with the most points wins Manager of the Month.
+              </p>
+
+              <p className="text-gray-700 dark:text-gray-300">
+                Tiebreakers:
+              </p>
+              <ul className="list-disc ml-5 space-y-1 text-gray-700 dark:text-gray-300">
+                <li>Most correct scores predicted across those weeks</li>
+                <li>If still tied, the winner is decided by a coin toss (automated by the app)</li>
               </ul>
             </div>
           </section>
@@ -174,6 +200,26 @@ export default function Rules() {
               </p>
             </div>
           </section>
+
+          {/* Special Awards */}
+          <section className="mb-10 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+              Special Awards
+            </h2>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mt-4">Highest Correct Score</h3>
+              <p className="text-gray-700 dark:text-gray-300">
+                Awarded for the single highest-goal game correctly predicted by a player. The total is the sum of goals in that correctly predicted fixture (for example, a correct 4-2 prediction counts as a 6-goal correct game).
+                If multiple players achieve the same highest correct-goal total, the prize for this award is shared.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mt-4">Highest Scoring Game Week</h3>
+              <p className="text-gray-700 dark:text-gray-300">
+                Awarded to the player with the highest scoring game week across the entire season (ranked by points for that week). If players tie on points, the number of correct scores for that week is used as a tiebreaker. If the tie remains, the prize is shared among the tied players.
+              </p>
+            </div>
+          </section>
           
           {/* General Rules */}
           <section className="mb-10 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
@@ -187,9 +233,9 @@ export default function Rules() {
                 All predictions must be submitted before the deadline for each gameweek:
               </p>
               <ul className="list-disc ml-5 text-gray-700 dark:text-gray-300">
-                <li>Predictions close at midnight the day before the first match of the gameweek</li>
+                <li>Predictions close at 11pm the day before the first match of the gameweek</li>
                 <li>Late predictions will not be counted</li>
-                <li>Default prediction is 0-0 if no prediction is made</li>
+                <li>Default prediction is 88-88 if no prediction is made</li>
               </ul>
 
               <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mt-4">Match Results</h3>
