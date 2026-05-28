@@ -122,7 +122,7 @@ export default function EditGameWeekList({ seasonId, onClose }: EditGameWeekList
                                             {new Date(gameWeek.live_start).toLocaleDateString()} - {new Date(gameWeek.live_end).toLocaleDateString()}
                                         </div>
                                     </div>
-                                    <span className="text-sm">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">
                                         {gameWeekStatuses[gameWeek.id] || 'Loading...'}
                                     </span>
                                 </div>

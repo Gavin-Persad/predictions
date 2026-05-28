@@ -419,8 +419,8 @@ const LaveryCupConfirmModal = ({
                 defaultPredictions.push(...playersWithoutPredictions.map(playerId => ({
                     user_id: playerId,
                     fixture_id: fixture.id,
-                    home_prediction: 0,
-                    away_prediction: 0,
+                    home_prediction: 88,
+                    away_prediction: 88,
                     created_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
                 })));
