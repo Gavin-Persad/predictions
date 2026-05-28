@@ -10,19 +10,53 @@ import { useRouter } from 'next/navigation';
 // All available teams (Premier League and Championship)
 const FOOTBALL_TEAMS = {
   "Premier League": [
-    "Arsenal", "Aston Villa", "Bournemouth", "Brentford", 
-    "Brighton & Hove Albion", "Burnley", "Chelsea", "Crystal Palace", 
-    "Everton", "Fulham","Leeds United","Liverpool", "Manchester City", "Manchester United", 
-    "Newcastle United", "Nottingham Forest", "Sunderland",
-    "Tottenham Hotspur", "West Ham United", "Wolverhampton Wanderers"
+    "Arsenal",
+    "Aston Villa",
+    "Bournemouth",
+    "Brentford",
+    "Brighton & Hove Albion",
+    "Chelsea",
+    "Coventry City",
+    "Crystal Palace",
+    "Everton",
+    "Fulham",
+    "Hull City",
+    "Ipswich Town",
+    "Leeds United",
+    "Liverpool",
+    "Manchester City",
+    "Manchester United",
+    "Newcastle United",
+    "Nottingham Forest",
+    "Sunderland",
+    "Tottenham Hotspur"
   ],
+
   "EFL Championship": [
-    "Birmingham City", "Blackburn Rovers", "Bristol City", "Charlton Athletic", 
-    "Coventry City", "Derby County", "Hull City", "Ipswich Town", "Leicester City",
-    "Middlesbrough", "Millwall", "Norwich City", 
-    "Oxford United", "Portsmouth", "Preston North End", 
-    "Queens Park Rangers", "Sheffield United", "Sheffield Wednesday", "Southampton",
-    "Stoke City", "Swansea City", "Watford", "West Bromwich Albion", "Wrexham"
+    "Birmingham City",
+    "Blackburn Rovers",
+    "Bolton Wanderers",
+    "Bristol City",
+    "Burnley",
+    "Cardiff City",
+    "Charlton Athletic",
+    "Derby County",
+    "Lincoln City",
+    "Middlesbrough",
+    "Millwall",
+    "Norwich City",
+    "Portsmouth",
+    "Preston North End",
+    "Queens Park Rangers",
+    "Sheffield United",
+    "Southampton",
+    "Stoke City",
+    "Swansea City",
+    "Watford",
+    "West Bromwich Albion",
+    "West Ham United",
+    "Wolverhampton Wanderers",
+    "Wrexham"
   ]
 };
 
