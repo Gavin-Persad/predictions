@@ -22,7 +22,6 @@
 - george cup first round if not power of 2 draws next rounds fixtures with passing players.
 - add to view manager of the month a list of the game weeks included that month
 - make awards pages able to have split winners
-- add henderson cup to rules (for now best non prize winning player across all comps)
 
 ## Completed (summary)
 
@@ -42,3 +41,4 @@
 - Change teams for lavery cup selection
 - change 0-0 for no entries to 88-88.
 - Change unique score bonus to unique result bonus
+- add henderson cup to rules (for now best non prize winning player across all comps)

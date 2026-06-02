@@ -197,6 +197,8 @@ export default function Rules() {
               
               <p className="text-gray-700 dark:text-gray-300 mt-3">
                 If all players are eliminated in a round, the cup is reset and we start again from the beginning.
+                <br />
+                Should the season conclude without a Lavery Cup winner, the prize fund will roll over to the following season&apos;s competition.
               </p>
             </div>
           </section>
