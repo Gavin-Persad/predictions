@@ -126,7 +126,13 @@ export default function PredictionsPage() {
             if (error) {
                 console.error('Error:', error);
             } else {
-                setGameWeeks(data || []);
+                // Ensure game weeks are ordered by live_start (most recent first)
+                const sorted = (data || []).slice().sort((a: GameWeek, b: GameWeek) => {
+                    const ta = new Date(a.live_start).getTime() || 0;
+                    const tb = new Date(b.live_start).getTime() || 0;
+                    return tb - ta;
+                });
+                setGameWeeks(sorted);
             }
             setLoading(false);
         };

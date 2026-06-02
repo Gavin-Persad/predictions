@@ -25,16 +25,16 @@ type ScoreBreakdownProps = {
         home_score: number; 
         away_score: number; 
     };
-    uniqueCorrectScores?: UniqueScoreMap;
+    uniqueResultMap?: UniqueResultMap;
 };
 
-type UniqueScoreMap = {
+type UniqueResultMap = {
     [fixtureId: string]: boolean;
 };
 
 export default function ScoreBreakdown(props: ScoreBreakdownProps) {
     if (props.prediction && props.fixture) {
-        const { prediction, fixture, uniqueCorrectScores } = props;
+        const { prediction, fixture, uniqueResultMap } = props;
         
         if (typeof fixture.home_score !== 'number' || typeof fixture.away_score !== 'number') {
             return null;
@@ -47,9 +47,9 @@ export default function ScoreBreakdown(props: ScoreBreakdownProps) {
         
         if (basePoints <= 0) return null;
     
-        const isUniqueCorrectScore = basePoints === 3 && 
-            uniqueCorrectScores && 
-            uniqueCorrectScores[fixture.id];
+        const isUniqueCorrectScore = basePoints > 0 && 
+            uniqueResultMap && 
+            uniqueResultMap[fixture.id];
         
         const uniqueBonus = isUniqueCorrectScore ? 2 : 0;
         const totalPoints = basePoints + uniqueBonus;
@@ -67,7 +67,7 @@ export default function ScoreBreakdown(props: ScoreBreakdownProps) {
                     
                     {isUniqueCorrectScore && (
                         <div className="flex justify-between">
-                            <span className="text-gray-600 dark:text-gray-400">Unique correct score bonus:</span>
+                            <span className="text-gray-600 dark:text-gray-400">Unique correct result bonus:</span>
                             <span className="text-emerald-600 dark:text-emerald-400">+2</span>
                         </div>
                     )}
@@ -88,7 +88,7 @@ export default function ScoreBreakdown(props: ScoreBreakdownProps) {
     let correctScoreCount = 0;
     
     const fixturePoints = fixtures
-    .filter(f => f.home_score !== null && f.away_score !== null && predictions[f.id])
+    .filter(f => f.home_score != null && f.away_score != null && predictions[f.id])
     .map(fixture => {
         const prediction = predictions[fixture.id];
         const points = calculatePoints(
@@ -97,13 +97,13 @@ export default function ScoreBreakdown(props: ScoreBreakdownProps) {
         );
         
         const isUnique = points === 3 && 
-        props.uniqueCorrectScores && 
-        props.uniqueCorrectScores[fixture.id];
+        props.uniqueResultMap && 
+        props.uniqueResultMap[fixture.id];
     
         const uniqueBonus = isUnique ? 2 : 0;
         const totalFixturePoints = points + uniqueBonus;
         
-        if (points >= 3) correctScoreCount++;
+                if (points >= 3) correctScoreCount++;
         totalPoints += totalFixturePoints;
         
         return { 
@@ -134,7 +134,7 @@ export default function ScoreBreakdown(props: ScoreBreakdownProps) {
                     
                     {isUniqueCorrect && (
                         <div className="flex justify-between">
-                            <span className="text-gray-600 dark:text-gray-400">Unique correct score bonus:</span>
+                            <span className="text-gray-600 dark:text-gray-400">Unique correct result bonus:</span>
                             <span className="text-emerald-600 dark:text-emerald-400">+2</span>
                         </div>
                     )}

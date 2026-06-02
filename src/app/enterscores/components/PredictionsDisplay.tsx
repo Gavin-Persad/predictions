@@ -27,10 +27,10 @@ type PredictionDisplayProps = {
     onBack: () => void;
     gameWeekId?: string; 
     playerId?: string; 
-    uniqueCorrectScores?: UniqueScoreMap;
+    uniqueResultMap?: UniqueResultMap;
 };
 
-type UniqueScoreMap = {
+type UniqueResultMap = {
     [fixtureId: string]: boolean;
 };
 
@@ -64,7 +64,7 @@ type LaveryCupSelection = {
         const [laveryCupSelection, setLaveryCupSelection] = useState<LaveryCupSelection | null>(null);
         const [loading, setLoading] = useState(false);
         const [allPredictions, setAllPredictions] = useState<Record<string, any[]>>({});
-        const [uniqueCorrectScores, setUniqueCorrectScores] = useState<UniqueScoreMap>({});
+        const [uniqueResultMap, setUniqueResultMap] = useState<UniqueResultMap>({});
 
         useEffect(() => {
             const fetchLaveryCupData = async () => {
@@ -178,31 +178,37 @@ type LaveryCupSelection = {
                         
                         setAllPredictions(predictionsByFixture);
                         
-                        const uniqueScores: UniqueScoreMap = {};
+                        const uniqueScores: UniqueResultMap = {};
                         
                         fixtures.forEach(fixture => {
-                            if (fixture.home_score === null || fixture.away_score === null) return;
-                            
+                            if (fixture.home_score == null || fixture.away_score == null) return;
+
                             const playerPred = predictions[fixture.id];
                             if (!playerPred) return;
-                            
-                            if (playerPred.home === fixture.home_score && 
-                                playerPred.away === fixture.away_score) {
-                                
-                                const fixturesPreds = predictionsByFixture[fixture.id] || [];
-                                
-                                const correctPreds = fixturesPreds.filter(p => 
-                                    p.home_prediction === fixture.home_score && 
-                                    p.away_prediction === fixture.away_score
-                                );
-                                
-                                if (correctPreds.length === 1) {
-                                    uniqueScores[fixture.id] = true;
-                                }
+
+                            // Determine actual outcome and player's predicted outcome
+                            const actualOutcome = fixture.home_score > fixture.away_score ? 'H' :
+                                fixture.home_score < fixture.away_score ? 'A' : 'D';
+
+                            const playerOutcome = playerPred.home > playerPred.away ? 'H' :
+                                playerPred.home < playerPred.away ? 'A' : 'D';
+
+                            // Only consider if player predicted the correct outcome
+                            if (playerOutcome !== actualOutcome) return;
+
+                            const fixturesPreds = predictionsByFixture[fixture.id] || [];
+
+                            // Count how many players predicted this same outcome
+                            const sameOutcomeCount = fixturesPreds.filter(p =>
+                                (p.home_prediction > p.away_prediction ? 'H' : p.home_prediction < p.away_prediction ? 'A' : 'D') === actualOutcome
+                            ).length;
+
+                            if (sameOutcomeCount === 1) {
+                                uniqueScores[fixture.id] = true;
                             }
                         });
-                        
-                        setUniqueCorrectScores(uniqueScores);
+
+                        setUniqueResultMap(uniqueScores);
                     }
                 } catch (err) {
                     console.error('Error in fetch predictions:', err);
@@ -274,7 +280,7 @@ type LaveryCupSelection = {
                                             home_score: fixture.home_score!,
                                             away_score: fixture.away_score!
                                         }}
-                                        uniqueCorrectScores={uniqueCorrectScores}
+                                                    uniqueResultMap={uniqueResultMap}
                                     />
                                 </div>
                                 )}
@@ -298,7 +304,7 @@ type LaveryCupSelection = {
                             }))}
                             predictions={predictions}
                             showWeeklyBonus={true}
-                            uniqueCorrectScores={uniqueCorrectScores}
+                            uniqueResultMap={uniqueResultMap}
                         />
                         </div>
                     </div>

@@ -18,11 +18,11 @@
 - admin view of how many players have entered and enter their scores for them
 - add new table to DB "Teams" make team selection when creating game weeks dropdown options, when a new team is added it adds to the table, when we click the drop down we get all previous options to use.
 
-- change 0-0 for no entries to 88-88.
-- Change unique score bonus to unique result bonus
+
 - george cup first round if not power of 2 draws next rounds fixtures with passing players.
 - add to view manager of the month a list of the game weeks included that month
 - make awards pages able to have split winners
+- add henderson cup to rules (for now best non prize winning player across all comps)
 
 ## Completed (summary)
 
@@ -40,3 +40,5 @@
 - URGENT, update scores not correctly updating season score, game weeks seems fine but not season scores. Check why this is and fix.
 - add manager of the month section to /rules
 - Change teams for lavery cup selection
+- change 0-0 for no entries to 88-88.
+- Change unique score bonus to unique result bonus
