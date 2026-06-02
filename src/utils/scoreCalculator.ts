@@ -41,7 +41,7 @@ export const calculatePoints = (
 };
 
 
-export const calculateUniqueScoreBonus = (
+export const calculateUniqueResultBonus = (
     prediction: Prediction,
     fixture: Fixture,
     allPredictions: Prediction[]
@@ -66,6 +66,9 @@ export const calculateUniqueScoreBonus = (
     // Award bonus if this player was unique in predicting the correct outcome
     return sameOutcomeCount === 1 ? 2 : 0;
 };
+
+// Backwards-compatible export: keep old name pointing to new function
+export const calculateUniqueScoreBonus = calculateUniqueResultBonus;
 
 export const calculateWeeklyCorrectScoreBonus = (correctScores: number): number => {
     if (correctScores >= 6) return 3;

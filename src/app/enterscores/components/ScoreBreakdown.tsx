@@ -25,16 +25,16 @@ type ScoreBreakdownProps = {
         home_score: number; 
         away_score: number; 
     };
-    uniqueCorrectScores?: UniqueScoreMap;
+    uniqueResultMap?: UniqueResultMap;
 };
 
-type UniqueScoreMap = {
+type UniqueResultMap = {
     [fixtureId: string]: boolean;
 };
 
 export default function ScoreBreakdown(props: ScoreBreakdownProps) {
     if (props.prediction && props.fixture) {
-        const { prediction, fixture, uniqueCorrectScores } = props;
+        const { prediction, fixture, uniqueResultMap } = props;
         
         if (typeof fixture.home_score !== 'number' || typeof fixture.away_score !== 'number') {
             return null;
@@ -48,8 +48,8 @@ export default function ScoreBreakdown(props: ScoreBreakdownProps) {
         if (basePoints <= 0) return null;
     
         const isUniqueCorrectScore = basePoints > 0 && 
-            uniqueCorrectScores && 
-            uniqueCorrectScores[fixture.id];
+            uniqueResultMap && 
+            uniqueResultMap[fixture.id];
         
         const uniqueBonus = isUniqueCorrectScore ? 2 : 0;
         const totalPoints = basePoints + uniqueBonus;
@@ -97,8 +97,8 @@ export default function ScoreBreakdown(props: ScoreBreakdownProps) {
         );
         
         const isUnique = points === 3 && 
-        props.uniqueCorrectScores && 
-        props.uniqueCorrectScores[fixture.id];
+        props.uniqueResultMap && 
+        props.uniqueResultMap[fixture.id];
     
         const uniqueBonus = isUnique ? 2 : 0;
         const totalFixturePoints = points + uniqueBonus;

@@ -27,10 +27,10 @@ type PredictionDisplayProps = {
     onBack: () => void;
     gameWeekId?: string; 
     playerId?: string; 
-    uniqueCorrectScores?: UniqueScoreMap;
+    uniqueResultMap?: UniqueResultMap;
 };
 
-type UniqueScoreMap = {
+type UniqueResultMap = {
     [fixtureId: string]: boolean;
 };
 
@@ -64,7 +64,7 @@ type LaveryCupSelection = {
         const [laveryCupSelection, setLaveryCupSelection] = useState<LaveryCupSelection | null>(null);
         const [loading, setLoading] = useState(false);
         const [allPredictions, setAllPredictions] = useState<Record<string, any[]>>({});
-        const [uniqueCorrectScores, setUniqueCorrectScores] = useState<UniqueScoreMap>({});
+        const [uniqueResultMap, setUniqueResultMap] = useState<UniqueResultMap>({});
 
         useEffect(() => {
             const fetchLaveryCupData = async () => {
@@ -178,7 +178,7 @@ type LaveryCupSelection = {
                         
                         setAllPredictions(predictionsByFixture);
                         
-                        const uniqueScores: UniqueScoreMap = {};
+                        const uniqueScores: UniqueResultMap = {};
                         
                         fixtures.forEach(fixture => {
                             if (fixture.home_score == null || fixture.away_score == null) return;
@@ -207,8 +207,8 @@ type LaveryCupSelection = {
                                 uniqueScores[fixture.id] = true;
                             }
                         });
-                        
-                        setUniqueCorrectScores(uniqueScores);
+
+                        setUniqueResultMap(uniqueScores);
                     }
                 } catch (err) {
                     console.error('Error in fetch predictions:', err);
@@ -280,7 +280,7 @@ type LaveryCupSelection = {
                                             home_score: fixture.home_score!,
                                             away_score: fixture.away_score!
                                         }}
-                                        uniqueCorrectScores={uniqueCorrectScores}
+                                                    uniqueResultMap={uniqueResultMap}
                                     />
                                 </div>
                                 )}
@@ -304,7 +304,7 @@ type LaveryCupSelection = {
                             }))}
                             predictions={predictions}
                             showWeeklyBonus={true}
-                            uniqueCorrectScores={uniqueCorrectScores}
+                            uniqueResultMap={uniqueResultMap}
                         />
                         </div>
                     </div>

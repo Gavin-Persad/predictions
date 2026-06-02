@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../../../supabaseClient';
 import { 
     calculatePoints, 
-    calculateUniqueScoreBonus, 
+    calculateUniqueResultBonus,
     calculateWeeklyCorrectScoreBonus 
 } from '../../../utils/scoreCalculator';
 
@@ -465,7 +465,7 @@ const LaveryCupConfirmModal = ({
                 );
 
                 // Calculate unique score bonus
-                const uniqueBonus = calculateUniqueScoreBonus(
+                const uniqueBonus = calculateUniqueResultBonus(
                     prediction,
                     {
                         id: fixture.id,
