@@ -46,21 +46,25 @@ export const calculateUniqueScoreBonus = (
     fixture: Fixture,
     allPredictions: Prediction[]
 ): number => {
-    // Check if this prediction is correct
-    if (prediction.home_prediction !== fixture.home_score || 
-        prediction.away_prediction !== fixture.away_score) {
-        return 0;
-    }
+    // Determine actual outcome: 'H' (home), 'A' (away), 'D' (draw)
+    const actualOutcome = fixture.home_score > fixture.away_score ? 'H' :
+        fixture.home_score < fixture.away_score ? 'A' : 'D';
 
-    // Count how many players got this score correct
-    const correctPredictions = allPredictions.filter(p => 
+    // Determine this prediction's outcome
+    const predOutcome = prediction.home_prediction > prediction.away_prediction ? 'H' :
+        prediction.home_prediction < prediction.away_prediction ? 'A' : 'D';
+
+    // Only award bonus to players who correctly predicted the outcome
+    if (predOutcome !== actualOutcome) return 0;
+
+    // Count how many players predicted the same outcome for this fixture
+    const sameOutcomeCount = allPredictions.filter(p =>
         p.fixture_id === fixture.id &&
-        p.home_prediction === fixture.home_score &&
-        p.away_prediction === fixture.away_score
-    );
+        (p.home_prediction > p.away_prediction ? 'H' : p.home_prediction < p.away_prediction ? 'A' : 'D') === actualOutcome
+    ).length;
 
-    // Award bonus if unique
-    return correctPredictions.length === 1 ? 2 : 0;
+    // Award bonus if this player was unique in predicting the correct outcome
+    return sameOutcomeCount === 1 ? 2 : 0;
 };
 
 export const calculateWeeklyCorrectScoreBonus = (correctScores: number): number => {

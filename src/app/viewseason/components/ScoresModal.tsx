@@ -89,9 +89,14 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
                     <div className="flex items-center">
                         <div className="w-6 h-6 rounded mr-2 flex items-center justify-center relative">
                             <span className="absolute text-black rounded-full w-4 h-4"></span>
-                            <span className="relative text-yellow-400">★</span>
+                            <span
+                                className="relative text-yellow-400 text-sm font-bold"
+                                style={{ WebkitTextStroke: '1px #000', textShadow: '0 0 2px #000' }}
+                            >
+                                ★
+                            </span>
                         </div>
-                        <span className="text-sm text-gray-700 dark:text-gray-300">Unique Correct Score (+2 points)</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Unique Correct Result (+2 points)</span>
                     </div>
                     
                     {/* Bonus points section */}
@@ -139,20 +144,25 @@ export default function ScoresModal({ gameWeekId, seasonId, onClose }: ScoresMod
     };
 
 const isUniqueCorrectScore = (prediction: Prediction, fixture: Fixture): boolean => {
-    // First check if it's a correct score
-    if (prediction.home_prediction !== fixture.home_score || 
-        prediction.away_prediction !== fixture.away_score) {
-        return false;
-    }
+    // Ensure scores present
+    if (fixture.home_score == null || fixture.away_score == null) return false;
 
-    // Then check if it's unique
-    const correctPredictions = predictions.filter(p => 
+    // Determine actual outcome and predicted outcome
+    const actualResult = fixture.home_score > fixture.away_score ? 'H' :
+        fixture.home_score < fixture.away_score ? 'A' : 'D';
+    const predictedResult = prediction.home_prediction > prediction.away_prediction ? 'H' :
+        prediction.home_prediction < prediction.away_prediction ? 'A' : 'D';
+
+    // Only consider players who predicted the correct outcome
+    if (predictedResult !== actualResult) return false;
+
+    // Count how many players predicted this same outcome for the fixture
+    const sameOutcomeCount = predictions.filter(p =>
         p.fixture_id === fixture.id &&
-        p.home_prediction === fixture.home_score &&
-        p.away_prediction === fixture.away_score
-    );
+        (p.home_prediction > p.away_prediction ? 'H' : p.home_prediction < p.away_prediction ? 'A' : 'D') === actualResult
+    ).length;
 
-    return correctPredictions.length === 1;
+    return sameOutcomeCount === 1;
 };
 
 useEffect(() => {
@@ -352,7 +362,12 @@ useEffect(() => {
                                                     {prediction ? `${prediction.home_prediction}-${prediction.away_prediction}` : '-'}
                                                         {prediction && isUniqueCorrectScore(prediction, fixture) && (
                                                             <span className="absolute top-1 right-1 z-10">
-                                                                <span className="text-yellow-400 text-xs">★</span>
+                                                                <span
+                                                                    className="text-yellow-400 text-base font-bold"
+                                                                    style={{ WebkitTextStroke: '1px #000', textShadow: '0 0 2px #000' }}
+                                                                >
+                                                                    ★
+                                                                </span>
                                                             </span>
                                                         )}
                                                     </td>

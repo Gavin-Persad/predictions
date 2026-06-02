@@ -122,7 +122,7 @@ src/
 
 - Each game week consists of 10 fixtures
 - Predictions must be submitted before midnight the day before the first game
-- Late predictions or missed deadlines result in a default 0-0 prediction
+- Late predictions or missed deadlines result in a default 88-88 prediction (This will give late players some points for draws, but not correct score bonuses)
 
 ### Points System
 
@@ -135,7 +135,7 @@ src/
   - 1 point: Correct result only (home win, away win, or draw)
   - 0 points: Completely incorrect prediction
 - **Bonus Points:**
-  - 2 bonus points: Unique correct score (being the only player to predict the exact score)
+  - 2 bonus points: Unique correct result (being the only player to predict the match result correctly)
   - Weekly accuracy bonuses:
     - 4 correct scores in one week: +1 point
     - 5 correct scores in one week: +2 points

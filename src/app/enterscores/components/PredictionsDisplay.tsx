@@ -181,24 +181,30 @@ type LaveryCupSelection = {
                         const uniqueScores: UniqueScoreMap = {};
                         
                         fixtures.forEach(fixture => {
-                            if (fixture.home_score === null || fixture.away_score === null) return;
-                            
+                            if (fixture.home_score == null || fixture.away_score == null) return;
+
                             const playerPred = predictions[fixture.id];
                             if (!playerPred) return;
-                            
-                            if (playerPred.home === fixture.home_score && 
-                                playerPred.away === fixture.away_score) {
-                                
-                                const fixturesPreds = predictionsByFixture[fixture.id] || [];
-                                
-                                const correctPreds = fixturesPreds.filter(p => 
-                                    p.home_prediction === fixture.home_score && 
-                                    p.away_prediction === fixture.away_score
-                                );
-                                
-                                if (correctPreds.length === 1) {
-                                    uniqueScores[fixture.id] = true;
-                                }
+
+                            // Determine actual outcome and player's predicted outcome
+                            const actualOutcome = fixture.home_score > fixture.away_score ? 'H' :
+                                fixture.home_score < fixture.away_score ? 'A' : 'D';
+
+                            const playerOutcome = playerPred.home > playerPred.away ? 'H' :
+                                playerPred.home < playerPred.away ? 'A' : 'D';
+
+                            // Only consider if player predicted the correct outcome
+                            if (playerOutcome !== actualOutcome) return;
+
+                            const fixturesPreds = predictionsByFixture[fixture.id] || [];
+
+                            // Count how many players predicted this same outcome
+                            const sameOutcomeCount = fixturesPreds.filter(p =>
+                                (p.home_prediction > p.away_prediction ? 'H' : p.home_prediction < p.away_prediction ? 'A' : 'D') === actualOutcome
+                            ).length;
+
+                            if (sameOutcomeCount === 1) {
+                                uniqueScores[fixture.id] = true;
                             }
                         });
                         
