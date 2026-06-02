@@ -202,6 +202,34 @@ export default function Rules() {
           </section>
 
           {/* Special Awards */}
+          {/* Henderson Cup */}
+          <section className="mb-10 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+              Henderson Cup
+            </h2>
+
+            <div className="space-y-4">
+              <p className="text-gray-700 dark:text-gray-300">
+                The Henderson Cup is a judged award, selected by the host together with a panel of judges. It recognises the best player of the season who has not won the League, the George Cup, or the Lavery Cup.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mt-4">Eligibility</h3>
+              <p className="text-gray-700 dark:text-gray-300">
+                Candidates must not have won the League title or either cup (George or Lavery). Players who finished in prize positions in the league, or who have won Special Awards or Manager of the Month, remain eligible — the Henderson Cup is explicitly for a standout performer who did not take a title.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mt-4">Judging Criteria</h3>
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded">
+                <ul className="list-disc ml-5 space-y-2 text-gray-700 dark:text-gray-300">
+                  <li>Competitiveness across all competitions</li>
+                  <li>Consistency and season-long form</li>
+                  <li>Total correct scores and overall accuracy</li>
+                  <li>Boldness of predictions (risk-taking that paid off)</li>
+                  <li>Any other factors the judges consider persuasive</li>
+                </ul>
+              </div>
+            </div>
+          </section>
           <section className="mb-10 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
               Special Awards
