@@ -391,20 +391,25 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
         <div className="flex justify-between items-center"><h3 className="text-lg font-semibold">Special Awards</h3><button onClick={addSpecial} className="px-3 py-1 bg-blue-600 text-white rounded">Add Special</button></div>
         <div className="space-y-2">
           {specialRows.map(row => (
-            <div key={row.tempId} className={`flex items-center gap-3 p-2 rounded border ${!row.active ? 'opacity-50' : ''}`}>
-              <input type="checkbox" checked={row.active} onChange={() => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, active: !r.active } : r ))} />
-              <input type="text" value={row.title} onChange={e => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, title: e.target.value } : r ))} placeholder="Title" className="flex-grow p-1 border rounded" />
-              <input type="number" value={row.prize ?? ''} onChange={e => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, prize: e.target.value ? Number(e.target.value) : undefined } : r ))} placeholder="Prize" className="w-24 p-1 border rounded" />
-              <div className="flex items-center gap-2">
-                {(row.winners || []).map((wId, wi) => (
-                  <div key={wi} className="flex items-center gap-2">
-                    {playerSelect(wId, val => setSpecialRows(prev => prev.map(r => { if (r.tempId !== row.tempId) return r; const winners = (r.winners||[]).slice(); winners[wi] = val || undefined as any; return { ...r, winners }; })))}
-                    <button type="button" onClick={() => setSpecialRows(prev => prev.map(r => { if (r.tempId !== row.tempId) return r; const winners = (r.winners||[]).slice(); winners.splice(wi,1); return { ...r, winners }; }))} className="text-xs px-2 py-1 bg-red-600 text-white rounded">−</button>
-                  </div>
-                ))}
-                <button type="button" onClick={() => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, winners: [...(r.winners||[]), ""] } : r ))} className="text-xs px-2 py-1 bg-blue-600 text-white rounded">+</button>
+            <div key={row.tempId} className={`p-2 rounded border ${!row.active ? 'opacity-50' : ''}`}>
+              <div className="flex items-center gap-3">
+                <input type="checkbox" checked={row.active} onChange={() => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, active: !r.active } : r ))} />
+                <input type="text" value={row.title} onChange={e => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, title: e.target.value } : r ))} placeholder="Title" className="flex-grow p-1 border rounded" />
+                <input type="number" value={row.prize ?? ''} onChange={e => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, prize: e.target.value ? Number(e.target.value) : undefined } : r ))} placeholder="Prize" className="w-24 p-1 border rounded" />
+                <div className="flex items-center gap-2">
+                  {(row.winners || []).map((wId, wi) => (
+                    <div key={wi} className="flex items-center gap-2">
+                      {playerSelect(wId, val => setSpecialRows(prev => prev.map(r => { if (r.tempId !== row.tempId) return r; const winners = (r.winners||[]).slice(); winners[wi] = val || undefined as any; return { ...r, winners }; })))}
+                      <button type="button" onClick={() => setSpecialRows(prev => prev.map(r => { if (r.tempId !== row.tempId) return r; const winners = (r.winners||[]).slice(); winners.splice(wi,1); return { ...r, winners }; }))} className="text-xs px-2 py-1 bg-red-600 text-white rounded">−</button>
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, winners: [...(r.winners||[]), ""] } : r ))} className="text-xs px-2 py-1 bg-blue-600 text-white rounded">+</button>
+                </div>
+                <button onClick={() => removeSpecial(row.tempId)} className="text-xs px-2 py-1 bg-red-600 text-white rounded">X</button>
               </div>
-              <button onClick={() => removeSpecial(row.tempId)} className="text-xs px-2 py-1 bg-red-600 text-white rounded">X</button>
+              <div className="mt-2">
+                <textarea value={row.note ?? ''} onChange={e => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, note: e.target.value } : r ))} placeholder="Note" className="w-full p-2 border rounded text-sm" />
+              </div>
             </div>
           ))}
         </div>
