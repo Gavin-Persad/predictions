@@ -18,10 +18,9 @@
 - admin view of how many players have entered and enter their scores for them
 - add new table to DB "Teams" make team selection when creating game weeks dropdown options, when a new team is added it adds to the table, when we click the drop down we get all previous options to use.
 
-
 - george cup first round if not power of 2 draws next rounds fixtures with passing players.
 - add to view manager of the month a list of the game weeks included that month
-- make awards pages able to have split winners
+- make awards pages able to have split winners - broke, needs to add notes back to special awards, needs to have motm in order
 
 ## Completed (summary)
 
