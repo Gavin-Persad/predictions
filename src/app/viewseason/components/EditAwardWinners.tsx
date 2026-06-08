@@ -100,8 +100,8 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
       Object.entries(groupedCups).forEach(([cupName, rows]) => rows.forEach(r => cupRowsMapped.push({ tempId: uuid(), awardId: r.id, cupName, sub_type: (r.sub_type as "winner" | "runner_up") || "winner", prize: r.prize || undefined, winner_id: (winnersMap[r.id] && winnersMap[r.id].length) ? winnersMap[r.id][0] : r.winner_id, active: r.active })));
       setCupRows(cupRowsMapped);
 
-      // MOTM
-      const motm = awards.filter(a => a.category === "motm");
+      // MOTM - preserve sequence order
+      const motm = awards.filter(a => a.category === "motm").sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
       setMotmRows(motm.map(m => ({ tempId: uuid(), awardId: m.id, monthLabel: m.group_key || "", prize: m.prize || undefined, winner_id: (winnersMap[m.id] && winnersMap[m.id].length) ? winnersMap[m.id][0] : m.winner_id, active: m.active })));
 
       // Special
@@ -186,7 +186,7 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
       const payload: any[] = [];
       leagueRows.forEach(r => { if (!r.position) return; payload.push({ id: r.awardId, season_id: seasonId, category: 'league_position', sub_type: null, group_key: 'league', position: r.position, active: r.active, prize: r.prize ?? null }); });
       cupRows.forEach(r => payload.push({ id: r.awardId, season_id: seasonId, category: 'cup', sub_type: r.sub_type, group_key: r.cupName.trim(), position: null, active: r.active, prize: r.prize ?? null }));
-      motmRows.forEach(r => { if (!r.monthLabel.trim()) return; payload.push({ id: r.awardId, season_id: seasonId, category: 'motm', sub_type: null, group_key: r.monthLabel.trim(), position: null, active: r.active, prize: r.prize ?? null }); });
+      motmRows.forEach((r, idx) => { if (!r.monthLabel.trim()) return; payload.push({ id: r.awardId, season_id: seasonId, category: 'motm', sub_type: null, group_key: r.monthLabel.trim(), position: null, active: r.active, prize: r.prize ?? null, sequence: idx + 1 }); });
       specialRows.forEach(r => { if (!r.title.trim()) return; payload.push({ id: r.awardId, season_id: seasonId, category: 'special', sub_type: null, group_key: r.title.trim(), position: null, active: r.active, prize: r.prize ?? null }); });
 
       if (payload.length === 0) { setMessage('Nothing to save (add rows or set league places).'); setSaving(false); return; }
