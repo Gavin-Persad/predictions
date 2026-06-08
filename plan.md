@@ -20,7 +20,7 @@
 
 - george cup first round if not power of 2 draws next rounds fixtures with passing players.
 - add to view manager of the month a list of the game weeks included that month
-- make awards pages able to have split winners - broke, needs to add notes back to special awards, needs to have motm in order
+- style repairs needed for dark mode edit awards winners
 
 ## Completed (summary)
 
@@ -41,3 +41,4 @@
 - change 0-0 for no entries to 88-88.
 - Change unique score bonus to unique result bonus
 - add henderson cup to rules (for now best non prize winning player across all comps)
+- make awards pages able to have split winners - broke, needs to add notes back to special awards, needs to have motm in order
