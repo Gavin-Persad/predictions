@@ -311,10 +311,10 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
     </select>
   );
 
-  if (loading) return (<div><h2 className="text-2xl font-bold mb-6">Edit Award Winners</h2><p>Loading...</p><button onClick={onClose}>Back</button></div>);
+  if (loading) return (<div><h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Edit Award Winners</h2><p className="text-gray-700 dark:text-gray-300">Loading...</p><button onClick={onClose}>Back</button></div>);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 text-gray-900 dark:text-gray-100">
       <div className="flex justify-between items-start">
         <div>
           <h2 className="text-2xl font-bold">Edit Award Winners</h2>
@@ -328,17 +328,17 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
       {message && <div className="text-sm text-blue-600">{message}</div>}
 
       {/* League */}
-      <section className="bg-white p-4 rounded shadow space-y-4">
+      <section className="bg-white dark:bg-gray-800 p-4 rounded shadow space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">League Table Prizes</h3>
-          <input type="number" min={0} value={leagueCount} onChange={e => setLeagueCount(Math.max(0, parseInt(e.target.value || '0', 10)))} className="w-24 p-2 border rounded" placeholder="# places" />
+          <input type="number" min={0} value={leagueCount} onChange={e => setLeagueCount(Math.max(0, parseInt(e.target.value || '0', 10)))} className="w-24 p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" placeholder="# places" />
         </div>
         <div className="space-y-2">
           {leagueRows.map(row => (
             <div key={row.tempId} className={`flex items-center gap-3 p-2 rounded border ${!row.active ? 'opacity-50' : ''}`}>
               <input type="checkbox" checked={row.active} onChange={() => setLeagueRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, active: !r.active } : r ))} />
               <div className="w-16 font-semibold">{row.position}</div>
-              <input type="number" value={row.prize ?? ''} onChange={e => setLeagueRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, prize: e.target.value ? Number(e.target.value) : undefined } : r ))} placeholder="Prize" className="w-24 p-1 border rounded" />
+              <input type="number" value={row.prize ?? ''} onChange={e => setLeagueRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, prize: e.target.value ? Number(e.target.value) : undefined } : r ))} placeholder="Prize" className="w-24 p-1 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
               {playerSelect(row.winner_id, val => setLeagueRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, winner_id: val } : r )))}
             </div>
           ))}
@@ -346,20 +346,20 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
       </section>
 
       {/* Cups */}
-      <section className="bg-white p-4 rounded shadow space-y-4">
+      <section className="bg-white dark:bg-gray-800 p-4 rounded shadow space-y-4">
         <div className="flex justify-between items-center"><h3 className="text-lg font-semibold">Cup Competitions</h3></div>
         <div className="space-y-4">
           {Array.from(new Set(cupRows.map(c => c.cupName))).map(cupName => {
             const rows = cupRows.filter(r => r.cupName === cupName);
-            return (
-              <div key={cupName} className="border rounded p-3">
+              return (
+              <div key={cupName} className="border rounded p-3 bg-white dark:bg-gray-800">
                 <div className="flex justify-between items-center mb-2"><div className="font-semibold">{cupName}</div></div>
                 <div className="space-y-2">
                   {rows.map(row => (
                     <div key={row.tempId} className={`flex items-center gap-3 p-2 rounded border ${!row.active ? 'opacity-50' : ''}`}>
                       <input type="checkbox" checked={row.active} onChange={() => setCupRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, active: !r.active } : r ))} />
                       <div className="w-24 text-sm capitalize">{row.sub_type.replace('_',' ')}</div>
-                      <input type="number" value={row.prize ?? ''} onChange={e => setCupRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, prize: e.target.value ? Number(e.target.value) : undefined } : r ))} placeholder="Prize" className="w-24 p-1 border rounded" />
+                      <input type="number" value={row.prize ?? ''} onChange={e => setCupRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, prize: e.target.value ? Number(e.target.value) : undefined } : r ))} placeholder="Prize" className="w-24 p-1 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
                       {playerSelect(row.winner_id, val => setCupRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, winner_id: val } : r )))}
                     </div>
                   ))}
@@ -371,14 +371,14 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
       </section>
 
       {/* MOTM */}
-      <section className="bg-white p-4 rounded shadow space-y-4">
+      <section className="bg-white dark:bg-gray-800 p-4 rounded shadow space-y-4">
         <div className="flex justify-between items-center"><h3 className="text-lg font-semibold">Manager of the Month</h3></div>
         <div className="space-y-2">
           {motmRows.map(row => (
             <div key={row.tempId} className={`flex items-center gap-3 p-2 rounded border ${!row.active ? 'opacity-50' : ''}`}>
               <input type="checkbox" checked={row.active} onChange={() => setMotmRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, active: !r.active } : r ))} />
-              <input type="text" value={row.monthLabel} onChange={e => setMotmRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, monthLabel: e.target.value } : r ))} className="flex-grow p-1 border rounded" />
-              <input type="number" value={row.prize ?? ''} onChange={e => setMotmRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, prize: e.target.value ? Number(e.target.value) : undefined } : r ))} placeholder="Prize" className="w-24 p-1 border rounded" />
+              <input type="text" value={row.monthLabel} onChange={e => setMotmRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, monthLabel: e.target.value } : r ))} className="flex-grow p-1 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
+              <input type="number" value={row.prize ?? ''} onChange={e => setMotmRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, prize: e.target.value ? Number(e.target.value) : undefined } : r ))} placeholder="Prize" className="w-24 p-1 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
               {playerSelect(row.winner_id, val => setMotmRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, winner_id: val } : r )))}
               <button onClick={() => removeMotm(row.tempId)} className="text-xs px-2 py-1 bg-red-600 text-white rounded">X</button>
             </div>
@@ -387,15 +387,15 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
       </section>
 
       {/* Special */}
-      <section className="bg-white p-4 rounded shadow space-y-4">
+      <section className="bg-white dark:bg-gray-800 p-4 rounded shadow space-y-4">
         <div className="flex justify-between items-center"><h3 className="text-lg font-semibold">Special Awards</h3><button onClick={addSpecial} className="px-3 py-1 bg-blue-600 text-white rounded">Add Special</button></div>
         <div className="space-y-2">
           {specialRows.map(row => (
             <div key={row.tempId} className={`p-2 rounded border ${!row.active ? 'opacity-50' : ''}`}>
-              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3">
                 <input type="checkbox" checked={row.active} onChange={() => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, active: !r.active } : r ))} />
-                <input type="text" value={row.title} onChange={e => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, title: e.target.value } : r ))} placeholder="Title" className="flex-grow p-1 border rounded" />
-                <input type="number" value={row.prize ?? ''} onChange={e => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, prize: e.target.value ? Number(e.target.value) : undefined } : r ))} placeholder="Prize" className="w-24 p-1 border rounded" />
+                <input type="text" value={row.title} onChange={e => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, title: e.target.value } : r ))} placeholder="Title" className="flex-grow p-1 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
+                <input type="number" value={row.prize ?? ''} onChange={e => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, prize: e.target.value ? Number(e.target.value) : undefined } : r ))} placeholder="Prize" className="w-24 p-1 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
                 <div className="flex items-center gap-2">
                   {(row.winners || []).map((wId, wi) => (
                     <div key={wi} className="flex items-center gap-2">
@@ -408,7 +408,7 @@ export default function EditAwardWinners({ seasonId, onClose }: Props) {
                 <button onClick={() => removeSpecial(row.tempId)} className="text-xs px-2 py-1 bg-red-600 text-white rounded">X</button>
               </div>
               <div className="mt-2">
-                <textarea value={row.note ?? ''} onChange={e => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, note: e.target.value } : r ))} placeholder="Note" className="w-full p-2 border rounded text-sm" />
+                <textarea value={row.note ?? ''} onChange={e => setSpecialRows(prev => prev.map(r => r.tempId === row.tempId ? { ...r, note: e.target.value } : r ))} placeholder="Note" className="w-full p-2 border rounded text-sm bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" />
               </div>
             </div>
           ))}
