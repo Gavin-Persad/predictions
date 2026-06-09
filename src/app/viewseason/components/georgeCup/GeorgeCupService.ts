@@ -369,62 +369,27 @@ export class GeorgeCupService {
                 if (pfErr) throw pfErr;
             }
 
-            // Ensure next round exists and populate byes into empty slots
+            // Ensure next round exists. Create empty fixtures for the next round
+            // but DO NOT assign the remaining players here. Remaining players
+            // should be combined with preliminary winners when the next round
+            // is explicitly drawn.
             const nextRound = await ensureNextRound(claimedRound.season_id, 2, highestPow2 / 2, 'Round 2');
 
             const nextFixturesCount = nextRound.total_fixtures || Math.floor(highestPow2 / 2);
             const nextSlotsLength = nextFixturesCount * 2;
 
-            // Build slot array and assign remaining players randomly
-            const nextSlots: (string | null)[] = new Array(nextSlotsLength).fill(null);
-            shuffle(remainingPlayers);
-            for (let i = 0; i < remainingPlayers.length && i < nextSlotsLength; i++) {
-                nextSlots[i] = remainingPlayers[i].id;
-            }
-
             // Fetch existing next-round fixtures (ordered)
             const { data: existingNextFixtures, error: existingNextFixturesErr } = await supabase
-                .from('george_cup_fixtures')
-                .select('*')
-                .eq('round_id', nextRound.id)
-                .order('fixture_number', { ascending: true });
+              .from('george_cup_fixtures')
+              .select('*')
+              .eq('round_id', nextRound.id)
+              .order('fixture_number', { ascending: true });
 
             if (existingNextFixturesErr) throw existingNextFixturesErr;
 
-            if (!existingNextFixtures || existingNextFixtures.length === 0) {
-                // Create fixtures for next round from slots
-                const nextFixturesToInsert: any[] = [];
-                for (let i = 0; i < nextSlots.length; i += 2) {
-                nextFixturesToInsert.push({
-                    id: crypto.randomUUID(),
-                    round_id: nextRound.id,
-                    fixture_number: Math.floor(i / 2) + 1,
-                    player1_id: nextSlots[i],
-                    player2_id: nextSlots[i + 1] || null,
-                    winner_id: null,
-                    created_at: new Date().toISOString()
-                });
-                }
-                if (nextFixturesToInsert.length > 0) {
-                const { error: nfErr } = await supabase.from('george_cup_fixtures').insert(nextFixturesToInsert);
-                if (nfErr) throw nfErr;
-                }
-            } else {
-                // Update only empty slots
-                for (let i = 0; i < existingNextFixtures.length; i++) {
-                const ef = existingNextFixtures[i];
-                const slotIndex = i * 2;
-                const p1 = nextSlots[slotIndex] ?? null;
-                const p2 = nextSlots[slotIndex + 1] ?? null;
-                const updates: any = {};
-                if (!ef.player1_id && p1) updates.player1_id = p1;
-                if (!ef.player2_id && p2) updates.player2_id = p2;
-                if (Object.keys(updates).length > 0) {
-                    const { error: upErr } = await supabase.from('george_cup_fixtures').update(updates).eq('id', ef.id);
-                    if (upErr) throw upErr;
-                }
-                }
-            }
+            // Do not populate next-round fixtures here. They will be created
+            // when the next round is explicitly drawn so that only the
+            // preliminary round is filled now.
             } else {
             // No prelim: pair all players directly into round 1 fixtures
             const shuffled = [...players];
@@ -469,24 +434,126 @@ export class GeorgeCupService {
             throw new Error('No winners available from previous round to draw this round.');
             }
 
-            shuffle(winners);
-
-            // Insert fixtures for this round based on winners
-            const nextFixturesToInsert: any[] = [];
-            for (let i = 0; i < winners.length; i += 2) {
-            nextFixturesToInsert.push({
-                id: crypto.randomUUID(),
-                round_id: roundId,
-                fixture_number: Math.floor(i / 2) + 1,
-                player1_id: winners[i] || null,
-                player2_id: (i + 1 < winners.length) ? winners[i + 1] : null,
-                winner_id: null,
-                created_at: new Date().toISOString()
+            // Determine players who skipped the previous round (byes)
+            const playedInPrev = new Set<string>();
+            prevFixtures.forEach((f: any) => {
+              if (f.player1_id) playedInPrev.add(f.player1_id);
+              if (f.player2_id) playedInPrev.add(f.player2_id);
             });
+
+            // ALSO determine players who have been eliminated in any earlier
+            // completed rounds — these must not be considered for future draws.
+            const { data: earlierRounds, error: earlierErr } = await supabase
+              .from('george_cup_rounds')
+              .select(`
+                round_number,
+                george_cup_fixtures!george_cup_fixtures_round_id_fkey (
+                  player1_id,
+                  player2_id,
+                  winner_id
+                )
+              `)
+              .eq('season_id', claimedRound.season_id)
+              .lt('round_number', roundNumber);
+            if (earlierErr) throw earlierErr;
+
+            const eliminated = new Set<string>();
+            (earlierRounds || []).forEach((r: any) => {
+              (r.george_cup_fixtures || []).forEach((f: any) => {
+                if (!f.winner_id) return; // not decided yet
+                // loser is whichever player is not the winner (and not null)
+                if (f.player1_id && f.player2_id) {
+                  if (f.winner_id === f.player1_id) eliminated.add(f.player2_id);
+                  else if (f.winner_id === f.player2_id) eliminated.add(f.player1_id);
+                }
+              });
+            });
+
+            // players param contains the season's full player list; include those
+            // who did not play in the previous round (they had byes) so they
+            // participate in this draw alongside the previous round winners.
+            // Exclude anyone already eliminated in earlier rounds.
+            const byePlayers = (players || [])
+              .map(p => p.id)
+              .filter((id: string) => !playedInPrev.has(id) && !eliminated.has(id));
+
+            // Combine winners and bye players into the pool
+            const pool = [...winners, ...byePlayers];
+
+            if (pool.length === 0) {
+              throw new Error('No players available to draw for this round.');
             }
-            if (nextFixturesToInsert.length > 0) {
-            const { error: fixturesError } = await supabase.from('george_cup_fixtures').insert(nextFixturesToInsert);
-            if (fixturesError) throw fixturesError;
+
+            shuffle(pool);
+
+            // Fetch existing fixtures for this round (ordered)
+            const { data: existingThisRoundFixtures, error: existingThisRoundErr } = await supabase
+              .from('george_cup_fixtures')
+              .select('*')
+              .eq('round_id', roundId)
+              .order('fixture_number', { ascending: true });
+            if (existingThisRoundErr) throw existingThisRoundErr;
+
+            // Build a set of players already assigned to this round to avoid duplicates
+            const assignedThisRound = new Set<string>();
+            (existingThisRoundFixtures || []).forEach((ef: any) => {
+              if (ef.player1_id) assignedThisRound.add(ef.player1_id);
+              if (ef.player2_id) assignedThisRound.add(ef.player2_id);
+            });
+
+            // Clean and dedupe the pool
+            const seen = new Set<string>();
+            const cleanPool: string[] = [];
+            for (const p of pool) {
+              if (!p) continue;
+              if (seen.has(p)) continue;
+              if (assignedThisRound.has(p)) continue;
+              seen.add(p);
+              cleanPool.push(p);
+            }
+
+            // If fixtures exist, fill empty slots first
+            let poolIndex = 0;
+            if (existingThisRoundFixtures && existingThisRoundFixtures.length > 0) {
+              for (let i = 0; i < existingThisRoundFixtures.length && poolIndex < cleanPool.length; i++) {
+                const ef = existingThisRoundFixtures[i];
+                // Do not overwrite completed fixtures
+                if (ef.winner_id) continue;
+                const updates: any = {};
+                if (!ef.player1_id && poolIndex < cleanPool.length) {
+                  updates.player1_id = cleanPool[poolIndex++];
+                }
+                if (!ef.player2_id && poolIndex < cleanPool.length) {
+                  updates.player2_id = cleanPool[poolIndex++];
+                }
+                if (Object.keys(updates).length > 0) {
+                  const { error: upErr } = await supabase.from('george_cup_fixtures').update(updates).eq('id', ef.id);
+                  if (upErr) throw upErr;
+                }
+              }
+            }
+
+            // Any remaining cleanPool members need new fixtures appended
+            const remaining: string[] = cleanPool.slice(poolIndex);
+            if (remaining.length > 0) {
+              const toInsert: any[] = [];
+              // Determine starting fixture number
+              const startFixture = (existingThisRoundFixtures && existingThisRoundFixtures.length) ? existingThisRoundFixtures.length : 0;
+              for (let i = 0; i < remaining.length; i += 2) {
+                toInsert.push({
+                  id: crypto.randomUUID(),
+                  round_id: roundId,
+                  fixture_number: startFixture + Math.floor(i / 2) + 1,
+                  player1_id: remaining[i] || null,
+                  player2_id: (i + 1 < remaining.length) ? remaining[i + 1] : null,
+                  winner_id: null,
+                  created_at: new Date().toISOString()
+                });
+              }
+              if (toInsert.length > 0) {
+                const { error: insertErr } = await supabase.from('george_cup_fixtures').insert(toInsert);
+                if (insertErr) throw insertErr;
+              }
             }
         }
 
@@ -515,7 +582,7 @@ export class GeorgeCupService {
         player1_correct_scores?: number,
         player2_score?: number,
         player2_correct_scores?: number
-        }>> {
+    }>> {
         // Filter out null or undefined game week IDs
         const validGameWeekIds = gameWeekIds.filter(id => id);
         
