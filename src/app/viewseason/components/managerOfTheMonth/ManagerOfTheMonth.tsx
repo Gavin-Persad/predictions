@@ -28,6 +28,7 @@ export default function ManagerOfTheMonth({ seasonId, onClose }: Props) {
   const [months, setMonths] = useState<ManagerMonth[]>([]);
   const [selectedMonthId, setSelectedMonthId] = useState<string | null>(null);
   const [scores, setScores] = useState<PlayerScore[]>([]);
+  const [usedGameWeeks, setUsedGameWeeks] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -63,6 +64,19 @@ export default function ManagerOfTheMonth({ seasonId, onClose }: Props) {
         if (assignError) throw assignError;
 
         const gwIds = (assignData || []).map((r: any) => r.game_week_id).filter(Boolean);
+
+        // fetch game week metadata for display
+        if (gwIds.length > 0) {
+          const { data: gwData, error: gwErr } = await supabase
+            .from('game_weeks')
+            .select('id, week_number')
+            .in('id', gwIds as string[])
+            .order('week_number', { ascending: true });
+          if (gwErr) throw gwErr;
+          setUsedGameWeeks((gwData || []).map((g: any) => ({ id: g.id, week_number: g.week_number })));
+        } else {
+          setUsedGameWeeks([]);
+        }
 
         if (gwIds.length === 0) {
           setScores([]);
@@ -163,6 +177,19 @@ export default function ManagerOfTheMonth({ seasonId, onClose }: Props) {
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          {/* SHOW which game weeks are included for this month */}
+          {usedGameWeeks.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-4">
+              <div className="text-sm text-gray-600 dark:text-gray-300 mb-2">Included Game Weeks</div>
+              <div className="flex flex-wrap gap-2">
+                {usedGameWeeks.map(gw => (
+                  <div key={gw.id} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-sm rounded text-gray-900 dark:text-gray-200">
+                    Week {gw.week_number}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
             {loading ? (
               <div className="text-gray-700 dark:text-gray-300">Loading...</div>
             ) : !selectedMonthId ? (
