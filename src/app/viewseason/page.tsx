@@ -494,26 +494,26 @@ export default function ViewSeason() {
                             </h1>
                             
                             <div className="w-full flex flex-col items-center">
-                                <div className="grid grid-cols-3 gap-4 w-full max-w-3xl">
+                                <div className={`grid gap-4 ${profile?.is_host ? 'grid-cols-3 w-full max-w-3xl' : 'grid-cols-1 max-w-md mx-auto'}`}>
 
                                 <div className="flex flex-col gap-4">
                                     <button
                                         onClick={() => setShowViewAwardWinners(true)}
                                         className="px-4 py-2 w-full text-sm sm:text-base bg-yellow-600 text-white rounded hover:bg-yellow-700 transition duration-300"
                                     >
-                                        View Award Winners
+                                        Award Winners
                                     </button>
                                     <button
                                         onClick={handleViewPlayersClick}
                                         className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
                                     >
-                                        View Players
+                                        Players
                                     </button>
                                     <button
                                         onClick={handleViewGameWeekClick}
                                         className="px-4 py-2 w-full text-sm sm:text-base bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
                                     >
-                                        View Game Week
+                                        Game Weeks
                                     </button>
                                     <button
                                         onClick={() => setShowLeagueTable(true)}
