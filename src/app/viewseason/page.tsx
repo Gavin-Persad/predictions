@@ -494,7 +494,7 @@ export default function ViewSeason() {
                             </h1>
                             
                             <div className="w-full flex flex-col items-center">
-                                <div className="grid grid-cols-3 gap-4 w-full max-w-3xl">
+                                <div className={`grid gap-4 ${profile?.is_host ? 'grid-cols-3 w-full max-w-3xl' : 'grid-cols-1 max-w-md mx-auto'}`}>
 
                                 <div className="flex flex-col gap-4">
                                     <button
