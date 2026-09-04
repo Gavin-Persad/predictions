@@ -107,7 +107,7 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
                 if (gameWeekIds.length > 0) {
                     const { data: gameWeeksData, error: gameWeeksError } = await supabase
                         .from('game_weeks')
-                        .select('id, live_start')
+                        .select('id, live_start, predictions_close')
                         .in('id', gameWeekIds as string[]);
                     
                     if (gameWeeksError) throw gameWeeksError;
@@ -120,8 +120,11 @@ export default function ViewLaveryCup({ seasonId, onClose }: Props): JSX.Element
                 
                 const processedRounds = roundsData.map(round => ({
                     ...round,
+                    // Use predictions_close (when predictions window closes) to control
+                    // when Lavery Cup selections become visible. Fall back to live_start
+                    // if predictions_close is not present.
                     game_week_start_date: round.game_week_id && gameWeeks[round.game_week_id] ? 
-                        gameWeeks[round.game_week_id].live_start : null
+                        (gameWeeks[round.game_week_id].predictions_close ?? gameWeeks[round.game_week_id].live_start) : null
                 }));
                 
                 setRounds(processedRounds);
