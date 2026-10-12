@@ -1,3 +1,5 @@
+//src/app/landing/dashboard.tsx
+
 export default function DashboardPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#0B0F14] text-[#E8EDF2]">

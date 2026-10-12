@@ -1,7 +1,12 @@
+//src/app/landing/signin.tsx
+
 "use client";
 
 import { FormEvent, useState } from 'react';
 import { supabase } from '../../../supabaseClient';
+import PitchBackground from '../stylecomponents/background';
+import Logo from '../stylecomponents/logo';
+import { colors } from '../stylecomponents/colors';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
@@ -72,36 +77,47 @@ export default function SignInPage() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0B0F14] text-[#E8EDF2]">
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <div className="absolute inset-x-0 top-1/2 h-px bg-[#151D27]" />
-        <div className="absolute left-1/2 top-1/2 h-[min(80vw,640px)] w-[min(80vw,640px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#151D27]" />
-      </div>
+    <main
+      className="relative min-h-screen overflow-hidden text-[var(--color-text)]"
+      style={{
+        backgroundColor: colors.background,
+        ['--color-text' as never]: colors.text,
+        ['--color-pitch-line' as never]: colors.pitchLine,
+        ['--color-muted' as never]: colors.muted,
+        ['--color-field' as never]: colors.field,
+        ['--color-border' as never]: colors.border,
+        ['--color-border-strong' as never]: colors.borderStrong,
+        ['--color-lime' as never]: colors.lime,
+        ['--color-lime-hover' as never]: colors.limeHover,
+        ['--color-background' as never]: colors.background,
+        ['--color-placeholder' as never]: colors.placeholder,
+        ['--color-success-background' as never]: colors.successBackground,
+        ['--color-success-border' as never]: colors.successBorder,
+        ['--color-success-text' as never]: colors.successText,
+        ['--color-error-background' as never]: colors.errorBackground,
+        ['--color-error-border' as never]: colors.errorBorder,
+        ['--color-error-text' as never]: colors.errorText,
+      }}
+    >
+      <PitchBackground className="pointer-events-none absolute inset-0" />
 
       <div className="relative z-10 flex min-h-screen items-center justify-center p-6">
-        <div className="w-full max-w-[420px] rounded-[14px] border border-[#243040] bg-[#141B24] p-7 shadow-[0_0_0_1px_rgba(36,48,64,0.7)]">
+        <div
+          className="w-full max-w-[420px] rounded-[14px] border p-7 shadow-[0_0_0_1px_rgba(36,48,64,0.7)]"
+          style={{
+            backgroundColor: colors.panel,
+            borderColor: colors.border,
+          }}
+        >
           <div className="mb-6 flex items-center gap-3">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-5 w-5 text-[#B6F23C]"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 7.5l3.5 2.5-1.3 4h-4.4l-1.3-4z" />
-              <path d="M12 3v4.5M15.5 10l4.2-1.3M14.2 14l2.6 3.6M9.8 14l-2.6 3.6M8.5 10L4.3 8.7" />
-            </svg>
-            <span className="text-sm font-medium text-[#E8EDF2]">The Barman</span>
+            <Logo className="h-5 w-5 text-[var(--color-lime)]" />
+            <span className="text-sm font-medium text-[var(--color-text)]">The Barman</span>
           </div>
 
-          <h1 className="mb-1 text-3xl font-semibold tracking-[-0.02em] text-[#E8EDF2]">
+          <h1 className="mb-1 text-3xl font-semibold tracking-[-0.02em] text-[var(--color-text)]">
             {isLogin ? 'Log in' : 'Create an account'}
           </h1>
-          <p className="mb-6 text-sm text-[#8A97A6]">
+          <p className="mb-6 text-sm text-[var(--color-muted)]">
             {isLogin
               ? 'Enter your predictions before the weekly deadline.'
               : 'Join the competition. The host will add you to the season.'}
@@ -112,8 +128,8 @@ export default function SignInPage() {
               role="alert"
               className={`mb-4 rounded-lg border px-3 py-2 text-sm ${
                 messageType === 'success'
-                  ? 'border-[#1F5236] bg-[#14301F] text-[#4ADE80]'
-                  : 'border-[#5A2A2E] bg-[#2A1517] text-[#FF7B7B]'
+                  ? 'border-[var(--color-success-border)] bg-[var(--color-success-background)] text-[var(--color-success-text)]'
+                  : 'border-[var(--color-error-border)] bg-[var(--color-error-background)] text-[var(--color-error-text)]'
               }`}
             >
               {message}
@@ -122,7 +138,7 @@ export default function SignInPage() {
 
           <form onSubmit={handleAuth} noValidate>
             <div className="mb-4">
-              <label htmlFor="email" className="mb-2 block text-xs text-[#8A97A6]">
+              <label htmlFor="email" className="mb-2 block text-xs text-[var(--color-muted)]">
                 Email
               </label>
               <input
@@ -133,18 +149,22 @@ export default function SignInPage() {
                 placeholder="you@example.com"
                 autoComplete="email"
                 required
-                className="w-full rounded-lg border border-[#3A4A5E] bg-[#0F151C] px-3 py-3 text-[15px] text-[#E8EDF2] placeholder:text-[#4A5766] focus:border-transparent focus:outline-2 focus:outline-[#B6F23C]"
+                className="w-full rounded-lg border px-3 py-3 text-[15px] text-[var(--color-text)] placeholder:text-[var(--color-placeholder)] focus:border-transparent focus:outline-2 focus:outline-[var(--color-lime)]"
+                style={{
+                  backgroundColor: colors.field,
+                  borderColor: colors.borderStrong,
+                }}
               />
             </div>
 
             <div className="mb-4">
               <div className="mb-2 flex items-center justify-between gap-2">
-                <label htmlFor="password" className="block text-xs text-[#8A97A6]">
+                <label htmlFor="password" className="block text-xs text-[var(--color-muted)]">
                   Password
                 </label>
                 <button
                   type="button"
-                  className="text-xs text-[#8A97A6] transition hover:text-[#B6F23C]"
+                  className="text-xs text-[var(--color-muted)] transition hover:text-[var(--color-lime)]"
                   onClick={() => setMessage('Password reset is coming soon.')}
                 >
                   Forgot password?
@@ -159,15 +179,19 @@ export default function SignInPage() {
                 minLength={6}
                 maxLength={18}
                 required
-                className="w-full rounded-lg border border-[#3A4A5E] bg-[#0F151C] px-3 py-3 text-[15px] text-[#E8EDF2] placeholder:text-[#4A5766] focus:border-transparent focus:outline-2 focus:outline-[#B6F23C]"
+                className="w-full rounded-lg border px-3 py-3 text-[15px] text-[var(--color-text)] placeholder:text-[var(--color-placeholder)] focus:border-transparent focus:outline-2 focus:outline-[var(--color-lime)]"
+                style={{
+                  backgroundColor: colors.field,
+                  borderColor: colors.borderStrong,
+                }}
               />
-              <p className="mt-2 text-[11px] text-[#8A97A6]">6 to 18 characters.</p>
+              <p className="mt-2 text-[11px] text-[var(--color-muted)]">6 to 18 characters.</p>
             </div>
 
             {!isLogin && (
               <>
                 <div className="mb-4">
-                  <label htmlFor="username" className="mb-2 block text-xs text-[#8A97A6]">
+                  <label htmlFor="username" className="mb-2 block text-xs text-[var(--color-muted)]">
                     Display name
                   </label>
                   <input
@@ -178,12 +202,16 @@ export default function SignInPage() {
                     placeholder="Shown on the league table"
                     autoComplete="nickname"
                     required
-                    className="w-full rounded-lg border border-[#3A4A5E] bg-[#0F151C] px-3 py-3 text-[15px] text-[#E8EDF2] placeholder:text-[#4A5766] focus:border-transparent focus:outline-2 focus:outline-[#B6F23C]"
+                    className="w-full rounded-lg border px-3 py-3 text-[15px] text-[var(--color-text)] placeholder:text-[var(--color-placeholder)] focus:border-transparent focus:outline-2 focus:outline-[var(--color-lime)]"
+                    style={{
+                      backgroundColor: colors.field,
+                      borderColor: colors.borderStrong,
+                    }}
                   />
                 </div>
 
                 <div className="mb-4">
-                  <label htmlFor="club" className="mb-2 block text-xs text-[#8A97A6]">
+                  <label htmlFor="club" className="mb-2 block text-xs text-[var(--color-muted)]">
                     Club
                   </label>
                   <input
@@ -193,7 +221,11 @@ export default function SignInPage() {
                     onChange={(event) => setClub(event.target.value)}
                     placeholder="The team you support"
                     required
-                    className="w-full rounded-lg border border-[#3A4A5E] bg-[#0F151C] px-3 py-3 text-[15px] text-[#E8EDF2] placeholder:text-[#4A5766] focus:border-transparent focus:outline-2 focus:outline-[#B6F23C]"
+                    className="w-full rounded-lg border px-3 py-3 text-[15px] text-[var(--color-text)] placeholder:text-[var(--color-placeholder)] focus:border-transparent focus:outline-2 focus:outline-[var(--color-lime)]"
+                    style={{
+                      backgroundColor: colors.field,
+                      borderColor: colors.borderStrong,
+                    }}
                   />
                 </div>
               </>
@@ -202,13 +234,14 @@ export default function SignInPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="mt-2 w-full rounded-lg bg-[#B6F23C] px-4 py-3 font-semibold text-[#0B0F14] transition hover:bg-[#C6F75F] disabled:cursor-not-allowed disabled:opacity-70"
+              className="mt-2 w-full rounded-lg px-4 py-3 font-semibold text-[var(--color-background)] transition disabled:cursor-not-allowed disabled:opacity-70"
+              style={{ backgroundColor: colors.lime }}
             >
               {isSubmitting ? 'Please wait...' : isLogin ? 'Log in' : 'Create account'}
             </button>
           </form>
 
-          <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#243040] pt-4 text-sm text-[#8A97A6]">
+          <div className="mt-5 flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-4 text-sm text-[var(--color-muted)]">
             <span>{isLogin ? 'Not registered yet?' : 'Already registered?'}</span>
             <button
               type="button"
@@ -217,7 +250,8 @@ export default function SignInPage() {
                 setMessage('');
                 setMessageType('');
               }}
-              className="rounded-lg border border-[#3A4A5E] bg-transparent px-3 py-2 font-medium text-[#E8EDF2] transition hover:border-[#B6F23C] hover:text-[#B6F23C]"
+              className="rounded-lg border px-3 py-2 font-medium text-[var(--color-text)] transition hover:border-[var(--color-lime)] hover:text-[var(--color-lime)]"
+              style={{ borderColor: colors.borderStrong }}
             >
               {isLogin ? 'Create an account' : 'Back to log in'}
             </button>

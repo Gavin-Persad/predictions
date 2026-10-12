@@ -1,3 +1,5 @@
+//src/app/landing/admin.tsx
+
 export default function AdminPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#0B0F14] text-[#E8EDF2]">
