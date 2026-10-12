@@ -1,5 +1,12 @@
 # Project Plan
 
+## 2.0
+
+### change needed later (things that will upset current app)
+
+- supabase redirect from emails on sign up- authentication> url congfigurations> /landing/dashboard
+- forgot password, redirect from emails needs correcting
+
 ## In Action
 
 - Lavery Cup: selection issues when players change picks (ensure single source of truth and no duplicate rows).
@@ -17,7 +24,6 @@
 - add some data projects to the app (league progression and personal tables)
 - admin view of how many players have entered and enter their scores for them
 - add new table to DB "Teams" make team selection when creating game weeks dropdown options, when a new team is added it adds to the table, when we click the drop down we get all previous options to use.
-
 
 ## Completed (summary)
 

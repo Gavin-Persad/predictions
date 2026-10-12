@@ -13,7 +13,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [club, setClub] = useState('');
-  const [isLogin, setIsLogin] = useState(true);
+  const [view, setView] = useState<'login' | 'signup' | 'forgot'>('login');
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,8 +21,9 @@ export default function SignInPage() {
   const handleAuth = async (event: FormEvent) => {
     event.preventDefault();
     setIsSubmitting(true);
+    const resetPasswordRedirectTo = `${window.location.origin}/landing/reset-password`;
 
-    if (isLogin) {
+    if (view === 'login') {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -36,6 +37,24 @@ export default function SignInPage() {
       }
 
       setMessage('Logged in. Taking you to your dashboard.');
+      setMessageType('success');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (view === 'forgot') {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: resetPasswordRedirectTo,
+      });
+
+      if (error) {
+        setMessage(error.message);
+        setMessageType('error');
+        setIsSubmitting(false);
+        return;
+      }
+
+      setMessage('Password reset email sent. Check your inbox for the link.');
       setMessageType('success');
       setIsSubmitting(false);
       return;
@@ -111,16 +130,18 @@ export default function SignInPage() {
         >
           <div className="mb-6 flex items-center gap-3">
             <Logo className="h-5 w-5 text-[var(--color-lime)]" />
-            <span className="text-sm font-medium text-[var(--color-text)]">The Barman</span>
+            <span className="text-sm font-medium text-[var(--color-text)]">The George Predictions League</span>
           </div>
 
           <h1 className="mb-1 text-3xl font-semibold tracking-[-0.02em] text-[var(--color-text)]">
-            {isLogin ? 'Log in' : 'Create an account'}
+            {view === 'login' ? 'Log in' : view === 'signup' ? 'Create an account' : 'Reset password'}
           </h1>
           <p className="mb-6 text-sm text-[var(--color-muted)]">
-            {isLogin
+            {view === 'login'
               ? 'Enter your predictions before the weekly deadline.'
-              : 'Join the competition. The host will add you to the season.'}
+              : view === 'signup'
+                ? 'Join the competition.'
+                : 'Enter your email and we will send you a reset link.'}
           </p>
 
           {message && (
@@ -157,38 +178,44 @@ export default function SignInPage() {
               />
             </div>
 
-            <div className="mb-4">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <label htmlFor="password" className="block text-xs text-[var(--color-muted)]">
-                  Password
-                </label>
-                <button
-                  type="button"
-                  className="text-xs text-[var(--color-muted)] transition hover:text-[var(--color-lime)]"
-                  onClick={() => setMessage('Password reset is coming soon.')}
-                >
-                  Forgot password?
-                </button>
+            {view !== 'forgot' && (
+              <div className="mb-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <label htmlFor="password" className="block text-xs text-[var(--color-muted)]">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    className="text-xs text-[var(--color-muted)] transition hover:text-[var(--color-lime)]"
+                    onClick={() => {
+                      setView('forgot');
+                      setMessage('');
+                      setMessageType('');
+                    }}
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete={view === 'login' ? 'current-password' : 'new-password'}
+                  minLength={6}
+                  maxLength={18}
+                  required
+                  className="w-full rounded-lg border px-3 py-3 text-[15px] text-[var(--color-text)] placeholder:text-[var(--color-placeholder)] focus:border-transparent focus:outline-2 focus:outline-[var(--color-lime)]"
+                  style={{
+                    backgroundColor: colors.field,
+                    borderColor: colors.borderStrong,
+                  }}
+                />
+                <p className="mt-2 text-[11px] text-[var(--color-muted)]">6 to 18 characters.</p>
               </div>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete={isLogin ? 'current-password' : 'new-password'}
-                minLength={6}
-                maxLength={18}
-                required
-                className="w-full rounded-lg border px-3 py-3 text-[15px] text-[var(--color-text)] placeholder:text-[var(--color-placeholder)] focus:border-transparent focus:outline-2 focus:outline-[var(--color-lime)]"
-                style={{
-                  backgroundColor: colors.field,
-                  borderColor: colors.borderStrong,
-                }}
-              />
-              <p className="mt-2 text-[11px] text-[var(--color-muted)]">6 to 18 characters.</p>
-            </div>
+            )}
 
-            {!isLogin && (
+            {view === 'signup' && (
               <>
                 <div className="mb-4">
                   <label htmlFor="username" className="mb-2 block text-xs text-[var(--color-muted)]">
@@ -237,23 +264,35 @@ export default function SignInPage() {
               className="mt-2 w-full rounded-lg px-4 py-3 font-semibold text-[var(--color-background)] transition disabled:cursor-not-allowed disabled:opacity-70"
               style={{ backgroundColor: colors.lime }}
             >
-              {isSubmitting ? 'Please wait...' : isLogin ? 'Log in' : 'Create account'}
+              {isSubmitting
+                ? 'Please wait...'
+                : view === 'login'
+                  ? 'Log in'
+                  : view === 'signup'
+                    ? 'Create account'
+                    : 'Send reset link'}
             </button>
           </form>
 
           <div className="mt-5 flex items-center justify-between gap-3 border-t border-[var(--color-border)] pt-4 text-sm text-[var(--color-muted)]">
-            <span>{isLogin ? 'Not registered yet?' : 'Already registered?'}</span>
+            <span>
+              {view === 'login'
+                ? 'Not registered yet?'
+                : view === 'signup'
+                  ? 'Already registered?'
+                  : 'Remembered your password?'}
+            </span>
             <button
               type="button"
               onClick={() => {
-                setIsLogin((current) => !current);
+                setView((current) => (current === 'login' ? 'signup' : 'login'));
                 setMessage('');
                 setMessageType('');
               }}
               className="rounded-lg border px-3 py-2 font-medium text-[var(--color-text)] transition hover:border-[var(--color-lime)] hover:text-[var(--color-lime)]"
               style={{ borderColor: colors.borderStrong }}
             >
-              {isLogin ? 'Create an account' : 'Back to log in'}
+              {view === 'login' ? 'Create an account' : view === 'signup' ? 'Back to log in' : 'Back to log in'}
             </button>
           </div>
         </div>
