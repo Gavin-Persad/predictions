@@ -4,8 +4,9 @@
 
 ### change needed later (things that will upset current app)
 
-- supabase redirect from emails on sign up- authentication> url congfigurations> /landing/dashboard
+- supabase redirect from emails on sign up- authentication> url congfigurations> /landing/dashboard -- Should be correct, just needs checking once the branch has been merged.
 - forgot password, redirect from emails needs correcting
+
 
 ## In Action
 

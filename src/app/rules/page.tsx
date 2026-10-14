@@ -302,7 +302,7 @@ export default function Rules() {
               <ul className="ml-5 list-disc text-[var(--color-text)]/90">
                 <li>Predictions close at 11pm the day before the first match of the gameweek</li>
                 <li>Late predictions will not be counted</li>
-                <li>Default prediction is 88-88 if no prediction is made</li>
+                <li>If the prediction window is missed with no scores entered, the player receives zero points.”</li>
               </ul>
 
               <h3 className="mt-4 text-xl font-semibold text-[var(--color-text)]">Match Results</h3>
