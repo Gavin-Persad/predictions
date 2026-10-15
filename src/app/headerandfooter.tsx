@@ -286,24 +286,8 @@ export default function DashboardShell({
           onOpenProfileSettings={() => setShowProfileSettings(true)}
         />
 
-        <div
-          className="overflow-hidden rounded-[18px] border shadow-[0_0_0_1px_rgba(36,48,64,0.7)]"
-          style={{
-            backgroundColor: colors.panel,
-            borderColor: colors.border,
-          }}
-        >
-          <div className="px-4 py-5 md:px-6 md:py-6">
-            {title && (
-              <div className="mb-5">
-                <h1 className="text-2xl font-semibold tracking-[-0.02em] text-[var(--color-text)]">
-                  {title}
-                </h1>
-              </div>
-            )}
-
-            <div className="space-y-4">{children ?? defaultContent}</div>
-          </div>
+        <div className="px-0 py-0 md:px-0 md:py-0">
+          <div className="space-y-4">{children ?? defaultContent}</div>
         </div>
 
         <AppFooter onOpenProfileSettings={() => setShowProfileSettings(true)} />
