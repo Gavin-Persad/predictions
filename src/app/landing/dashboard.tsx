@@ -7,3 +7,4 @@ import DashboardShell from '../headerandfooter';
 export default function DashboardPage() {
   return <DashboardShell title="Dashboard" />;
 }
+

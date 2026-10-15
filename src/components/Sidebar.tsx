@@ -97,11 +97,6 @@ export default function Sidebar() {
                             </li>
                         )}
                         <li>
-                            <Link href="/profilesettings">
-                                <span className="block px-4 py-2 hover:bg-gray-700 rounded">Profile Settings</span>
-                            </Link>
-                        </li>
-                        <li>
                             <Link href="/about">
                                 <span className="block px-4 py-2 hover:bg-gray-700 rounded">About</span>
                             </Link>

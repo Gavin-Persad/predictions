@@ -1,8 +1,11 @@
+//src/app/headerandfooter.tsxs
+
 "use client";
 
 import Link from 'next/link';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../supabaseClient';
+import ProfileSettingsView from './profilesettings/profsett';
 import Logo from './stylecomponents/logo';
 import { colors } from './stylecomponents/colors';
 import PitchBackground from './stylecomponents/background';
@@ -17,9 +20,11 @@ type DashboardShellProps = {
 export function AppHeader({
   profileName,
   seasonName,
+  onOpenProfileSettings,
 }: {
   profileName?: string;
   seasonName?: string;
+  onOpenProfileSettings?: () => void;
 }) {
   return (
     <header
@@ -41,8 +46,9 @@ export function AppHeader({
           </span>
         </Link>
 
-        <Link
-          href="/profilesettings"
+        <button
+          type="button"
+          onClick={onOpenProfileSettings}
           className="rounded-full border px-2.5 py-1 text-xs font-medium text-[var(--color-text)] transition-colors hover:border-[var(--color-lime)] hover:text-[var(--color-lime)] sm:text-sm"
           style={{
             borderColor: colors.borderStrong,
@@ -50,7 +56,7 @@ export function AppHeader({
           }}
         >
           {profileName || 'Profile'}
-        </Link>
+        </button>
       </div>
 
       <div className="text-right text-sm text-[var(--color-muted)] sm:text-base">
@@ -61,14 +67,14 @@ export function AppHeader({
   );
 }
 
-export function AppFooter() {
+export function AppFooter({ onOpenProfileSettings }: { onOpenProfileSettings?: () => void }) {
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
 
   const navItems = [
     { href: '/', label: 'Home' },
     { href: '/rules', label: 'Rules' },
     { href: '/about', label: 'About' },
-    { href: '/profilesettings', label: 'Profile Settings' },
+    { label: 'Profile Settings', onClick: onOpenProfileSettings },
     { href: 'mailto:gavinapersad@gmail.com', label: 'Contact' },
   ];
 
@@ -92,12 +98,24 @@ export function AppFooter() {
         >
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-center text-[var(--color-muted)]">
             {navItems.map((item) => {
-              const isMailLink = item.href.startsWith('mailto:');
               const content = (
                 <span className="transition-colors hover:text-[var(--color-lime)]">{item.label}</span>
               );
 
-              if (isMailLink) {
+              if (item.onClick) {
+                return (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={item.onClick}
+                    className="inline-flex items-center justify-center text-[var(--color-muted)]"
+                  >
+                    {content}
+                  </button>
+                );
+              }
+
+              if (item.href?.startsWith('mailto:')) {
                 return (
                   <a
                     key={item.label}
@@ -112,7 +130,7 @@ export function AppFooter() {
               }
 
               return (
-                <Link key={item.label} href={item.href} className="inline-flex items-center justify-center">
+                <Link key={item.label} href={item.href || '/'} className="inline-flex items-center justify-center">
                   {content}
                 </Link>
               );
@@ -180,6 +198,7 @@ export default function DashboardShell({
 }: DashboardShellProps) {
   const [profileName, setProfileName] = useState(initialProfileName || 'Player');
   const [seasonName, setSeasonName] = useState(initialSeasonName || 'Current season');
+  const [showProfileSettings, setShowProfileSettings] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -261,7 +280,11 @@ export default function DashboardShell({
       <PitchBackground className="pointer-events-none absolute inset-0 opacity-70" />
 
       <div className="relative z-10 mx-auto max-w-[1280px] px-4 py-5 md:px-6 lg:px-8">
-        <AppHeader profileName={profileName} seasonName={seasonName} />
+        <AppHeader
+          profileName={profileName}
+          seasonName={seasonName}
+          onOpenProfileSettings={() => setShowProfileSettings(true)}
+        />
 
         <div
           className="overflow-hidden rounded-[18px] border shadow-[0_0_0_1px_rgba(36,48,64,0.7)]"
@@ -283,8 +306,30 @@ export default function DashboardShell({
           </div>
         </div>
 
-        <AppFooter />
+        <AppFooter onOpenProfileSettings={() => setShowProfileSettings(true)} />
       </div>
+
+      {showProfileSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 px-4 py-8">
+          <div className="w-full max-w-[940px]">
+            <div className="mb-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowProfileSettings(false)}
+                className="rounded-full border px-3 py-1.5 text-sm font-medium text-[var(--color-text)]"
+                style={{
+                  borderColor: colors.borderStrong,
+                  backgroundColor: colors.panel,
+                }}
+              >
+                Close
+              </button>
+            </div>
+
+            <ProfileSettingsView embedded />
+          </div>
+        </div>
+      )}
     </main>
   );
 }
