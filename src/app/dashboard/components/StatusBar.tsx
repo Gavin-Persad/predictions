@@ -307,15 +307,15 @@ export default function StatusBar() {
           </div>
         </div>
 
-        <div className="mt-2 grid gap-5 lg:grid-cols-[1.2fr_1.8fr] lg:items-end">
+        <div className="mt-2 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(360px,520px)] lg:items-end">
           <div className="space-y-3">
-            <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-muted)]">Closes in</p>
+            <p className="text-[13px] uppercase tracking-[0.16em] text-[var(--color-muted)]">Closes in</p>
 
             <div className="flex flex-wrap items-baseline gap-2">
               <span
                 className={[
                   'font-semibold tracking-[-0.04em]',
-                  isClosedWeek ? 'whitespace-nowrap text-3xl md:text-5xl' : 'text-4xl md:text-[3.3rem]',
+                  isClosedWeek ? 'whitespace-nowrap text-3xl md:text-5xl' : 'text-4xl md:text-[40px]',
                 ].join(' ')}
                 style={{
                   color: '#F4C76B',
@@ -325,7 +325,7 @@ export default function StatusBar() {
               </span>
             </div>
 
-            <p className="text-sm text-[var(--color-muted)]">Deadline: {statusDeadlineText}</p>
+            <p className="text-[13px] text-[var(--color-muted)]">Deadline: {statusDeadlineText}</p>
 
             <div className="flex justify-start">
               <button
@@ -344,14 +344,14 @@ export default function StatusBar() {
           </div>
 
           <div className="flex w-full items-end justify-end">
-            <div className="w-full max-w-[620px]">
-              <div className="mb-2 flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-[var(--color-muted)]">
+            <div className="w-full">
+              <div className="mb-2 flex items-center justify-between text-[13px] uppercase tracking-[0.14em] text-[var(--color-muted)]">
                 <span>Open for predictions</span>
                 <span>Predictions lock</span>
               </div>
 
               <div
-                className="relative h-2 overflow-hidden rounded-full"
+                className="relative h-[6px] overflow-hidden rounded-full"
                 style={{ backgroundColor: colors.field, border: `1px solid ${colors.borderStrong}` }}
               >
                 <div
