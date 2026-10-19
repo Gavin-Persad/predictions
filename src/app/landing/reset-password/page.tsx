@@ -1,3 +1,5 @@
+//src/app/landing/reset-password/page.tsx
+
 "use client";
 
 import { FormEvent, useState } from 'react';
