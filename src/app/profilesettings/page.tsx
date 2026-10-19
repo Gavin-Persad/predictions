@@ -88,6 +88,13 @@ export default function ProfileSettings() {
                 >
                     Back to Dashboard
                 </button>
+                <button
+                    type="button"
+                    onClick={() => router.push('/reset-password')}
+                    className="mb-8 ml-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                    Change Password
+                </button>
                 {message && (
                     <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>
                 )}
