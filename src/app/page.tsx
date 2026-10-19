@@ -16,6 +16,7 @@ export default function Home() {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [isClient, setIsClient] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -82,6 +83,29 @@ export default function Home() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setMessage('Enter your email address first.');
+      setMessageType('error');
+      return;
+    }
+
+    setIsSendingReset(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      setMessage(error.message);
+      setMessageType('error');
+    } else {
+      setMessage('Check your email for a password reset link.');
+      setMessageType('success');
+    }
+
+    setIsSendingReset(false);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="absolute top-4 right-4">
@@ -123,6 +147,16 @@ export default function Home() {
               required
             />
             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Passwords must be 6-18 characters long.</p>
+            {isLogin && (
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={isSendingReset}
+                className="mt-2 text-xs text-indigo-600 hover:text-indigo-900 disabled:cursor-not-allowed disabled:opacity-60 dark:text-indigo-400 dark:hover:text-indigo-200"
+              >
+                {isSendingReset ? 'Sending reset email...' : 'Forgot password?'}
+              </button>
+            )}
           </div>
           {!isLogin && (
             <>
