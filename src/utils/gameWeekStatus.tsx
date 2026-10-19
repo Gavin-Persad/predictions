@@ -5,6 +5,7 @@ import { supabase } from '../../supabaseClient';
 export type GameWeekStatus = 
   | 'upcoming' 
   | 'predictions'
+  | 'locked'
   | 'live'
   | 'awaiting_scores'
   | 'completed';
@@ -27,6 +28,8 @@ export async function determineGameWeekStatus(gameWeek: {
     return 'upcoming';
   } else if (now >= predOpen && now < predClose) {
     return 'predictions';
+  } else if (now < liveStart) {
+    return 'locked';
   } else if (now >= liveStart && now <= liveEnd) {
     return 'live';
   } else if (now > liveEnd) {
@@ -51,6 +54,7 @@ export function getStatusLabel(status: GameWeekStatus): string {
   switch (status) {
     case 'upcoming': return 'Upcoming';
     case 'predictions': return 'Predictions Open';
+    case 'locked': return 'Predictions Locked';
     case 'live': return 'Games live';
     case 'awaiting_scores': return 'Awaiting correct scores';
     case 'completed': return 'Game week complete';
@@ -62,6 +66,7 @@ export function getStatusColor(status: GameWeekStatus): string {
   switch (status) {
     case 'upcoming': return 'text-blue-600 dark:text-blue-400';
     case 'predictions': return 'text-green-600 dark:text-green-400';
+    case 'locked': return 'text-amber-600 dark:text-amber-400';
     case 'live': return 'text-amber-600 dark:text-amber-400';
     case 'awaiting_scores': return 'text-purple-600 dark:text-purple-400';
     case 'completed': return 'text-gray-600 dark:text-gray-400';

@@ -23,7 +23,7 @@ type PlayerScore = {
 
 export default function CurrentGameWeekTile() {
   const [currentGameWeek, setCurrentGameWeek] = useState<GameWeek | null>(null);
-  const [gameWeekStatus, setGameWeekStatus] = useState<'upcoming' | 'predictions' | 'live' | 'awaiting_scores' | 'completed'>('upcoming');
+  const [gameWeekStatus, setGameWeekStatus] = useState<'upcoming' | 'predictions' | 'locked' | 'live' | 'awaiting_scores' | 'completed'>('upcoming');
   const [playerScore, setPlayerScore] = useState<PlayerScore | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -96,6 +96,8 @@ export default function CurrentGameWeekTile() {
         return `Predictions open on ${new Date(currentGameWeek.predictions_open).toLocaleDateString()}`;
       case 'predictions':
         return "Predictions open! Click here to enter your scores";
+      case 'locked':
+        return "Predictions are locked";
       case 'live':
         return "Game week is now live";
       case 'awaiting_scores':
@@ -115,6 +117,8 @@ export default function CurrentGameWeekTile() {
         return 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300';
       case 'predictions':
         return 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300';
+      case 'locked':
+        return 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300';
       case 'live':
         return 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300';
       case 'awaiting_scores':

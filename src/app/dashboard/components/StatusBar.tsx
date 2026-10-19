@@ -34,6 +34,13 @@ export default function StatusBar() {
   const [loading, setLoading] = useState(true);
   const [showChooseGameWeek, setShowChooseGameWeek] = useState(false);
   const [activePanel, setActivePanel] = useState<'status' | 'view' | 'scores'>('status');
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(Date.now()), 1000);
+
+    return () => window.clearInterval(timer);
+  }, []);
 
   const fetchGameWeeksForSeason = useCallback(
     async (seasonId: string) => {
@@ -149,6 +156,8 @@ export default function StatusBar() {
     switch (status) {
       case 'predictions':
         return { label: 'Predictions open', tone: 'amber', badgeClass: 'text-[#F3C16D]' };
+      case 'locked':
+        return { label: 'Predictions locked', tone: 'amber', badgeClass: 'text-[#F3C16D]' };
       case 'live':
         return { label: 'Game week live', tone: 'amber', badgeClass: 'text-[#F8D978]' };
       case 'awaiting_scores':
@@ -165,7 +174,7 @@ export default function StatusBar() {
   const countdown = useMemo(() => {
     if (!selectedGameWeek) return 'Loading...';
 
-    const now = Date.now();
+    const now = currentTime;
     const targets: Record<string, number> = {
       predictions: new Date(selectedGameWeek.predictions_close).getTime(),
       live: new Date(selectedGameWeek.live_end).getTime(),
@@ -191,7 +200,22 @@ export default function StatusBar() {
     }
 
     return `${hours}h ${minutes}m`;
-  }, [selectedGameWeek, status]);
+  }, [currentTime, selectedGameWeek, status]);
+
+  const openTimeText = useMemo(() => {
+    if (!selectedGameWeek) return 'Opening soon';
+
+    const openTime = new Date(selectedGameWeek.predictions_open);
+    const formatted = openTime.toLocaleString('en-GB', {
+      timeZone: 'Europe/London',
+      weekday: 'short',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+
+    return formatted.replace(':00 ', ' ').toLowerCase();
+  }, [selectedGameWeek]);
 
   const deadlineText = useMemo(() => {
     if (!selectedGameWeek) return 'Deadline';
@@ -205,12 +229,40 @@ export default function StatusBar() {
     return `${weekday} ${formattedHour}${period}`;
   }, [selectedGameWeek]);
 
-  const isClosedWeek = status === 'completed' || status === 'awaiting_scores';
+  const statusSummaryText = (() => {
+    switch (status) {
+      case 'upcoming':
+        return `Opens at ${openTimeText}`;
+      case 'predictions':
+        return countdown;
+      case 'locked':
+        return '🔒 Predictions Locked';
+      case 'live':
+        return '⚽ Games Live now';
+      case 'awaiting_scores':
+        return '⏳ Scores Coming Soon';
+      case 'completed':
+        return '✅ Game week complete';
+      default:
+        return 'Loading...';
+    }
+  })();
+
+  const statusSummaryColor =
+    status === 'upcoming'
+      ? '#88C9FF'
+      : status === 'predictions' || status === 'locked'
+        ? '#F4C76B'
+        : status === 'live'
+          ? '#B6F23C'
+          : status === 'awaiting_scores'
+            ? '#C7B8FF'
+            : '#D9E1EA';
 
   const timelineProgress = useMemo(() => {
     if (!selectedGameWeek) return 0;
 
-    const now = Date.now();
+    const now = currentTime;
     const predOpen = new Date(selectedGameWeek.predictions_open).getTime();
     const predClose = new Date(selectedGameWeek.predictions_close).getTime();
 
@@ -221,7 +273,37 @@ export default function StatusBar() {
     const elapsed = now - predOpen;
 
     return Math.min(100, Math.max(0, (elapsed / trackDuration) * 100));
-  }, [selectedGameWeek]);
+  }, [currentTime, selectedGameWeek]);
+
+  const liveProgress = useMemo(() => {
+    if (!selectedGameWeek) return 0;
+
+    const now = currentTime;
+    const liveStart = new Date(selectedGameWeek.live_start).getTime();
+    const liveEnd = new Date(selectedGameWeek.live_end).getTime();
+
+    if (now <= liveStart) return 0;
+    if (now >= liveEnd) return 100;
+
+    const liveDuration = liveEnd - liveStart;
+    const elapsed = now - liveStart;
+
+    return Math.min(100, Math.max(0, (elapsed / liveDuration) * 100));
+  }, [currentTime, selectedGameWeek]);
+
+  const isLiveTimeline = status === 'live' || status === 'awaiting_scores' || status === 'completed';
+  const progressBarValue = isLiveTimeline ? liveProgress : timelineProgress;
+  const progressBarLabels = isLiveTimeline
+    ? {
+        start: 'Kick Off',
+        middle: 'Half Time',
+        end: status === 'completed' ? 'Results Locked' : 'Final Whistle',
+      }
+    : {
+        start: 'Open for predictions',
+        middle: '',
+        end: 'Predictions lock',
+      };
 
   const handleSeasonChange = (seasonId: string) => {
     setSelectedSeasonId(seasonId);
@@ -262,8 +344,15 @@ export default function StatusBar() {
     return { label: 'My Predictions', tone: 'lime' };
   })();
 
-  const statusSummaryText = isClosedWeek ? '🔒 Predictions Locked' : countdown;
-  const statusDeadlineText = isClosedWeek ? 'Expired' : deadlineText;
+  const statusDeadlineText =
+    status === 'upcoming' || status === 'predictions'
+      ? `Deadline: ${deadlineText}`
+      : status === 'completed'
+        ? 'New game week will be announced soon.'
+        : 'Deadline: Expired';
+
+  const statusHeaderText =
+    status === 'predictions' ? 'Closes in' : status === 'awaiting_scores' ? 'Please wait' : '';
 
   return (
     <>
@@ -309,45 +398,33 @@ export default function StatusBar() {
 
         <div className="mt-2 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(360px,520px)] lg:items-end">
           <div className="space-y-3">
-            <p className="text-[13px] uppercase tracking-[0.16em] text-[var(--color-muted)]">Closes in</p>
+            <p className="text-[13px] uppercase tracking-[0.16em] text-[var(--color-muted)]">
+              {statusHeaderText}
+            </p>
 
             <div className="flex flex-wrap items-baseline gap-2">
               <span
                 className={[
                   'font-semibold tracking-[-0.04em]',
-                  isClosedWeek ? 'whitespace-nowrap text-3xl md:text-5xl' : 'text-4xl md:text-[40px]',
+                  status === 'predictions' ? 'text-4xl md:text-[40px]' : 'text-[31px] md:text-[34px]',
                 ].join(' ')}
                 style={{
-                  color: '#F4C76B',
+                  color: statusSummaryColor,
                 }}
               >
                 {statusSummaryText}
               </span>
             </div>
 
-            <p className="text-[13px] text-[var(--color-muted)]">Deadline: {statusDeadlineText}</p>
-
-            <div className="flex justify-start">
-              <button
-                type="button"
-                onClick={() => setActivePanel('view')}
-                className="flex h-[56px] w-[48%] min-w-[160px] items-center justify-center rounded-xl border px-4 text-sm font-semibold transition-opacity hover:opacity-95"
-                style={{
-                  backgroundColor: colors.lime,
-                  borderColor: colors.lime,
-                  color: '#0B0F14',
-                }}
-              >
-                View Game Week
-              </button>
-            </div>
+            <p className="text-[13px] text-[var(--color-muted)]">{statusDeadlineText}</p>
           </div>
 
           <div className="flex w-full items-end justify-end">
             <div className="w-full">
               <div className="mb-2 flex items-center justify-between text-[13px] uppercase tracking-[0.14em] text-[var(--color-muted)]">
-                <span>Open for predictions</span>
-                <span>Predictions lock</span>
+                <span>{progressBarLabels.start}</span>
+                {isLiveTimeline && <span>{progressBarLabels.middle}</span>}
+                <span>{progressBarLabels.end}</span>
               </div>
 
               <div
@@ -357,28 +434,42 @@ export default function StatusBar() {
                 <div
                   className="h-full rounded-full"
                   style={{
-                    width: `${Math.max(4, timelineProgress)}%`,
+                    width: `${Math.max(isLiveTimeline ? 0 : 4, progressBarValue)}%`,
                     background: 'linear-gradient(90deg, #B6F23C 0%, #D7F86F 100%)',
                   }}
                 />
               </div>
 
-              <div className="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setActivePanel('scores')}
-                  className="flex h-[56px] w-[48%] min-w-[160px] items-center justify-center rounded-xl border px-4 text-sm font-semibold transition-opacity hover:opacity-95"
-                  style={{
-                    backgroundColor: colors.lime,
-                    borderColor: colors.lime,
-                    color: '#0B0F14',
-                  }}
-                >
-                  {nextAction.label}
-                </button>
-              </div>
             </div>
           </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(360px,520px)] lg:gap-8">
+          <button
+            type="button"
+            onClick={() => setActivePanel('view')}
+            className="flex h-12 w-full items-center justify-center rounded-xl border px-2 text-sm font-semibold transition-opacity hover:opacity-95 lg:h-[56px] lg:w-[48%] lg:justify-self-start lg:px-4"
+            style={{
+              backgroundColor: colors.lime,
+              borderColor: colors.lime,
+              color: '#0B0F14',
+            }}
+          >
+            View Game Week
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActivePanel('scores')}
+            className="flex h-12 w-full items-center justify-center rounded-xl border px-2 text-sm font-semibold transition-opacity hover:opacity-95 lg:h-[56px] lg:w-[48%] lg:justify-self-end lg:px-4"
+            style={{
+              backgroundColor: colors.lime,
+              borderColor: colors.lime,
+              color: '#0B0F14',
+            }}
+          >
+            {nextAction.label}
+          </button>
         </div>
       </div>
 
