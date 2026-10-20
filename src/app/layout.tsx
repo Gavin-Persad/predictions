@@ -16,6 +16,9 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "Football Predictions",
   description: "Created by Gavin the barman",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
