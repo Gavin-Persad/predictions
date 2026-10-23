@@ -344,6 +344,20 @@ export default function StatusBar() {
     return { label: 'My Predictions', tone: 'lime' };
   })();
 
+  if (activePanel === 'view') {
+    return (
+      <ViewGameWeek
+        gameWeek={selectedGameWeek}
+        seasons={seasons}
+        gameWeeks={gameWeeks}
+        selectedSeasonId={selectedSeasonId}
+        onSeasonChange={handleSeasonChange}
+        onSelectGameWeek={handleGameWeekSelect}
+        onBack={() => setActivePanel('status')}
+      />
+    );
+  }
+
   const statusDeadlineText =
     status === 'upcoming' || status === 'predictions'
       ? `Deadline: ${deadlineText}`
@@ -473,7 +487,6 @@ export default function StatusBar() {
         </div>
       </div>
 
-      {activePanel === 'view' && <ViewGameWeek gameWeek={selectedGameWeek} />}
       {activePanel === 'scores' && <EnterScores gameWeek={selectedGameWeek} />}
 
       <ChooseGameWeekModal
