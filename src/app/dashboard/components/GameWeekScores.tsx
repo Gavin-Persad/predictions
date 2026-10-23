@@ -224,42 +224,6 @@ export default function GameWeekScores({ gameWeekId, seasonId }: GameWeekScoresP
 
   return (
     <div>
-      <div className="mb-3 flex justify-end">
-        <button
-          type="button"
-          onClick={() => setShowKey((current) => !current)}
-          className="rounded-full border px-3 py-1.5 text-xs font-medium text-[var(--color-text)]"
-          style={{ borderColor: colors.borderStrong, backgroundColor: colors.field }}
-        >
-          {showKey ? 'Hide key' : '🎨 Colour key'}
-        </button>
-      </div>
-
-      {showKey && (
-        <div
-          className="mb-4 grid gap-x-6 gap-y-2 rounded-lg border p-4 text-sm text-[var(--color-muted)] sm:grid-cols-2"
-          style={{ backgroundColor: colors.field, borderColor: colors.border }}
-        >
-          {KEY_ITEMS.map((item) => (
-            <div key={item.label} className="flex items-center gap-2">
-              <span
-                className="h-5 w-5 shrink-0 rounded border"
-                style={{ backgroundColor: item.tint ?? 'transparent', borderColor: colors.borderStrong }}
-              />
-              {item.label}
-            </div>
-          ))}
-          <div className="flex items-center gap-2">
-            <span className="w-5 shrink-0 text-center text-base" style={{ color: '#FACC15' }}>★</span>
-            Unique correct result (+2 points)
-          </div>
-          <div className="sm:col-span-2">
-            <p className="mb-1 mt-1 font-medium text-[var(--color-text)]">Weekly bonuses</p>
-            4 correct scores: +1 point · 5 correct scores: +2 points · 6+ correct scores: +3 points
-          </div>
-        </div>
-      )}
-
       <div
         className="max-h-[65vh] overflow-auto rounded-lg border"
         style={{ borderColor: colors.border }}
@@ -366,6 +330,42 @@ export default function GameWeekScores({ gameWeekId, seasonId }: GameWeekScoresP
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="mt-4">
+        <button
+          type="button"
+          onClick={() => setShowKey((current) => !current)}
+          className="rounded-full border px-3 py-1.5 text-xs font-medium text-[var(--color-text)]"
+          style={{ borderColor: colors.borderStrong, backgroundColor: colors.field }}
+        >
+          {showKey ? 'Hide key' : '🎨 Colour key'}
+        </button>
+
+        {showKey && (
+          <div
+            className="mt-3 grid gap-x-6 gap-y-2 rounded-lg border p-4 text-sm text-[var(--color-muted)] sm:grid-cols-2"
+            style={{ backgroundColor: colors.field, borderColor: colors.border }}
+          >
+            {KEY_ITEMS.map((item) => (
+              <div key={item.label} className="flex items-center gap-2">
+                <span
+                  className="h-5 w-5 shrink-0 rounded border"
+                  style={{ backgroundColor: item.tint ?? 'transparent', borderColor: colors.borderStrong }}
+                />
+                {item.label}
+              </div>
+            ))}
+            <div className="flex items-center gap-2">
+              <span className="w-5 shrink-0 text-center text-base" style={{ color: '#FACC15' }}>★</span>
+              Unique correct result (+2 points)
+            </div>
+            <div className="sm:col-span-2">
+              <p className="mb-1 mt-1 font-medium text-[var(--color-text)]">Weekly bonuses</p>
+              4 correct scores: +1 point · 5 correct scores: +2 points · 6+ correct scores: +3 points
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
