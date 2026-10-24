@@ -6,7 +6,8 @@ import { determineGameWeekStatus } from '../../../utils/gameWeekStatus';
 import { colors } from '../../stylecomponents/colors';
 import LoadingSpinner from '../../stylecomponents/loading';
 import ChooseGameWeekModal from './ChooseGameWeek';
-import EnterScores from './EnterScores';
+import GameWeekProgressBar from './GameWeekProgressBar';
+import MyPredictions from './MyPredictions';
 import ViewGameWeek from './ViewGameWeek';
 
 type Season = {
@@ -259,52 +260,6 @@ export default function StatusBar() {
             ? '#C7B8FF'
             : '#D9E1EA';
 
-  const timelineProgress = useMemo(() => {
-    if (!selectedGameWeek) return 0;
-
-    const now = currentTime;
-    const predOpen = new Date(selectedGameWeek.predictions_open).getTime();
-    const predClose = new Date(selectedGameWeek.predictions_close).getTime();
-
-    if (now <= predOpen) return 0;
-    if (now >= predClose) return 100;
-
-    const trackDuration = predClose - predOpen;
-    const elapsed = now - predOpen;
-
-    return Math.min(100, Math.max(0, (elapsed / trackDuration) * 100));
-  }, [currentTime, selectedGameWeek]);
-
-  const liveProgress = useMemo(() => {
-    if (!selectedGameWeek) return 0;
-
-    const now = currentTime;
-    const liveStart = new Date(selectedGameWeek.live_start).getTime();
-    const liveEnd = new Date(selectedGameWeek.live_end).getTime();
-
-    if (now <= liveStart) return 0;
-    if (now >= liveEnd) return 100;
-
-    const liveDuration = liveEnd - liveStart;
-    const elapsed = now - liveStart;
-
-    return Math.min(100, Math.max(0, (elapsed / liveDuration) * 100));
-  }, [currentTime, selectedGameWeek]);
-
-  const isLiveTimeline = status === 'live' || status === 'awaiting_scores' || status === 'completed';
-  const progressBarValue = isLiveTimeline ? liveProgress : timelineProgress;
-  const progressBarLabels = isLiveTimeline
-    ? {
-        start: 'Kick Off',
-        middle: 'Half Time',
-        end: status === 'completed' ? 'Results Locked' : 'Final Whistle',
-      }
-    : {
-        start: 'Open for predictions',
-        middle: '',
-        end: 'Predictions lock',
-      };
-
   const handleSeasonChange = (seasonId: string) => {
     setSelectedSeasonId(seasonId);
   };
@@ -356,6 +311,10 @@ export default function StatusBar() {
         onBack={() => setActivePanel('status')}
       />
     );
+  }
+
+  if (activePanel === 'scores') {
+    return <MyPredictions gameWeek={selectedGameWeek} onBack={() => setActivePanel('status')} />;
   }
 
   const statusDeadlineText =
@@ -434,27 +393,7 @@ export default function StatusBar() {
           </div>
 
           <div className="flex w-full items-end justify-end">
-            <div className="w-full">
-              <div className="mb-2 flex items-center justify-between text-[13px] uppercase tracking-[0.14em] text-[var(--color-muted)]">
-                <span>{progressBarLabels.start}</span>
-                {isLiveTimeline && <span>{progressBarLabels.middle}</span>}
-                <span>{progressBarLabels.end}</span>
-              </div>
-
-              <div
-                className="relative h-[6px] overflow-hidden rounded-full"
-                style={{ backgroundColor: colors.field, border: `1px solid ${colors.borderStrong}` }}
-              >
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${Math.max(isLiveTimeline ? 0 : 4, progressBarValue)}%`,
-                    background: 'linear-gradient(90deg, #B6F23C 0%, #D7F86F 100%)',
-                  }}
-                />
-              </div>
-
-            </div>
+            <GameWeekProgressBar gameWeek={selectedGameWeek} status={status} now={currentTime} />
           </div>
         </div>
 
@@ -486,8 +425,6 @@ export default function StatusBar() {
           </button>
         </div>
       </div>
-
-      {activePanel === 'scores' && <EnterScores gameWeek={selectedGameWeek} />}
 
       <ChooseGameWeekModal
         isOpen={showChooseGameWeek}
