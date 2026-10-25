@@ -366,6 +366,12 @@ const LaveryCupConfirmModal = ({
     const handleSaveAll = async () => {
         setLoading(true);
         try {
+            // Stop before any writes if the login is no longer valid; the save endpoint needs the token.
+            const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+            if (authError || !authUser) {
+                throw new Error('SESSION_EXPIRED');
+            }
+
             // First save the regular scores as before
             // 1. Get the season_id first, then use it to fetch players
             if (!seasonId) {
@@ -601,7 +607,14 @@ const LaveryCupConfirmModal = ({
             onSave();
         } catch (error) {
             console.error('Error:', error);
-            setMessage('Error updating scores');
+            if (error instanceof Error && error.message === 'SESSION_EXPIRED') {
+                setShowConfirmModal(false);
+                setShowLaveryCupModal(false);
+                setShowScoresForm(true);
+                setMessage('Error: your session has expired. Please sign out, sign back in and save again.');
+            } else {
+                setMessage('Error updating scores');
+            }
         } finally {
             setLoading(false);
         }
