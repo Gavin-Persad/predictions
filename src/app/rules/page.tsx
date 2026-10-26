@@ -3,12 +3,9 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../supabaseClient';
-import PitchBackground from '../stylecomponents/background';
-import Logo from '../stylecomponents/logo';
-import { colors } from '../stylecomponents/colors';
+import DashboardShell from '../headerandfooter';
 
 export default function Rules() {
   const [loading, setLoading] = useState(true);
@@ -31,71 +28,17 @@ export default function Rules() {
 
   if (loading) {
     return (
-      <main
-        className="relative flex min-h-screen items-center justify-center overflow-hidden text-[var(--color-text)]"
-        style={{
-          backgroundColor: colors.background,
-          ['--color-text' as never]: colors.text,
-          ['--color-pitch-line' as never]: colors.pitchLine,
-        }}
-      >
-        <PitchBackground className="pointer-events-none absolute inset-0" />
-        <div className="relative z-10 rounded border border-[var(--color-border)] bg-[var(--color-panel)] px-6 py-4 text-sm text-[var(--color-muted)]">
+      <DashboardShell title="Game Rules">
+        <div className="mx-auto rounded border border-[var(--color-border)] bg-[var(--color-panel)] px-6 py-4 text-sm text-[var(--color-muted)]">
           Loading...
         </div>
-      </main>
+      </DashboardShell>
     );
   }
 
   return (
-    <main
-      className="relative min-h-screen overflow-hidden text-[var(--color-text)]"
-      style={{
-        backgroundColor: colors.background,
-        ['--color-text' as never]: colors.text,
-        ['--color-pitch-line' as never]: colors.pitchLine,
-        ['--color-muted' as never]: colors.muted,
-        ['--color-field' as never]: colors.field,
-        ['--color-border' as never]: colors.border,
-        ['--color-border-strong' as never]: colors.borderStrong,
-        ['--color-lime' as never]: colors.lime,
-        ['--color-lime-hover' as never]: colors.limeHover,
-        ['--color-background' as never]: colors.background,
-        ['--color-placeholder' as never]: colors.placeholder,
-        ['--color-success-background' as never]: colors.successBackground,
-        ['--color-success-border' as never]: colors.successBorder,
-        ['--color-success-text' as never]: colors.successText,
-        ['--color-error-background' as never]: colors.errorBackground,
-        ['--color-error-border' as never]: colors.errorBorder,
-        ['--color-error-text' as never]: colors.errorText,
-        ['--color-panel' as never]: colors.panel,
-      }}
-    >
-      <PitchBackground className="pointer-events-none absolute inset-0" />
-
-      <div className="relative z-10 flex min-h-screen items-center justify-center p-6">
-        <div className="absolute right-6 top-6 z-20">
-          <Link
-            href="/"
-            className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-2 text-sm font-medium text-[var(--color-text)] shadow-[0_0_0_1px_rgba(36,48,64,0.7)] transition hover:border-[var(--color-lime)] hover:text-[var(--color-lime)]"
-            aria-label="Back to dashboard"
-          >
-            Back to dashboard
-          </Link>
-        </div>
-
-        <div className="absolute left-6 top-6 z-20">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-3 rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-2 shadow-[0_0_0_1px_rgba(36,48,64,0.7)] transition hover:border-[var(--color-lime)] hover:text-[var(--color-lime)]"
-            aria-label="Back to app home"
-          >
-            <Logo className="h-5 w-5 text-[var(--color-lime)]" />
-            <span className="text-sm font-medium text-[var(--color-text)]">The George Predictions League</span>
-          </Link>
-        </div>
-
-        <div className="w-full max-w-5xl rounded-[14px] border border-[var(--color-border)] bg-[var(--color-panel)] p-7 shadow-[0_0_0_1px_rgba(36,48,64,0.7)] md:p-10">
+    <DashboardShell title="Game Rules">
+      <div className="mx-auto w-full max-w-5xl rounded-[14px] border border-[var(--color-border)] bg-[var(--color-panel)] p-7 shadow-[0_0_0_1px_rgba(36,48,64,0.7)] md:p-10">
           <h1 className="mb-8 text-center text-3xl font-semibold tracking-[-0.02em] text-[var(--color-text)] md:text-4xl">
             Game Rules
           </h1>
@@ -325,8 +268,7 @@ export default function Rules() {
               </p>
             </div>
           </section>
-        </div>
       </div>
-    </main>
+    </DashboardShell>
   );
 }

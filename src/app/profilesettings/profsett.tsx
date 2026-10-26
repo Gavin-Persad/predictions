@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardShell from '../headerandfooter';
 import { colors } from '../stylecomponents/colors';
+import SignOutConfirm from '../stylecomponents/SignOutConfirm';
 import { supabase } from '../../../supabaseClient';
 
 type UserProfile = {
@@ -24,6 +25,7 @@ export default function ProfileSettingsView({ embedded = false }: ProfileSetting
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordMessage, setPasswordMessage] = useState('');
@@ -177,14 +179,25 @@ export default function ProfileSettingsView({ embedded = false }: ProfileSetting
               Update profile
             </button>
 
-            <button
-              type="button"
-              onClick={() => setShowPasswordModal(true)}
-              className="rounded-lg border px-4 py-3 text-sm font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-lime)] hover:text-[var(--color-lime)]"
-              style={{ borderColor: colors.borderStrong, backgroundColor: colors.background }}
-            >
-              Reset password
-            </button>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => setShowPasswordModal(true)}
+                className="rounded-lg border px-4 py-3 text-sm font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-lime)] hover:text-[var(--color-lime)]"
+                style={{ borderColor: colors.borderStrong, backgroundColor: colors.background }}
+              >
+                Reset password
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowSignOutConfirm(true)}
+                className="rounded-lg border px-4 py-3 text-sm font-semibold text-[var(--color-text)] transition-colors hover:border-[var(--color-lime)] hover:text-[var(--color-lime)]"
+                style={{ borderColor: colors.borderStrong, backgroundColor: colors.background }}
+              >
+                Sign out
+              </button>
+            </div>
           </div>
         </form>
 
@@ -204,6 +217,8 @@ export default function ProfileSettingsView({ embedded = false }: ProfileSetting
           </p>
         </div>
       </div>
+
+      {showSignOutConfirm && <SignOutConfirm onCancel={() => setShowSignOutConfirm(false)} />}
 
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">

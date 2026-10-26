@@ -9,6 +9,7 @@ import ProfileSettingsView from './profilesettings/profsett';
 import Logo from './stylecomponents/logo';
 import { colors } from './stylecomponents/colors';
 import PitchBackground from './stylecomponents/background';
+import SignOutConfirm from './stylecomponents/SignOutConfirm';
 
 type DashboardShellProps = {
   title?: string;
@@ -78,11 +79,6 @@ export function AppFooter({ onOpenProfileSettings }: { onOpenProfileSettings?: (
     { href: 'mailto:gavinapersad@gmail.com', label: 'Contact' },
   ];
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/';
-  };
-
   return (
     <>
       <footer
@@ -147,45 +143,7 @@ export function AppFooter({ onOpenProfileSettings }: { onOpenProfileSettings?: (
         </nav>
       </footer>
 
-      {showSignOutConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div
-            className="w-full max-w-sm rounded-[16px] border p-5 shadow-2xl"
-            style={{
-              backgroundColor: colors.panel,
-              borderColor: colors.border,
-            }}
-          >
-            <h3 className="mb-3 text-lg font-semibold text-[var(--color-text)]">Sign out?</h3>
-            <p className="mb-5 text-sm text-[var(--color-muted)]">
-              Are you sure you want to sign out of your account?
-            </p>
-
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowSignOutConfirm(false)}
-                className="rounded-lg border px-3 py-2 text-sm font-medium text-[var(--color-text)]"
-                style={{ borderColor: colors.borderStrong }}
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                onClick={async () => {
-                  setShowSignOutConfirm(false);
-                  await handleSignOut();
-                }}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-[#0B0F14]"
-                style={{ backgroundColor: colors.lime }}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {showSignOutConfirm && <SignOutConfirm onCancel={() => setShowSignOutConfirm(false)} />}
     </>
   );
 }
@@ -275,9 +233,19 @@ export default function DashboardShell({
         ['--color-field' as never]: colors.field,
         ['--color-border' as never]: colors.border,
         ['--color-border-strong' as never]: colors.borderStrong,
+        ['--color-panel' as never]: colors.panel,
+        ['--color-background' as never]: colors.background,
+        ['--color-lime-hover' as never]: colors.limeHover,
+        ['--color-placeholder' as never]: colors.placeholder,
+        ['--color-success-background' as never]: colors.successBackground,
+        ['--color-success-border' as never]: colors.successBorder,
+        ['--color-success-text' as never]: colors.successText,
+        ['--color-error-background' as never]: colors.errorBackground,
+        ['--color-error-border' as never]: colors.errorBorder,
+        ['--color-error-text' as never]: colors.errorText,
       }}
     >
-      <PitchBackground className="pointer-events-none absolute inset-0 opacity-70" />
+      <PitchBackground className="pointer-events-none fixed inset-0 opacity-70" />
 
       <div className="relative z-10 mx-auto max-w-[1280px] px-4 py-5 md:px-6 lg:px-8">
         <AppHeader

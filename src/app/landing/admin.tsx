@@ -9,8 +9,7 @@ import PlayerDashboard from '../dashboard/components/PlayerDashboard';
 export default function AdminPage() {
   return (
     <DashboardShell title="Admin">
-      <AdminBar />
-      <PlayerDashboard />
+      <PlayerDashboard topSlot={<AdminBar />} />
     </DashboardShell>
   );
 }

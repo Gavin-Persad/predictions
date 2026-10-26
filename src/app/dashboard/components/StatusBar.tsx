@@ -26,7 +26,11 @@ type GameWeek = {
   created_at: string;
 };
 
-export default function StatusBar() {
+type StatusBarProps = {
+  onFullPageChange?: (isFullPage: boolean) => void;
+};
+
+export default function StatusBar({ onFullPageChange }: StatusBarProps) {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [gameWeeks, setGameWeeks] = useState<GameWeek[]>([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
@@ -42,6 +46,10 @@ export default function StatusBar() {
 
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    onFullPageChange?.(activePanel !== 'status');
+  }, [activePanel, onFullPageChange]);
 
   const fetchGameWeeksForSeason = useCallback(
     async (seasonId: string) => {
