@@ -15,9 +15,10 @@ import StatusBar from './StatusBar';
 // The player view's content, shared by the player and host landing pages. Add new player widgets here.
 type PlayerDashboardProps = {
   topSlot?: ReactNode;
+  isHost?: boolean;
 };
 
-export default function PlayerDashboard({ topSlot }: PlayerDashboardProps) {
+export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashboardProps) {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonsLoading, setSeasonsLoading] = useState(true);
   const [showLeagueTable, setShowLeagueTable] = useState(false);
@@ -82,7 +83,7 @@ export default function PlayerDashboard({ topSlot }: PlayerDashboardProps) {
             </div>
           </div>
 
-          <Messages />
+          <Messages isHost={isHost} />
         </>
       )}
     </>
