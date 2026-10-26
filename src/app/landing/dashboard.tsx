@@ -3,12 +3,12 @@
 "use client";
 
 import DashboardShell from '../headerandfooter';
-import StatusBar from '../dashboard/components/StatusBar';
+import PlayerDashboard from '../dashboard/components/PlayerDashboard';
 
 export default function DashboardPage() {
   return (
     <DashboardShell title="Dashboard">
-      <StatusBar />
+      <PlayerDashboard />
     </DashboardShell>
   );
 }
