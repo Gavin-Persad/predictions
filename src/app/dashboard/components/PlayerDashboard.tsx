@@ -8,6 +8,8 @@ import LaveryCup from '../tiles/LaveryCup';
 import LeagueTable from '../tiles/LeagueTable';
 import LeagueTablePage from '../tiles/LeagueTablePage';
 import ManagerOfTheMonth from '../tiles/ManagerOfTheMonth';
+import ManagerOfTheMonthPage from '../tiles/ManagerOfTheMonthPage';
+import type { ManagerMonthStandings } from '../tiles/managerMonthData';
 import Messages from '../tiles/Messages';
 import type { Season } from './ChooseSeason';
 import StatusBar from './StatusBar';
@@ -22,6 +24,11 @@ export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashb
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonsLoading, setSeasonsLoading] = useState(true);
   const [showLeagueTable, setShowLeagueTable] = useState(false);
+  const [managerMonthPage, setManagerMonthPage] = useState<{
+    months: ManagerMonthStandings[];
+    initialMonthId: string;
+    currentUserId: string | null;
+  } | null>(null);
   const [statusFullPage, setStatusFullPage] = useState(false);
 
   useEffect(() => {
@@ -59,6 +66,19 @@ export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashb
     );
   }
 
+  if (managerMonthPage && latestSeason) {
+    return (
+      <ManagerOfTheMonthPage
+        seasons={seasons}
+        initialSeasonId={latestSeason.id}
+        months={managerMonthPage.months}
+        initialMonthId={managerMonthPage.initialMonthId}
+        currentUserId={managerMonthPage.currentUserId}
+        onBack={() => setManagerMonthPage(null)}
+      />
+    );
+  }
+
   return (
     <>
       {!statusFullPage && topSlot}
@@ -68,18 +88,26 @@ export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashb
       {!statusFullPage && (
         <>
           {/* Desktop height is clamped to the viewport so the whole dashboard fits between header and footer. */}
-          <div className="grid gap-3 lg:h-[clamp(420px,calc(100vh-480px),600px)] lg:grid-cols-2">
-            <LeagueTable
-              season={latestSeason}
-              seasonLoading={seasonsLoading}
-              onOpen={() => setShowLeagueTable(true)}
-            />
+          <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
+            <div className="lg:h-[806px] lg:self-start">
+              <LeagueTable
+                season={latestSeason}
+                seasonLoading={seasonsLoading}
+                onOpen={() => setShowLeagueTable(true)}
+              />
+            </div>
 
-            <div className="grid gap-3 lg:min-h-0 lg:grid-rows-[1fr_2fr_2fr_2fr]">
+            <div className="grid gap-3 lg:grid-rows-[110px_repeat(3,minmax(220px,1fr))]">
               <Awards />
               <GeorgeCup />
               <LaveryCup />
-              <ManagerOfTheMonth />
+              <ManagerOfTheMonth
+                season={latestSeason}
+                seasonLoading={seasonsLoading}
+                onOpen={(months, monthId, currentUserId) =>
+                  setManagerMonthPage({ months, initialMonthId: monthId, currentUserId })
+                }
+              />
             </div>
           </div>
 
