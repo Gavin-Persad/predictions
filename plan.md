@@ -6,6 +6,9 @@
 
 - supabase redirect from emails on sign up- authentication> url congfigurations> /landing/dashboard -- Should be correct, just needs checking once the branch has been merged.
 - forgot password, redirect from emails needs correcting
+- remove old files, no longer needed as replaced by new file
+- update readme
+- check for scalability issues
 
 
 ## In Action
@@ -14,9 +17,7 @@
 
 ## Pending
 
-- Auth: Forgot password flow.
 - Notifications: email alerts for predictions open/close.
-- Dashboard routing and tiles: ensure deep links pass season context (league, George Cup, Lavery Cup, Enter Scores).
 - Message panel: dashboard auto-refresh after add/edit/delete.
 - Profile settings: restore “Delete account” and verify delete flows (season/game week/cup clean-up).
 - Time logic: unify all game lists to use time (not date) via shared utils.
@@ -28,6 +29,8 @@
 
 ## Completed (summary)
 
+- Dashboard routing and tiles: ensure deep links pass season context (league, George Cup, Lavery Cup, Enter Scores).
+- Auth: Forgot password flow.
 - Manual fixture entry and testing end-to-end.
 - Edit/View Game Week components connected to Supabase.
 - Enter scores workflow (forms, modals, scoring updates).

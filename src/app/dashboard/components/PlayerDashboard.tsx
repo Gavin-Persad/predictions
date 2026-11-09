@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '../../../../supabaseClient';
 import Awards from '../tiles/Awards';
+import AwardsPage from '../tiles/AwardsPage';
 import GeorgeCup from '../tiles/GeorgeCup';
 import LaveryCup from '../tiles/LaveryCup';
 import LeagueTable from '../tiles/LeagueTable';
@@ -24,6 +25,7 @@ export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashb
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonsLoading, setSeasonsLoading] = useState(true);
   const [showLeagueTable, setShowLeagueTable] = useState(false);
+  const [showAwardsPage, setShowAwardsPage] = useState(false);
   const [managerMonthPage, setManagerMonthPage] = useState<{
     months: ManagerMonthStandings[];
     initialMonthId: string;
@@ -66,6 +68,16 @@ export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashb
     );
   }
 
+  if (showAwardsPage && latestSeason) {
+    return (
+      <AwardsPage
+        seasons={seasons}
+        initialSeasonId={latestSeason.id}
+        onBack={() => setShowAwardsPage(false)}
+      />
+    );
+  }
+
   if (managerMonthPage && latestSeason) {
     return (
       <ManagerOfTheMonthPage
@@ -98,7 +110,7 @@ export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashb
             </div>
 
             <div className="grid gap-3 lg:grid-rows-[110px_repeat(3,minmax(220px,1fr))]">
-              <Awards />
+              <Awards onOpen={() => setShowAwardsPage(true)} />
               <GeorgeCup />
               <LaveryCup />
               <ManagerOfTheMonth
