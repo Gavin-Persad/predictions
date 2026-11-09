@@ -160,15 +160,24 @@ export default function LaveryCupContent({ season }: LaveryCupContentProps) {
   const currentRound = rounds.find((round) => round.id === selectedRoundId) ?? null;
 
   const roundCounts = useMemo(() => {
+    const totalPlayers = players.length;
     let remaining = new Set(players.map((player) => player.id));
 
     return rounds.map((round) => {
-      const enteringCount = remaining.size;
-      if (round.is_complete) {
-        const advanced = new Set((selectionsByRound.get(round.id) ?? []).filter((selection) => selection.advanced).map((selection) => selection.player_id));
-        remaining = new Set([...remaining].filter((playerId) => advanced.has(playerId)));
-      }
-      return { roundId: round.id, roundName: round.round_name, count: round.is_complete ? remaining.size : enteringCount };
+      const hasStarted = round.is_complete || Boolean(round.game_week_id);
+      const entered = hasStarted ? remaining.size : 0;
+      const advanced = new Set(
+        (selectionsByRound.get(round.id) ?? [])
+          .filter((selection) => selection.advanced && remaining.has(selection.player_id))
+          .map((selection) => selection.player_id),
+      );
+      const through = round.is_complete ? advanced.size : 0;
+      const eliminated = round.is_complete ? Math.max(0, entered - through) : 0;
+      const notYetEntered = Math.max(0, totalPlayers - entered);
+
+      if (round.is_complete) remaining = advanced;
+
+      return { roundId: round.id, roundName: round.round_name, entered, through, eliminated, notYetEntered };
     });
   }, [players, rounds, selectionsByRound]);
 
@@ -218,7 +227,7 @@ export default function LaveryCupContent({ season }: LaveryCupContentProps) {
   const selectionsLocked = currentRound?.predictions_close
     ? Date.now() >= new Date(currentRound.predictions_close).getTime()
     : Boolean(currentRound?.is_complete);
-  const maxRoundCount = Math.max(1, ...roundCounts.map((round) => round.count));
+  const totalPlayers = players.length;
   const resultsDate = formatDate(currentRound?.live_start ?? null);
 
   function formatDate(value: string | null): string | null {
@@ -277,14 +286,21 @@ export default function LaveryCupContent({ season }: LaveryCupContentProps) {
 
           <section className="rounded-[14px] border p-4" style={{ backgroundColor: colors.panel, borderColor: colors.border }}>
             <h2 className="mb-3 text-sm font-semibold text-[var(--color-text)]">Players remaining</h2>
+            <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-[var(--color-muted)]">
+              <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ backgroundColor: colors.lime }} />Through</span>
+              <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ backgroundColor: colors.errorText }} />Out</span>
+              <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ backgroundColor: '#34404D' }} />Out in earlier rounds</span>
+            </div>
             <div className="space-y-2">
               {roundCounts.map((item) => (
-                <div key={item.roundId} className="grid grid-cols-[minmax(90px,130px)_minmax(0,1fr)_2rem] items-center gap-2">
+                <div key={item.roundId} className="grid grid-cols-[minmax(90px,130px)_minmax(0,1fr)_3.5rem] items-center gap-2">
                   <span className="truncate text-xs text-[var(--color-muted)]">{item.roundName}</span>
-                  <span className="h-2 overflow-hidden rounded-full" style={{ backgroundColor: colors.field }}>
-                    <span className="block h-full rounded-full" style={{ width: `${Math.max(3, (item.count / maxRoundCount) * 100)}%`, backgroundColor: colors.lime }} />
+                  <span className="flex h-2 overflow-hidden rounded-full" style={{ backgroundColor: colors.background }} aria-label={`${item.through} of ${item.entered} progressed; ${item.eliminated} eliminated; ${item.notYetEntered} out in previous rounds`}>
+                    {totalPlayers > 0 && <span className="h-full shrink-0" style={{ width: `${(item.through / totalPlayers) * 100}%`, backgroundColor: colors.lime }} />}
+                    {totalPlayers > 0 && <span className="h-full shrink-0" style={{ width: `${(item.eliminated / totalPlayers) * 100}%`, backgroundColor: colors.errorText }} />}
+                    {totalPlayers > 0 && <span className="h-full shrink-0" style={{ width: `${(item.notYetEntered / totalPlayers) * 100}%`, backgroundColor: '#34404D' }} />}
                   </span>
-                  <span className="text-right text-xs font-medium text-[var(--color-text)]">{item.count}</span>
+                  <span className="text-right text-xs font-medium text-[var(--color-text)]">{item.through}/{item.entered}</span>
                 </div>
               ))}
             </div>
