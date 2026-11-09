@@ -5,6 +5,7 @@ import { supabase } from '../../../../supabaseClient';
 import Awards from '../tiles/Awards';
 import AwardsPage from '../tiles/AwardsPage';
 import GeorgeCup from '../tiles/GeorgeCup';
+import GeorgeCupPage from '../tiles/GeorgeCupPage';
 import LaveryCup from '../tiles/LaveryCup';
 import LaveryCupPage from '../tiles/LaveryCupPage';
 import LeagueTable from '../tiles/LeagueTable';
@@ -27,6 +28,7 @@ export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashb
   const [seasonsLoading, setSeasonsLoading] = useState(true);
   const [showLeagueTable, setShowLeagueTable] = useState(false);
   const [showAwardsPage, setShowAwardsPage] = useState(false);
+  const [showGeorgeCupPage, setShowGeorgeCupPage] = useState(false);
   const [showLaveryCupPage, setShowLaveryCupPage] = useState(false);
   const [managerMonthPage, setManagerMonthPage] = useState<{
     months: ManagerMonthStandings[];
@@ -80,6 +82,16 @@ export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashb
     );
   }
 
+  if (showGeorgeCupPage && latestSeason) {
+    return (
+      <GeorgeCupPage
+        seasons={seasons}
+        initialSeasonId={latestSeason.id}
+        onBack={() => setShowGeorgeCupPage(false)}
+      />
+    );
+  }
+
   if (showLaveryCupPage && latestSeason) {
     return (
       <LaveryCupPage
@@ -123,7 +135,11 @@ export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashb
 
             <div className="grid gap-3 lg:grid-rows-[110px_repeat(3,minmax(220px,1fr))]">
               <Awards onOpen={() => setShowAwardsPage(true)} />
-              <GeorgeCup />
+              <GeorgeCup
+                season={latestSeason}
+                seasonLoading={seasonsLoading}
+                onOpen={() => setShowGeorgeCupPage(true)}
+              />
               <LaveryCup
                 season={latestSeason}
                 seasonLoading={seasonsLoading}
