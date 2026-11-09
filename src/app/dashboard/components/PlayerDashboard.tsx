@@ -6,6 +6,7 @@ import Awards from '../tiles/Awards';
 import AwardsPage from '../tiles/AwardsPage';
 import GeorgeCup from '../tiles/GeorgeCup';
 import LaveryCup from '../tiles/LaveryCup';
+import LaveryCupPage from '../tiles/LaveryCupPage';
 import LeagueTable from '../tiles/LeagueTable';
 import LeagueTablePage from '../tiles/LeagueTablePage';
 import ManagerOfTheMonth from '../tiles/ManagerOfTheMonth';
@@ -26,6 +27,7 @@ export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashb
   const [seasonsLoading, setSeasonsLoading] = useState(true);
   const [showLeagueTable, setShowLeagueTable] = useState(false);
   const [showAwardsPage, setShowAwardsPage] = useState(false);
+  const [showLaveryCupPage, setShowLaveryCupPage] = useState(false);
   const [managerMonthPage, setManagerMonthPage] = useState<{
     months: ManagerMonthStandings[];
     initialMonthId: string;
@@ -78,6 +80,10 @@ export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashb
     );
   }
 
+  if (showLaveryCupPage && latestSeason) {
+    return <LaveryCupPage season={latestSeason} onBack={() => setShowLaveryCupPage(false)} />;
+  }
+
   if (managerMonthPage && latestSeason) {
     return (
       <ManagerOfTheMonthPage
@@ -112,7 +118,11 @@ export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashb
             <div className="grid gap-3 lg:grid-rows-[110px_repeat(3,minmax(220px,1fr))]">
               <Awards onOpen={() => setShowAwardsPage(true)} />
               <GeorgeCup />
-              <LaveryCup />
+              <LaveryCup
+                season={latestSeason}
+                seasonLoading={seasonsLoading}
+                onOpen={() => setShowLaveryCupPage(true)}
+              />
               <ManagerOfTheMonth
                 season={latestSeason}
                 seasonLoading={seasonsLoading}
