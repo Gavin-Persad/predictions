@@ -9,6 +9,7 @@ export type AwardWinner = {
   prize: number | null;
   sequence: number | null;
   winner_name: string | null;
+  winner_ids: string[];
   winner_names: string[];
   note: string | null;
 };
@@ -21,7 +22,7 @@ type AwardRow = {
   position: number | null;
   prize: number | null;
   sequence: number | null;
-  winner_profile?: { username: string | null } | { username: string | null }[] | null;
+  winner_profile?: { id?: string; username: string | null } | { id?: string; username: string | null }[] | null;
 };
 
 export async function loadAwardWinners(seasonId: string): Promise<AwardWinner[]> {
@@ -30,7 +31,7 @@ export async function loadAwardWinners(seasonId: string): Promise<AwardWinner[]>
 
   const relationResult = await supabase
     .from('season_awards')
-    .select('id, category, sub_type, group_key, position, prize, sequence, winner_profile:profiles (username)')
+    .select('id, category, sub_type, group_key, position, prize, sequence, winner_profile:profiles (id, username)')
     .eq('season_id', seasonId)
     .eq('active', true)
     .order('category')
@@ -81,6 +82,7 @@ export async function loadAwardWinners(seasonId: string): Promise<AwardWinner[]>
       prize: row.prize,
       sequence: row.sequence,
       winner_name: profile?.username ?? null,
+      winner_ids: profile?.id ? [profile.id] : [],
       winner_names: [] as string[],
       note: null as string | null,
     };
@@ -92,22 +94,28 @@ export async function loadAwardWinners(seasonId: string): Promise<AwardWinner[]>
   const [winnerResult, noteResult] = await Promise.all([
     supabase
       .from('season_award_winners')
-      .select('award_id, profiles (username)')
+      .select('award_id, winner_id, profiles (username)')
       .in('award_id', awardIds),
     supabase.from('special_award_notes').select('award_id, note').in('award_id', awardIds),
   ]);
 
   if (!winnerResult.error && winnerResult.data) {
     const winnersByAward = new Map<string, string[]>();
+    const winnerIdsByAward = new Map<string, string[]>();
     winnerResult.data.forEach((winner) => {
       const profile = Array.isArray(winner.profiles) ? winner.profiles[0] : winner.profiles;
-      if (!profile?.username) return;
       const names = winnersByAward.get(winner.award_id) ?? [];
-      names.push(profile.username);
+      const ids = winnerIdsByAward.get(winner.award_id) ?? [];
+      if (profile?.username) names.push(profile.username);
+      if (winner.winner_id) ids.push(winner.winner_id);
       winnersByAward.set(winner.award_id, names);
+      winnerIdsByAward.set(winner.award_id, ids);
     });
     rows.forEach((row) => {
-      row.winner_names = winnersByAward.get(row.id) ?? [];
+      const names = winnersByAward.get(row.id);
+      const ids = winnerIdsByAward.get(row.id);
+      if (names?.length) row.winner_names = names;
+      if (ids?.length) row.winner_ids = ids;
     });
   } else if (winnerResult.error && winnerResult.error.code !== '42P01') {
     console.warn('Error fetching award winners:', winnerResult.error);

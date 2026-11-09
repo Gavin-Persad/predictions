@@ -15,7 +15,8 @@ export default function Awards({ onOpen }: AwardsProps) {
       style={{
         backgroundColor: colors.panel,
         borderColor: '#6A582D',
-        boxShadow: 'inset 0 0 18px rgba(214, 179, 90, 0.035)',
+        backgroundImage: 'radial-gradient(ellipse at 0% 0%, rgba(217, 180, 74, 0.14), transparent 60%)',
+        boxShadow: 'inset 0 0 18px rgba(214, 179, 74, 0.035)',
       }}
     >
       <span className="flex items-center justify-between gap-4">

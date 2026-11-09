@@ -37,6 +37,13 @@ type Selection = {
   advanced: boolean;
 };
 
+type PlayerProgressState = 'through' | 'eliminated' | 'earlier-out' | 'playing';
+
+type PlayerProgress = {
+  id: string;
+  state: PlayerProgressState;
+};
+
 function formatDate(value: string | null): string | null {
   if (!value) return null;
   const parsed = new Date(value);
@@ -58,6 +65,30 @@ function TeamChip({ team, result }: { team: string; result: boolean | null }) {
       {isMarked && <span aria-hidden="true">{result ? '✓' : '×'}</span>}
       <span className="truncate">{team}</span>
     </span>
+  );
+}
+
+function PersonIcon({ state, title }: { state: PlayerProgressState; title?: string }) {
+  const fill = state === 'through'
+    ? colors.lime
+    : state === 'eliminated'
+      ? colors.errorText
+      : state === 'earlier-out'
+        ? '#34404D'
+        : 'transparent';
+  const stroke = state === 'playing' ? colors.muted : fill;
+
+  return (
+    <svg
+      viewBox="0 0 16 20"
+      role="img"
+      aria-label={title ? `${title}: ${state}` : state}
+      className="h-4 w-3 shrink-0"
+    >
+      {title && <title>{title}: {state}</title>}
+      <circle cx="8" cy="4" r="3" fill={fill} stroke={stroke} strokeWidth="1.2" />
+      <path d="M2 18v-2a6 6 0 0 1 12 0v2H2Z" fill={fill} stroke={stroke} strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
   );
 }
 
@@ -174,10 +205,22 @@ export default function LaveryCupContent({ season }: LaveryCupContentProps) {
       const through = round.is_complete ? advanced.size : 0;
       const eliminated = round.is_complete ? Math.max(0, entered - through) : 0;
       const notYetEntered = Math.max(0, totalPlayers - entered);
+      const playerStates: PlayerProgress[] = players.map((player) => {
+        if (!remaining.has(player.id)) return { id: player.id, state: 'earlier-out' };
+        if (!round.is_complete) return { id: player.id, state: 'playing' };
+        return { id: player.id, state: advanced.has(player.id) ? 'through' : 'eliminated' };
+      });
+      const stateOrder: Record<PlayerProgressState, number> = {
+        through: 0,
+        eliminated: 1,
+        playing: 2,
+        'earlier-out': 3,
+      };
+      playerStates.sort((a, b) => stateOrder[a.state] - stateOrder[b.state]);
 
       if (round.is_complete) remaining = advanced;
 
-      return { roundId: round.id, roundName: round.round_name, entered, through, eliminated, notYetEntered };
+      return { roundId: round.id, roundName: round.round_name, entered, through, eliminated, notYetEntered, playerStates };
     });
   }, [players, rounds, selectionsByRound]);
 
@@ -287,18 +330,19 @@ export default function LaveryCupContent({ season }: LaveryCupContentProps) {
           <section className="rounded-[14px] border p-4" style={{ backgroundColor: colors.panel, borderColor: colors.border }}>
             <h2 className="mb-3 text-sm font-semibold text-[var(--color-text)]">Players remaining</h2>
             <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-[var(--color-muted)]">
-              <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ backgroundColor: colors.lime }} />Through</span>
-              <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ backgroundColor: colors.errorText }} />Out</span>
-              <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ backgroundColor: '#34404D' }} />Out in earlier rounds</span>
+              <span className="inline-flex items-center gap-1.5"><PersonIcon state="through" />Through</span>
+              <span className="inline-flex items-center gap-1.5"><PersonIcon state="eliminated" />Out this round</span>
+              <span className="inline-flex items-center gap-1.5"><PersonIcon state="earlier-out" />Out in earlier rounds</span>
+              <span className="inline-flex items-center gap-1.5"><PersonIcon state="playing" />Still playing</span>
             </div>
             <div className="space-y-2">
               {roundCounts.map((item) => (
                 <div key={item.roundId} className="grid grid-cols-[minmax(90px,130px)_minmax(0,1fr)_3.5rem] items-center gap-2">
                   <span className="truncate text-xs text-[var(--color-muted)]">{item.roundName}</span>
-                  <span className="flex h-2 overflow-hidden rounded-full" style={{ backgroundColor: colors.background }} aria-label={`${item.through} of ${item.entered} progressed; ${item.eliminated} eliminated; ${item.notYetEntered} out in previous rounds`}>
-                    {totalPlayers > 0 && <span className="h-full shrink-0" style={{ width: `${(item.through / totalPlayers) * 100}%`, backgroundColor: colors.lime }} />}
-                    {totalPlayers > 0 && <span className="h-full shrink-0" style={{ width: `${(item.eliminated / totalPlayers) * 100}%`, backgroundColor: colors.errorText }} />}
-                    {totalPlayers > 0 && <span className="h-full shrink-0" style={{ width: `${(item.notYetEntered / totalPlayers) * 100}%`, backgroundColor: '#34404D' }} />}
+                  <span className="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5" aria-label={`${item.through} of ${item.entered} progressed; ${item.eliminated} eliminated; ${item.notYetEntered} out in previous rounds`}>
+                    {item.playerStates.map((player) => (
+                      <PersonIcon key={`${item.roundId}-${player.id}`} state={player.state} title={playerNameById.get(player.id)} />
+                    ))}
                   </span>
                   <span className="text-right text-xs font-medium text-[var(--color-text)]">{item.through}/{item.entered}</span>
                 </div>

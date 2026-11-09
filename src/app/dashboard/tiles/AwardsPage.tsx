@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
+import { supabase } from '../../../../supabaseClient';
 import ChooseSeasonModal, { type Season } from '../components/ChooseSeason';
 import { colors } from '../../stylecomponents/colors';
 import { loadAwardWinners, type AwardWinner } from './awardData';
@@ -11,9 +12,26 @@ type AwardsPageProps = {
   onBack: () => void;
 };
 
-function winnerText(award: AwardWinner): string {
-  if (award.winner_names.length > 0) return award.winner_names.join(', ');
-  return award.winner_name ?? '—';
+function winnerText(award: AwardWinner, currentUserId: string | null) {
+  const winners = award.winner_names.length > 0
+    ? award.winner_names.map((name, index) => ({ name, id: award.winner_ids[index] ?? null }))
+    : award.winner_name
+      ? [{ name: award.winner_name, id: award.winner_ids[0] ?? null }]
+      : [];
+
+  if (winners.length === 0) return '—';
+
+  return winners.map((winner, index) => (
+    <span key={`${winner.id ?? winner.name}-${index}`}>
+      {index > 0 && ', '}
+      <span
+        className={winner.id === currentUserId ? 'font-semibold' : ''}
+        style={winner.id === currentUserId ? { color: colors.lime } : undefined}
+      >
+        {winner.name}{winner.id === currentUserId && ' (You)'}
+      </span>
+    </span>
+  ));
 }
 
 function prizeText(prize: number | null): string {
@@ -26,6 +44,22 @@ export default function AwardsPage({ seasons, initialSeasonId, onBack }: AwardsP
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [showChooseSeason, setShowChooseSeason] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (active) setCurrentUserId(user?.id ?? null);
+    };
+
+    void loadCurrentUser();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -75,7 +109,7 @@ export default function AwardsPage({ seasons, initialSeasonId, onBack }: AwardsP
       style={{ backgroundColor: colors.field, borderColor: colors.border }}
     >
       <span className="text-[var(--color-muted)]">{label}</span>
-      <span className="break-words text-[var(--color-text)]">{winnerText(award)}</span>
+      <span className="break-words text-[var(--color-text)]">{winnerText(award, currentUserId)}</span>
       <span className="text-right font-medium text-[var(--color-lime)]">{prizeText(award.prize)}</span>
     </div>
   );
