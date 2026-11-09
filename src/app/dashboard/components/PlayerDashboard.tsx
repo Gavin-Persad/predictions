@@ -81,7 +81,13 @@ export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashb
   }
 
   if (showLaveryCupPage && latestSeason) {
-    return <LaveryCupPage season={latestSeason} onBack={() => setShowLaveryCupPage(false)} />;
+    return (
+      <LaveryCupPage
+        seasons={seasons}
+        initialSeasonId={latestSeason.id}
+        onBack={() => setShowLaveryCupPage(false)}
+      />
+    );
   }
 
   if (managerMonthPage && latestSeason) {
