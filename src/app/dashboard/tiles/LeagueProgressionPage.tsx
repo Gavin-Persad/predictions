@@ -52,8 +52,11 @@ export default function LeagueProgressionPage({
 
       setVisiblePlayers(initialVisible);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, progressionData, currentStandings]);
+  }, [loading, progressionData, currentStandings, currentUserId]);
+
+  useEffect(() => {
+    setVisiblePlayers(new Set());
+  }, [selectedSeasonId]);
 
   const handleShowAll = () => {
     setVisiblePlayers(new Set(progressionData.map((p) => p.player_id)));

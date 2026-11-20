@@ -65,7 +65,6 @@ export function useLeagueProgression(seasonId: string | null) {
         }
 
         const gameWeekIds = (gameWeeksData ?? []).map((gw) => gw.id);
-        const weekNumbers = (gameWeeksData ?? []).map((gw) => gw.week_number);
 
         if (gameWeekIds.length === 0) {
           setProgressionData([]);
@@ -73,6 +72,15 @@ export function useLeagueProgression(seasonId: string | null) {
           setLoading(false);
           return;
         }
+
+        const { data: seasonPlayersData } = await supabase
+          .from('season_players')
+          .select('player_id, profiles (username)')
+          .eq('season_id', seasonId);
+
+        const validPlayerIds = new Set(
+          (seasonPlayersData ?? []).map((sp: { player_id: string }) => sp.player_id)
+        );
 
         const { data: scoresData, error: scoresError } = await supabase
           .from('game_week_scores')
@@ -88,29 +96,51 @@ export function useLeagueProgression(seasonId: string | null) {
           return;
         }
 
+        // Supabase has a hard limit of 1000 rows per query. If we got exactly 1000, 
+        // we may be hitting the limit. Batch the requests to get all data.
+        let allScoresData = scoresData ?? [];
+        
+        if ((scoresData ?? []).length === 1000) {
+          // Batch gameWeekIds into chunks of 10 to avoid the limit
+          const chunkSize = 10;
+          allScoresData = [];
+          
+          for (let i = 0; i < gameWeekIds.length; i += chunkSize) {
+            const chunk = gameWeekIds.slice(i, i + chunkSize);
+            const { data: chunkData, error: chunkError } = await supabase
+              .from('game_week_scores')
+              .select(
+                'player_id, game_week_id, points, correct_scores, profiles:player_id (username), game_weeks:game_week_id (week_number)'
+              )
+              .in('game_week_id', chunk);
+            
+            if (!chunkError && chunkData) {
+              allScoresData = allScoresData.concat(chunkData);
+            }
+          }
+        }
+
+        // Sort scores by week number to ensure cumulative calculation is correct
+        const sortedScores = (allScoresData ?? []).sort((a: any, b: any) => {
+          const weekA = a.game_weeks?.week_number ?? 0;
+          const weekB = b.game_weeks?.week_number ?? 0;
+          return weekA - weekB;
+        });
+
         if (!active) return;
-
-        const { data: seasonScoresData } = await supabase
-          .from('season_scores')
-          .select('player_id, points, correct_scores, profiles (username)')
-          .eq('season_id', seasonId)
-          .order('points', { ascending: false });
-
-        const { data: seasonPlayersData } = await supabase
-          .from('season_players')
-          .select('player_id')
-          .eq('season_id', seasonId);
-
-        const validPlayerIds = new Set(
-          (seasonPlayersData ?? []).map((sp: { player_id: string }) => sp.player_id)
-        );
 
         const playerDataMap = new Map<
           string,
-          { username: string; cumulative_points: number; week_points: Map<number, number> }
+          { 
+            username: string
+            cumulative_points: number
+            cumulative_correct_scores: number
+            week_points: Map<number, number>
+            week_correct_scores: Map<number, number>
+          }
         >();
 
-        for (const score of scoresData ?? []) {
+        for (const score of sortedScores) {
           const row = score as unknown as GameWeekScoreRow;
           if (!validPlayerIds.has(row.player_id) || !row.profiles?.username) continue;
 
@@ -118,15 +148,22 @@ export function useLeagueProgression(seasonId: string | null) {
             playerDataMap.set(row.player_id, {
               username: row.profiles.username,
               cumulative_points: 0,
+              cumulative_correct_scores: 0,
               week_points: new Map(),
+              week_correct_scores: new Map(),
             });
           }
 
           const playerData = playerDataMap.get(row.player_id)!;
-          playerData.cumulative_points += row.points ?? 0;
+          const pointsToAdd = row.points ?? 0;
+          const correctScoresToAdd = row.correct_scores ?? 0;
+          
+          playerData.cumulative_points += pointsToAdd;
+          playerData.cumulative_correct_scores += correctScoresToAdd;
 
           if (row.game_weeks?.week_number) {
             playerData.week_points.set(row.game_weeks.week_number, playerData.cumulative_points);
+            playerData.week_correct_scores.set(row.game_weeks.week_number, playerData.cumulative_correct_scores);
           }
         }
 
@@ -134,21 +171,52 @@ export function useLeagueProgression(seasonId: string | null) {
           player_id: playerId,
           username: data.username,
           week_points: data.week_points,
+          week_correct_scores: data.week_correct_scores,
         }));
+
+        // Only use weeks that actually have data
+        const weeksWithData = new Set<number>();
+        playerDataArray.forEach(p => {
+          p.week_points.forEach((_, week) => weeksWithData.add(week));
+        });
+        const weeksToDisplay = Array.from(weeksWithData).sort((a, b) => a - b);
 
         const progressionArray: ProgressionData[] = playerDataArray.map((player) => {
           const weekly_positions: Record<number, number> = {};
+          let lastKnownPosition = 0;
 
-          for (const week of weekNumbers) {
+          for (const week of weeksToDisplay) {
             const pointsUpToWeek = player.week_points.get(week);
 
+            // Check if this player has actual data for this week
             if (pointsUpToWeek !== undefined) {
+              // This player has data for this week - calculate their position among all players who submitted
+              const correctScoresUpToWeek = player.week_correct_scores.get(week);
+              
               const position = playerDataArray.filter((p) => {
                 const pPoints = p.week_points.get(week);
-                return pPoints !== undefined && pPoints > pointsUpToWeek;
+                
+                // Only count players who also submitted for this week
+                if (pPoints === undefined) return false;
+                
+                const pCorrectScores = p.week_correct_scores.get(week);
+                
+                if (pPoints > pointsUpToWeek) return true;
+                if (pPoints === pointsUpToWeek && pCorrectScores !== undefined && correctScoresUpToWeek !== undefined) {
+                  if (pCorrectScores > correctScoresUpToWeek) return true;
+                  if (pCorrectScores === correctScoresUpToWeek && p.username < player.username) return true;
+                }
+                
+                return false;
               }).length + 1;
 
+              lastKnownPosition = position;
               weekly_positions[week] = position;
+            } else {
+              // This player didn't submit for this week - keep their last known position
+              if (lastKnownPosition > 0) {
+                weekly_positions[week] = lastKnownPosition;
+              }
             }
           }
 
@@ -156,23 +224,35 @@ export function useLeagueProgression(seasonId: string | null) {
             player_id: player.player_id,
             username: player.username,
             weekly_positions,
-            weeks: weekNumbers,
+            weeks: weeksToDisplay,
             current_position: 0,
           };
         });
 
-        const standings: CurrentStandings[] = ((seasonScoresData ?? []) as unknown as Array<{
-          player_id: string;
-          points: number;
-          correct_scores: number;
-          profiles: { username: string } | null;
-        }>)
-          .filter((row) => validPlayerIds.has(row.player_id) && row.profiles?.username)
-          .map((row, index) => ({
-            player_id: row.player_id,
-            username: row.profiles!.username,
+        // Calculate final standings from progression data
+        // Sort by final position (which is based on cumulative points)
+        const standings: CurrentStandings[] = playerDataArray
+          .map((player) => {
+            // Get the final week's points
+            const finalWeek = weeksToDisplay[weeksToDisplay.length - 1];
+            const finalPoints = player.week_points.get(finalWeek) ?? 0;
+            
+            return {
+              player_id: player.player_id,
+              username: player.username,
+              position: 0, // Will be set after sorting
+              points: finalPoints,
+            };
+          })
+          .sort((a, b) => {
+            const aPoints = a.points;
+            const bPoints = b.points;
+            if (aPoints !== bPoints) return bPoints - aPoints;
+            return 0;
+          })
+          .map((standing, index) => ({
+            ...standing,
             position: index + 1,
-            points: row.points,
           }));
 
         const standingsMap = new Map(standings.map((s) => [s.player_id, s]));
@@ -186,7 +266,7 @@ export function useLeagueProgression(seasonId: string | null) {
 
         setProgressionData(sortedProgression);
         setCurrentStandings(standings);
-        setWeeks(weekNumbers);
+        setWeeks(weeksToDisplay);
       } catch (error) {
         console.error('Error in useLeagueProgression:', error);
         setProgressionData([]);
