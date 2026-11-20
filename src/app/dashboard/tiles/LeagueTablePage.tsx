@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { colors } from '../../stylecomponents/colors';
 import ChooseSeasonModal, { type Season } from '../components/ChooseSeason';
 import { useSeasonStandings } from './useSeasonStandings';
+import LeagueProgressionPage from './LeagueProgressionPage';
 
 type SortField = 'position' | 'username' | 'correct_scores' | 'points';
 
@@ -25,9 +26,20 @@ export default function LeagueTablePage({ seasons, initialSeasonId, onBack }: Le
   const [showChooseSeason, setShowChooseSeason] = useState(false);
   const [sortField, setSortField] = useState<SortField>('position');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [showProgression, setShowProgression] = useState(false);
 
   const { rows, currentUserId, loading } = useSeasonStandings(selectedSeasonId);
   const selectedSeason = seasons.find((season) => season.id === selectedSeasonId) ?? null;
+
+  if (showProgression) {
+    return (
+      <LeagueProgressionPage
+        seasons={seasons}
+        initialSeasonId={selectedSeasonId}
+        onBack={() => setShowProgression(false)}
+      />
+    );
+  }
 
   const handleSort = (field: SortField) => {
     if (field === sortField) {
@@ -65,14 +77,25 @@ export default function LeagueTablePage({ seasons, initialSeasonId, onBack }: Le
             <span className="text-sm text-[var(--color-muted)]">▾</span>
           </button>
 
-          <button
-            type="button"
-            onClick={onBack}
-            className="rounded-full border px-3 py-1.5 text-sm font-medium text-[var(--color-text)]"
-            style={pillStyle}
-          >
-            ← Back
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShowProgression(true)}
+              className="rounded-full border px-3 py-1.5 text-sm font-medium text-[var(--color-text)] transition-colors hover:opacity-80"
+              style={pillStyle}
+            >
+              📈 League Progression
+            </button>
+
+            <button
+              type="button"
+              onClick={onBack}
+              className="rounded-full border px-3 py-1.5 text-sm font-medium text-[var(--color-text)]"
+              style={pillStyle}
+            >
+              ← Back
+            </button>
+          </div>
         </div>
 
         <h2 className="mb-3 text-lg font-semibold text-[var(--color-text)]">League table</h2>
