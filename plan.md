@@ -6,6 +6,7 @@
 
 - Admin page, set up then add modules. Edit Awards, Create/ Edit Season, Edit Players, Create/Edit Game Weeks, Edit Manager of the month, Edit George Cup, Edit Lavery Cup
 - Create Enter Correct Scores, remove 88-88 change to no score for no entry, add previous league position to supabase and edit league table to show this place change.
+- add players personal table viewer, player selector with average table loads data when used
 - remove old files, no longer needed as replaced by new file
 - update readme
 - check for scalability issues
