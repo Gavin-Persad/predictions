@@ -62,6 +62,44 @@ export function getStatusLabel(status: GameWeekStatus): string {
   }
 }
 
+export function formatTime(dateString: string): string {
+  const date = new Date(dateString);
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayName = days[date.getDay()];
+  
+  const ampm = hours >= 12 ? 'pm' : 'am';
+  const displayHours = hours % 12 || 12;
+  const displayMinutes = minutes === 0 ? '' : `:${minutes.toString().padStart(2, '0')}`;
+  
+  return `${displayHours}${displayMinutes}${ampm} ${dayName}`;
+}
+
+export function getStatusLabelWithTime(status: GameWeekStatus, gameWeek: {
+  predictions_open: string;
+  predictions_close: string;
+  live_start: string;
+  live_end: string;
+}): string {
+  switch (status) {
+    case 'upcoming': 
+      return `Games go live at ${formatTime(gameWeek.live_start)}`;
+    case 'predictions': 
+      return `Predictions lock at ${formatTime(gameWeek.predictions_close)}`;
+    case 'locked': 
+      return `Games go live at ${formatTime(gameWeek.live_start)}`;
+    case 'live': 
+      return `Week finishes at ${formatTime(gameWeek.live_end)}`;
+    case 'awaiting_scores': 
+      return 'Awaiting correct scores';
+    case 'completed': 
+      return 'Game week complete';
+    default: 
+      return 'Unknown';
+  }
+}
+
 export function getStatusColor(status: GameWeekStatus): string {
   switch (status) {
     case 'upcoming': return 'text-blue-600 dark:text-blue-400';

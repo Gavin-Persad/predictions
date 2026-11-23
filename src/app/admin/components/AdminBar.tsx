@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../../supabaseClient';
-import { determineGameWeekStatus, type GameWeekStatus } from '../../../utils/gameWeekStatus';
+import { determineGameWeekStatus, type GameWeekStatus, getStatusLabelWithTime } from '../../../utils/gameWeekStatus';
 import { colors } from '../../stylecomponents/colors';
 import ReadyForScores from './ReadyForScores';
 
@@ -135,18 +135,6 @@ export default function AdminBar() {
       case 'awaiting_scores': return '#B6F23C'; // lime green
       case 'completed': return '#B6F23C'; // green
       default: return '#8A97A6'; // grey
-    }
-  };
-
-  const getStatusLabel = (status: GameWeekStatus): string => {
-    switch (status) {
-      case 'upcoming': return 'Upcoming';
-      case 'predictions': return 'Predictions Open';
-      case 'locked': return 'Predictions Locked';
-      case 'live': return 'Games live';
-      case 'awaiting_scores': return 'Awaiting correct scores';
-      case 'completed': return 'Game week complete';
-      default: return 'Unknown';
     }
   };
 
@@ -300,11 +288,9 @@ export default function AdminBar() {
       >
         <div className="flex items-center gap-3">
           <span className="text-2xl">{getStatusEmoji(gameWeekStatus)}</span>
-          <div>
-            <p className="font-semibold">Game week {recentGameWeek.week_number}</p>
-            <p className="text-sm">{getStatusLabel(gameWeekStatus)}</p>
-          </div>
+          <p className="font-semibold">Game week {recentGameWeek.week_number}</p>
         </div>
+        <p className="text-sm">{getStatusLabelWithTime(gameWeekStatus, recentGameWeek)}</p>
       </div>
     </section>
   );
