@@ -16,17 +16,27 @@ type DashboardShellProps = {
   children?: ReactNode;
   profileName?: string;
   seasonName?: string;
+  onHome?: () => void;
 };
 
 export function AppHeader({
   profileName,
   seasonName,
   onOpenProfileSettings,
+  onHome,
 }: {
   profileName?: string;
   seasonName?: string;
   onOpenProfileSettings?: () => void;
+  onHome?: () => void;
 }) {
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (onHome) {
+      e.preventDefault();
+      onHome();
+    }
+  };
+
   return (
     <header
       className="mx-auto mb-4 flex w-full max-w-[1280px] items-center justify-between gap-4 px-4 py-4 md:px-6"
@@ -38,6 +48,7 @@ export function AppHeader({
       <div className="flex min-w-0 items-center gap-3">
         <Link
           href="/"
+          onClick={handleLogoClick}
           className="flex items-center gap-3 text-[var(--color-text)] transition-opacity hover:opacity-90"
           aria-label="Back to home"
         >
@@ -153,6 +164,7 @@ export default function DashboardShell({
   children,
   profileName: initialProfileName,
   seasonName: initialSeasonName,
+  onHome,
 }: DashboardShellProps) {
   const [profileName, setProfileName] = useState(initialProfileName || 'Player');
   const [seasonName, setSeasonName] = useState(initialSeasonName || 'Current season');
@@ -252,6 +264,7 @@ export default function DashboardShell({
           profileName={profileName}
           seasonName={seasonName}
           onOpenProfileSettings={() => setShowProfileSettings(true)}
+          onHome={onHome}
         />
 
         <div className="px-0 py-0 md:px-0 md:py-0">

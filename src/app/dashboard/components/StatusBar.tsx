@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, forwardRef, useImperativeHandle } from 'react';
 import { supabase } from '../../../../supabaseClient';
 import { determineGameWeekStatus } from '../../../utils/gameWeekStatus';
 import { colors } from '../../stylecomponents/colors';
@@ -30,7 +30,12 @@ type StatusBarProps = {
   onFullPageChange?: (isFullPage: boolean) => void;
 };
 
-export default function StatusBar({ onFullPageChange }: StatusBarProps) {
+export type StatusBarHandle = {
+  resetPanel: () => void;
+};
+
+const StatusBar = forwardRef<StatusBarHandle, StatusBarProps>(
+  ({ onFullPageChange }, ref) => {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [gameWeeks, setGameWeeks] = useState<GameWeek[]>([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
@@ -40,6 +45,12 @@ export default function StatusBar({ onFullPageChange }: StatusBarProps) {
   const [showChooseGameWeek, setShowChooseGameWeek] = useState(false);
   const [activePanel, setActivePanel] = useState<'status' | 'view' | 'scores'>('status');
   const [currentTime, setCurrentTime] = useState(() => Date.now());
+
+  useImperativeHandle(ref, () => ({
+    resetPanel: () => {
+      setActivePanel('status');
+    },
+  }));
 
   useEffect(() => {
     const timer = window.setInterval(() => setCurrentTime(Date.now()), 1000);
@@ -446,5 +457,10 @@ export default function StatusBar({ onFullPageChange }: StatusBarProps) {
       />
     </>
   );
-}
+  }
+);
+
+StatusBar.displayName = 'StatusBar';
+
+export default StatusBar;
 

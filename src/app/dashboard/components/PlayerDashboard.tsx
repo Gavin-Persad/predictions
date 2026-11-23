@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from 'react';
+import React, { useEffect, useState, type ReactNode, forwardRef, useImperativeHandle } from 'react';
 import { supabase } from '../../../../supabaseClient';
 import Awards from '../tiles/Awards';
 import AwardsPage from '../tiles/AwardsPage';
@@ -23,141 +23,164 @@ type PlayerDashboardProps = {
   isHost?: boolean;
 };
 
-export default function PlayerDashboard({ topSlot, isHost = false }: PlayerDashboardProps) {
-  const [seasons, setSeasons] = useState<Season[]>([]);
-  const [seasonsLoading, setSeasonsLoading] = useState(true);
-  const [showLeagueTable, setShowLeagueTable] = useState(false);
-  const [showAwardsPage, setShowAwardsPage] = useState(false);
-  const [showGeorgeCupPage, setShowGeorgeCupPage] = useState(false);
-  const [showLaveryCupPage, setShowLaveryCupPage] = useState(false);
-  const [managerMonthPage, setManagerMonthPage] = useState<{
-    months: ManagerMonthStandings[];
-    initialMonthId: string;
-    currentUserId: string | null;
-  } | null>(null);
-  const [statusFullPage, setStatusFullPage] = useState(false);
+export type PlayerDashboardHandle = {
+  resetToHome: () => void;
+};
 
-  useEffect(() => {
-    let active = true;
+const PlayerDashboard = forwardRef<PlayerDashboardHandle, PlayerDashboardProps>(
+  ({ topSlot, isHost = false }, ref) => {
+    const [seasons, setSeasons] = useState<Season[]>([]);
+    const [seasonsLoading, setSeasonsLoading] = useState(true);
+    const [showLeagueTable, setShowLeagueTable] = useState(false);
+    const [showAwardsPage, setShowAwardsPage] = useState(false);
+    const [showGeorgeCupPage, setShowGeorgeCupPage] = useState(false);
+    const [showLaveryCupPage, setShowLaveryCupPage] = useState(false);
+    const [managerMonthPage, setManagerMonthPage] = useState<{
+      months: ManagerMonthStandings[];
+      initialMonthId: string;
+      currentUserId: string | null;
+    } | null>(null);
+    const [statusFullPage, setStatusFullPage] = useState(false);
+    const statusBarRef = React.useRef<React.ComponentRef<typeof StatusBar>>(null);
 
-    const loadSeasons = async () => {
-      const { data, error } = await supabase
-        .from('seasons')
-        .select('id, name')
-        .order('created_at', { ascending: false });
+    useImperativeHandle(ref, () => ({
+      resetToHome: () => {
+        setShowLeagueTable(false);
+        setShowAwardsPage(false);
+        setShowGeorgeCupPage(false);
+        setShowLaveryCupPage(false);
+        setManagerMonthPage(null);
+        setStatusFullPage(false);
+        statusBarRef.current?.resetPanel();
+      },
+    }));
 
-      if (error) console.error('Error fetching seasons:', error);
-      if (!active) return;
+    useEffect(() => {
+      let active = true;
 
-      setSeasons(data ?? []);
-      setSeasonsLoading(false);
-    };
+      const loadSeasons = async () => {
+        const { data, error } = await supabase
+          .from('seasons')
+          .select('id, name')
+          .order('created_at', { ascending: false });
 
-    void loadSeasons();
+        if (error) console.error('Error fetching seasons:', error);
+        if (!active) return;
 
-    return () => {
-      active = false;
-    };
-  }, []);
+        setSeasons(data ?? []);
+        setSeasonsLoading(false);
+      };
 
-  const latestSeason = seasons[0] ?? null;
+      void loadSeasons();
 
-  if (showLeagueTable) {
+      return () => {
+        active = false;
+      };
+    }, []);
+
+    const latestSeason = seasons[0] ?? null;
+
+    if (showLeagueTable) {
+      return (
+        <LeagueTablePage
+          seasons={seasons}
+          initialSeasonId={latestSeason?.id ?? null}
+          onBack={() => setShowLeagueTable(false)}
+        />
+      );
+    }
+
+    if (showAwardsPage && latestSeason) {
+      return (
+        <AwardsPage
+          seasons={seasons}
+          initialSeasonId={latestSeason.id}
+          onBack={() => setShowAwardsPage(false)}
+        />
+      );
+    }
+
+    if (showGeorgeCupPage && latestSeason) {
+      return (
+        <GeorgeCupPage
+          seasons={seasons}
+          initialSeasonId={latestSeason.id}
+          onBack={() => setShowGeorgeCupPage(false)}
+        />
+      );
+    }
+
+    if (showLaveryCupPage && latestSeason) {
+      return (
+        <LaveryCupPage
+          seasons={seasons}
+          initialSeasonId={latestSeason.id}
+          onBack={() => setShowLaveryCupPage(false)}
+        />
+      );
+    }
+
+    if (managerMonthPage && latestSeason) {
+      return (
+        <ManagerOfTheMonthPage
+          seasons={seasons}
+          initialSeasonId={latestSeason.id}
+          months={managerMonthPage.months}
+          initialMonthId={managerMonthPage.initialMonthId}
+          currentUserId={managerMonthPage.currentUserId}
+          onBack={() => setManagerMonthPage(null)}
+        />
+      );
+    }
+
     return (
-      <LeagueTablePage
-        seasons={seasons}
-        initialSeasonId={latestSeason?.id ?? null}
-        onBack={() => setShowLeagueTable(false)}
-      />
-    );
-  }
+      <>
+        {!statusFullPage && topSlot}
 
-  if (showAwardsPage && latestSeason) {
-    return (
-      <AwardsPage
-        seasons={seasons}
-        initialSeasonId={latestSeason.id}
-        onBack={() => setShowAwardsPage(false)}
-      />
-    );
-  }
+        <StatusBar ref={statusBarRef} onFullPageChange={setStatusFullPage} />
 
-  if (showGeorgeCupPage && latestSeason) {
-    return (
-      <GeorgeCupPage
-        seasons={seasons}
-        initialSeasonId={latestSeason.id}
-        onBack={() => setShowGeorgeCupPage(false)}
-      />
-    );
-  }
+        {!statusFullPage && (
+          <>
+            {/* Desktop height is clamped to the viewport so the whole dashboard fits between header and footer. */}
+            <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
+              <div className="lg:h-[806px] lg:self-start">
+                <LeagueTable
+                  season={latestSeason}
+                  seasonLoading={seasonsLoading}
+                  onOpen={() => setShowLeagueTable(true)}
+                />
+              </div>
 
-  if (showLaveryCupPage && latestSeason) {
-    return (
-      <LaveryCupPage
-        seasons={seasons}
-        initialSeasonId={latestSeason.id}
-        onBack={() => setShowLaveryCupPage(false)}
-      />
-    );
-  }
-
-  if (managerMonthPage && latestSeason) {
-    return (
-      <ManagerOfTheMonthPage
-        seasons={seasons}
-        initialSeasonId={latestSeason.id}
-        months={managerMonthPage.months}
-        initialMonthId={managerMonthPage.initialMonthId}
-        currentUserId={managerMonthPage.currentUserId}
-        onBack={() => setManagerMonthPage(null)}
-      />
-    );
-  }
-
-  return (
-    <>
-      {!statusFullPage && topSlot}
-
-      <StatusBar onFullPageChange={setStatusFullPage} />
-
-      {!statusFullPage && (
-        <>
-          {/* Desktop height is clamped to the viewport so the whole dashboard fits between header and footer. */}
-          <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
-            <div className="lg:h-[806px] lg:self-start">
-              <LeagueTable
-                season={latestSeason}
-                seasonLoading={seasonsLoading}
-                onOpen={() => setShowLeagueTable(true)}
-              />
+              <div className="grid gap-3 lg:grid-rows-[110px_repeat(3,minmax(220px,1fr))]">
+                <Awards onOpen={() => setShowAwardsPage(true)} />
+                <GeorgeCup
+                  season={latestSeason}
+                  seasonLoading={seasonsLoading}
+                  onOpen={() => setShowGeorgeCupPage(true)}
+                />
+                <LaveryCup
+                  season={latestSeason}
+                  seasonLoading={seasonsLoading}
+                  onOpen={() => setShowLaveryCupPage(true)}
+                />
+                <ManagerOfTheMonth
+                  season={latestSeason}
+                  seasonLoading={seasonsLoading}
+                  onOpen={(months, monthId, currentUserId) =>
+                    setManagerMonthPage({ months, initialMonthId: monthId, currentUserId })
+                  }
+                />
+              </div>
             </div>
 
-            <div className="grid gap-3 lg:grid-rows-[110px_repeat(3,minmax(220px,1fr))]">
-              <Awards onOpen={() => setShowAwardsPage(true)} />
-              <GeorgeCup
-                season={latestSeason}
-                seasonLoading={seasonsLoading}
-                onOpen={() => setShowGeorgeCupPage(true)}
-              />
-              <LaveryCup
-                season={latestSeason}
-                seasonLoading={seasonsLoading}
-                onOpen={() => setShowLaveryCupPage(true)}
-              />
-              <ManagerOfTheMonth
-                season={latestSeason}
-                seasonLoading={seasonsLoading}
-                onOpen={(months, monthId, currentUserId) =>
-                  setManagerMonthPage({ months, initialMonthId: monthId, currentUserId })
-                }
-              />
-            </div>
-          </div>
+            <Messages isHost={isHost} />
+          </>
+        )}
+      </>
+    );
+  }
+);
 
-          <Messages isHost={isHost} />
-        </>
-      )}
-    </>
-  );
-}
+PlayerDashboard.displayName = 'PlayerDashboard';
+
+export default PlayerDashboard;
