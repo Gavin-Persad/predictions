@@ -4,8 +4,8 @@
 
 ### change needed later (things that will upset current app)
 
-- supabase redirect from emails on sign up- authentication> url congfigurations> /landing/dashboard -- Should be correct, just needs checking once the branch has been merged.
-- forgot password, redirect from emails needs correcting
+- Admin page, set up then add modules. Edit Awards, Create/ Edit Season, Edit Players, Create/Edit Game Weeks, Edit Manager of the month, Edit George Cup, Edit Lavery Cup
+- Create Enter Correct Scores, remove 88-88 change to no score for no entry, add previous league position to supabase and edit league table to show this place change.
 - remove old files, no longer needed as replaced by new file
 - update readme
 - check for scalability issues
@@ -28,7 +28,8 @@
 - add new table to DB "Teams" make team selection when creating game weeks dropdown options, when a new team is added it adds to the table, when we click the drop down we get all previous options to use.
 
 ## Completed (summary)
-
+- forgot password, redirect from emails needs correcting
+- supabase redirect from emails on sign up- authentication> url congfigurations> /landing/dashboard -- Should be correct, just needs checking once the branch has been merged.
 - Dashboard routing and tiles: ensure deep links pass season context (league, George Cup, Lavery Cup, Enter Scores).
 - Auth: Forgot password flow.
 - Manual fixture entry and testing end-to-end.
