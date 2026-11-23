@@ -5,8 +5,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../supabaseClient';
 import { useRouter } from 'next/navigation';
-import DarkModeToggle from '../../components/darkModeToggle';
-import Sidebar from '../../components/Sidebar';
+import DashboardShell, { AppHeader } from '../headerandfooter';
+import { colors } from '../stylecomponents/colors';
 
 type UserProfile = {
   id: string;
@@ -15,120 +15,106 @@ type UserProfile = {
 };
 
 export default function AdminPage() {
-  const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [currentProfile, setCurrentProfile] = useState<UserProfile | null>(null);
-  const [message, setMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchProfiles = async () => {
+    const checkHostAccess = async () => {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
         router.push('/');
         return;
       }
 
-      const { data: currentUserProfile, error: profileError } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id, username, is_host')
         .eq('id', user.id)
         .single();
 
-      if (profileError || !currentUserProfile?.is_host) {
+      if (profileError || !profile?.is_host) {
         router.push('/');
         return;
       }
 
-      setCurrentProfile(currentUserProfile);
-
-      const { data: allProfiles, error: allProfilesError } = await supabase
-        .from('profiles')
-        .select('id, username, is_host');
-
-      if (allProfilesError) {
-        setMessage('Error fetching profiles');
-      } else {
-        setProfiles(allProfiles);
-       
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 2000);
-      }
+      setCurrentProfile(profile);
+      setLoading(false);
     };
 
-    fetchProfiles();
+    void checkHostAccess();
   }, [router]);
 
-  const toggleHostStatus = async (profileId: string, currentStatus: boolean) => {
-    setMessage('');
-    const { error } = await supabase
-    .from('profiles')
-    .update({ is_host: !currentStatus })
-    .eq('id', profileId)
-    .select();
-  
-  if (error) {
-    setMessage('Error updating host status');
-    return;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: colors.background }}>
+        <p className="text-sm text-[var(--color-muted)]">Loading...</p>
+      </div>
+    );
   }
-  
-    setProfiles(profiles.map(profile => 
-      profile.id === profileId 
-        ? { ...profile, is_host: !currentStatus }
-        : profile
-    ));
-  };
+
+  if (!currentProfile?.is_host) {
+    return null;
+  }
 
   return (
-    <div className="flex">
-        <Sidebar />
-        <div className="flex-grow flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-            <div className="absolute top-4 right-4">
-                <DarkModeToggle />
-            </div>
-            <div className="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-4xl">
-                <h1 className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
-                    Admin Dashboard
-                </h1>
-                {message && (
-                    <p className="mb-4 text-red-500 dark:text-red-400">{message}</p>
-                )}
-                {!isLoading && (
-                    <div className="w-full">
-                        <table className="w-full">
-                            <thead>
-                                <tr>
-                                    <th className="py-2 text-left text-gray-700 dark:text-gray-300">Username</th>
-                                    <th className="py-2 text-center text-gray-700 dark:text-gray-300">Host</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {profiles.map((profile) => (
-                                    <tr key={profile.id} className="border-t border-gray-200 dark:border-gray-700">
-                                        <td className="py-3 text-gray-900 dark:text-gray-100">
-                                            {profile.username}
-                                        </td>
-                                        <td className="py-3 text-center">
-                                            <button
-                                                onClick={() => toggleHostStatus(profile.id, profile.is_host)}
-                                                className={`px-4 py-2 rounded ${
-                                                    profile.is_host
-                                                        ? 'bg-green-600 hover:bg-green-700'
-                                                        : 'bg-gray-600 hover:bg-gray-700'
-                                                } text-white transition-colors duration-200`}
-                                            >
-                                                {profile.is_host ? 'Yes' : 'No'}
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
+    <main
+      className="relative min-h-screen overflow-hidden text-[var(--color-text)]"
+      style={{
+        backgroundColor: colors.background,
+        ['--color-text' as never]: colors.text,
+        ['--color-muted' as never]: colors.muted,
+        ['--color-lime' as never]: colors.lime,
+        ['--color-pitch-line' as never]: colors.pitchLine,
+        ['--color-field' as never]: colors.field,
+        ['--color-border' as never]: colors.border,
+        ['--color-border-strong' as never]: colors.borderStrong,
+        ['--color-panel' as never]: colors.panel,
+        ['--color-background' as never]: colors.background,
+        ['--color-lime-hover' as never]: colors.limeHover,
+        ['--color-placeholder' as never]: colors.placeholder,
+        ['--color-success-background' as never]: colors.successBackground,
+        ['--color-success-border' as never]: colors.successBorder,
+        ['--color-success-text' as never]: colors.successText,
+        ['--color-error-background' as never]: colors.errorBackground,
+        ['--color-error-border' as never]: colors.errorBorder,
+        ['--color-error-text' as never]: colors.errorText,
+      }}
+    >
+      <div className="relative z-10 mx-auto max-w-[1280px] px-4 py-5 md:px-6 lg:px-8">
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <AppHeader
+            profileName={currentProfile?.username}
+            seasonName="Admin View"
+          />
         </div>
-    </div>
-);
+
+        <div
+          className="w-full rounded-[18px] border p-4 md:p-5"
+          style={{ backgroundColor: colors.panel, borderColor: colors.border }}
+        >
+          <div className="mb-3 flex items-center justify-between gap-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">
+              Admin content
+            </p>
+            <button
+              type="button"
+              onClick={() => router.push('/')}
+              className="rounded-full border px-3 py-1.5 text-sm font-medium text-[var(--color-text)]"
+              style={{ borderColor: colors.borderStrong, backgroundColor: colors.field }}
+            >
+              ← Return to player view
+            </button>
+          </div>
+
+          <div
+            className="flex min-h-[200px] items-center justify-center rounded-lg border border-dashed text-sm text-[var(--color-muted)]"
+            style={{ backgroundColor: colors.field, borderColor: colors.borderStrong }}
+          >
+            Admin page content - Coming soon
+          </div>
+        </div>
+      </div>
+    </main>
+  );
 }

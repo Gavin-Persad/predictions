@@ -69,9 +69,18 @@ export default function Dashboard() {
     <div className="flex">
       <Sidebar />
       <div className="flex-grow flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
-        {/* Top bar with dark mode toggle and profile link */}
+        {/* Top bar with dark mode toggle and admin button */}
         <div className="w-full flex justify-end items-center p-4 bg-white dark:bg-gray-800 shadow-sm">
           <div className="flex items-center gap-4">
+            {profile?.is_host && (
+              <button
+                type="button"
+                onClick={() => router.push('/admin')}
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
+              >
+                Admin
+              </button>
+            )}
             <DarkModeToggle />
           </div>
         </div>
