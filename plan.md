@@ -2,7 +2,9 @@
 
 ## 2.0
 
-### change needed later (things that will upset current app)
+### change needed
+
+- change admin bar game status bars to incluce time of status change, and maybe progress bar.
 
 - Admin page, set up then add modules. Edit Awards, Create/ Edit Season, Edit Players, Create/Edit Game Weeks, Edit Manager of the month, Edit George Cup, Edit Lavery Cup
 - Create Enter Correct Scores, remove 88-88 change to no score for no entry, add previous league position to supabase and edit league table to show this place change.
@@ -27,6 +29,8 @@
 - add some data projects to the app (league progression and personal tables)
 - admin view of how many players have entered and enter their scores for them
 - add new table to DB "Teams" make team selection when creating game weeks dropdown options, when a new team is added it adds to the table, when we click the drop down we get all previous options to use.
+
+- PLAYER AWARDS - collect awards on a new table that allows players to show previous awards on their profile, hover over players names on leagues or cups to see their awards(manger of the week, winners medals, years in the league etc.)
 
 ## Completed (summary)
 - forgot password, redirect from emails needs correcting

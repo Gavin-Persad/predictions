@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../../../supabaseClient';
 import { determineGameWeekStatus, type GameWeekStatus } from '../../../utils/gameWeekStatus';
 import { colors } from '../../stylecomponents/colors';
+import ReadyForScores from './ReadyForScores';
 
 type GameWeek = {
   id: string;
@@ -25,6 +26,7 @@ export default function AdminBar() {
   const [gameWeekStatus, setGameWeekStatus] = useState<GameWeekStatus | null>(null);
   const [awaitingScoresWeeks, setAwaitingScoresWeeks] = useState<GameWeek[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showReadyForScores, setShowReadyForScores] = useState(false);
 
   useEffect(() => {
     const fetchGameWeekStatus = async () => {
@@ -148,6 +150,15 @@ export default function AdminBar() {
     }
   };
 
+  if (showReadyForScores && currentSeasonId) {
+    return (
+      <ReadyForScores
+        seasonId={currentSeasonId}
+        onClose={() => setShowReadyForScores(false)}
+      />
+    );
+  }
+
   if (loading) {
     return (
       <section
@@ -242,16 +253,19 @@ export default function AdminBar() {
                 </div>
               </div>
 
-              <Link
-                href="/admin"
+              <button
+                type="button"
+                onClick={() => setShowReadyForScores(true)}
                 className="text-sm font-semibold px-4 py-2.5 rounded-[10px]"
                 style={{ 
                   backgroundColor: '#0B0F14',
-                  color: '#B6F23C'
+                  color: '#B6F23C',
+                  border: 'none',
+                  cursor: 'pointer'
                 }}
               >
                 Enter scores
-              </Link>
+              </button>
             </div>
           ))}
         </div>
